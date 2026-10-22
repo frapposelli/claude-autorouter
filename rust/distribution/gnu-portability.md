@@ -88,6 +88,80 @@ Each job performs these steps:
    when a later check fails. No provider calls, model downloads, release tags,
    registry publication or production approval are part of this workflow.
 
+## GNU binary provenance producer
+
+The `autorouter-audit binary-provenance` producer binds the ordinary
+release executable to observed build inputs in the two reviewed GNU jobs. A new
+GNU run of this producer remains pending. Earlier portability passes and local
+private archives retain their original provenance; they cannot supply the new
+producer's successful execution evidence.
+
+The workflow uses the retained, separately built `autorouter-audit-bootstrap`
+with `runtime-tools` disabled. From `rust/`, after the existing pinned toolchain,
+builder-record and auditor checks, the exact order is:
+
+```sh
+set -euo pipefail
+set -o noclobber
+unset LD_LIBRARY_PATH PKG_CONFIG_PATH
+autorouter_provenance_dir="$GITHUB_WORKSPACE/artifacts/rust-rewrite/gnu-portability"
+"$autorouter_provenance_dir/autorouter-audit-bootstrap" binary-provenance begin \
+  --target "$AUTOROUTER_BUILD_TARGET" \
+  --builder-report "$autorouter_provenance_dir/builder.json" \
+  --build-report "$autorouter_provenance_dir/production-build.jsonl" \
+  --feature-report "$autorouter_provenance_dir/production-features.json" \
+  --out "$autorouter_provenance_dir/production-inputs.json"
+cargo build --release --offline --locked --package claude-autorouter --message-format=json \
+  > "$autorouter_provenance_dir/production-build.jsonl"
+"$autorouter_provenance_dir/autorouter-audit-bootstrap" production-features \
+  --build-report "$autorouter_provenance_dir/production-build.jsonl" \
+  > "$autorouter_provenance_dir/production-features.json"
+"$autorouter_provenance_dir/autorouter-audit-bootstrap" binary-provenance finish \
+  --inputs "$autorouter_provenance_dir/production-inputs.json" \
+  --build-report "$autorouter_provenance_dir/production-build.jsonl" \
+  --feature-report "$autorouter_provenance_dir/production-features.json" \
+  --out "$autorouter_provenance_dir/production-native"
+```
+
+The existing output parent must resolve without symlinks. `begin` requires
+absolute, distinct, unused paths for the Cargo report, feature report and input
+record. The selected Cargo `release` directory must not exist: by default this
+is `rust/target/release`, or `release` under an explicitly absolute
+`CARGO_TARGET_DIR`. If an earlier check created it, review an isolated fresh
+release root; the producer never deletes a cache or certifies cached artifacts.
+Every `compiler-artifact` in the finished Cargo report must have `fresh: false`.
+
+`finish` requires the exact report paths declared by `begin` and a new absolute
+output directory. It retains `production-native/claude-autorouter` with mode
+0755 and `production-native/native-binary-provenance.json` with mode 0600 inside
+a mode 0700 directory. It verifies their exact bytes, modes and owned file and
+directory identities before success. Existing or replaced paths are preserved
+on refusal; cleanup removes only files it created, without recursive deletion.
+The workflow retains these outputs alongside the input, Cargo, feature and
+builder records. Review the original run, attempt and uploaded artifact identity
+with their hashes before consuming the binary/provenance pair.
+
+Admission checks the actual clean checkout and lockfile, reviewed Cargo
+configuration, compiler and wrapper identities/bytes, flags and public workflow
+context before and after the build. It recomputes the original production
+feature audit, matches the unique Cargo executable, and checks its GNU target,
+GLIBC requirements, dependencies and search paths. Selected build variables
+and input/output bytes are bounded; unknown compiler overrides are refused
+without printing their values. Metadata subprocesses use a cleared environment.
+The collector runs no product, build, installer, download or provider request.
+The workflow's explicit Cargo command performs the build between its phases.
+
+These records are declarations from the reviewed checksum-pinned workflow, not
+signatures. The collector cannot authenticate GitHub environment variables,
+prove an arbitrary caller ran the declared command, rule out transient hidden
+mutation, or independently hash the entire compiler shared-library closure.
+The trusted workflow/install and original artifact identity remain the review
+boundary. Local runs, other target profiles and unreviewed reusable-workflow
+callers are refused. Synthetic collector controls remain separate from actual
+GNU build provenance. Passing this producer preserves every platform, TLS,
+performance, license, lifecycle and release approval gate below and in the
+[release schema](release-schema.md).
+
 A successful symbol gate establishes only a necessary GLIBC requirement bound.
 These containers share the hosted runner's kernel; they cannot qualify an older
 kernel. Transitive libraries, DNS/NSS, corporate trust stores, CPU deployment

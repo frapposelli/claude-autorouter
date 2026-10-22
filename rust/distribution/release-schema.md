@@ -96,6 +96,20 @@ The platform report also binds `platforms_sha256` and the exact `targets` list; 
 
 Each binary provenance document has `schema_version: 1`, `kind: "native_binary_provenance"`, `provenance: "ci-source-build"`, exact `source_commit`, `cargo_lock_sha256`, `target`, `binary_sha256`, `repository: "frapposelli/claude-autorouter"`, `profile: "release"`, `portable_cpu: true`, plus nonempty `rustc`, `workflow_run`, and a `rustflags` array. Native CPU flags are rejected. Executable headers, architecture and dynamic library constraints are independently inspected; a filename or declaration alone cannot establish them. Header inspection still does not establish OS execution or CPU portability, which require retained platform evidence and trusted CI build provenance.
 
+The [GNU binary provenance producer](gnu-portability.md#gnu-binary-provenance-producer)
+adds a two-phase source/compiler witness for the reviewed GNU x86_64 and
+ARM64 jobs. Its input record precedes an ordinary cold release build;
+`finish` recomputes the existing feature audit and retains the exact binary
+beside its provenance JSON. The record also binds the input, Cargo, feature and
+builder report hashes and the original workflow run/attempt. A new actual GNU
+execution remains pending; declared synthetic controls and earlier CI passes
+cannot substitute for it. The producer does not assemble or authorize a release,
+change any schema-2 qualification requirement, or upgrade local/private schema-1
+artifacts. Its environment fields are not signatures: trusted pinned workflow
+execution, original artifact identity and separate platform evidence remain
+required. See the linked guide for exact commands, fresh-path requirements and
+failure/security limits.
+
 The separate qualification approval document has `schema_version: 1`, `kind: "native_release_approval"`, `approved: true`, `source_commit`, `cargo_lock_sha256`, `version`, `platforms_sha256`, `licenses_sha256`, `public_files_sha256`, `reviewer`, `review_reference`, the exact `artifacts` hash map, and `qualification` mapping gate names to report hashes. All `reviewed` entries `baseline_platform_scope`, `runtime_documentation`, `live_canaries` and `license_review` must be true. `release-pack materials` prints the public files and deterministic `public_files_sha256` for review without generating approval. The digest is SHA256 of the pretty JSON file declarations, ordered by path, with a final newline. It binds the original public documentation and source package manifest before the native manifest transformation.
 
 Assembly preserves public documentation, removes Node engines/development dependencies/scripts from the output manifest, and supplies the reviewed shell dispatcher and all qualified binaries. The source manifest is never changed. The output contains `claude-autorouter-VERSION.tgz`, one `claude-autorouter-VERSION-TARGET.tar.gz` per target, `release-index.json`, and SHA256 sidecars. Encoding is deterministic gzip/ustar with fixed timestamps. Any encoding/size/verification failure leaves no completed output.

@@ -242,8 +242,25 @@ jobs:
         if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' }}
         run: |
           set -euo pipefail
-          cargo build --release --offline --locked --package claude-autorouter --message-format=json > ../artifacts/rust-rewrite/gnu-portability/production-build.jsonl
-          ../artifacts/rust-rewrite/gnu-portability/autorouter-audit-bootstrap production-features --build-report ../artifacts/rust-rewrite/gnu-portability/production-build.jsonl > ../artifacts/rust-rewrite/gnu-portability/production-features.json
+          set -o noclobber
+          # The pinned image exports these host-library lookup defaults. Use
+          # one cleared environment for input capture, compilation and finish.
+          unset LD_LIBRARY_PATH PKG_CONFIG_PATH
+          autorouter_provenance_dir="$GITHUB_WORKSPACE/artifacts/rust-rewrite/gnu-portability"
+          "$autorouter_provenance_dir/autorouter-audit-bootstrap" binary-provenance begin \
+            --target "$AUTOROUTER_BUILD_TARGET" \
+            --builder-report "$autorouter_provenance_dir/builder.json" \
+            --build-report "$autorouter_provenance_dir/production-build.jsonl" \
+            --feature-report "$autorouter_provenance_dir/production-features.json" \
+            --out "$autorouter_provenance_dir/production-inputs.json"
+          cargo build --release --offline --locked --package claude-autorouter --message-format=json > "$autorouter_provenance_dir/production-build.jsonl"
+          "$autorouter_provenance_dir/autorouter-audit-bootstrap" production-features \
+            --build-report "$autorouter_provenance_dir/production-build.jsonl" > "$autorouter_provenance_dir/production-features.json"
+          "$autorouter_provenance_dir/autorouter-audit-bootstrap" binary-provenance finish \
+            --inputs "$autorouter_provenance_dir/production-inputs.json" \
+            --build-report "$autorouter_provenance_dir/production-build.jsonl" \
+            --feature-report "$autorouter_provenance_dir/production-features.json" \
+            --out "$autorouter_provenance_dir/production-native"
       - name: Freeze and verify the complete immutable reference
         id: freeze_reference
         if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' }}
@@ -334,6 +351,7 @@ jobs:
           name: rust-glibc228-${{ matrix.target }}
           path: |
             artifacts/rust-rewrite/gnu-portability/*
+            artifacts/rust-rewrite/gnu-portability/production-native/*
             artifacts/rust-rewrite/gnu-portability/workspace-*.log
             artifacts/rust-rewrite/parity*.json
             artifacts/rust-rewrite/tls-*.json
