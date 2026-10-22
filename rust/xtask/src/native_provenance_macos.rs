@@ -443,6 +443,24 @@ fn selected_path(
         .map_err(|_| "Cannot resolve selected Mac tool path".into())
 }
 
+// Rustup dispatches by argv[0]. Keep its admitted invocation name while
+// independently binding the canonical file selected first on compiler PATH.
+fn admitted_rustup_invocation(
+    env: &BTreeMap<String, String>,
+    cargo_home: &Path,
+) -> Result<(PathBuf, PathBuf), String> {
+    let invocation = cargo_home.join("bin/rustup");
+    let canonical = resolve_tool(env, "rustup")?;
+    if canonical
+        != invocation
+            .canonicalize()
+            .map_err(|_| "Cannot resolve admitted rustup")?
+    {
+        return Err("Rustup is not the admitted Cargo-home executable".into());
+    }
+    Ok((invocation, canonical))
+}
+
 pub(super) fn snapshot(root: &Path, p: MacProfile) -> Result<Value, String> {
     let env = select_macos_env(std::env::vars_os())?;
     let claimed = env_string(&env, "GITHUB_SHA")?;
@@ -471,16 +489,9 @@ pub(super) fn snapshot(root: &Path, p: MacProfile) -> Result<Value, String> {
             .join("toolchains")
             .join(format!("1.99.0-{}", p.target)),
     )?;
-    let rustup = resolve_tool(&env, "rustup")?;
-    if rustup
-        != cargo_home
-            .join("bin/rustup")
-            .canonicalize()
-            .map_err(|_| "Cannot resolve admitted rustup")?
-    {
-        return Err("Rustup is not the admitted Cargo-home executable".into());
-    }
-    let rustup_witness = tool_descriptor(&rustup)?;
+    let (rustup, rustup_canonical) = admitted_rustup_invocation(&env, &cargo_home)?;
+    let mut rustup_witness = tool_descriptor(&rustup_canonical)?;
+    rustup_witness["invocation_path"] = json!(rustup);
     let mut tools = serde_json::Map::new();
     tools.insert("rustup".into(), rustup_witness.clone());
     let mut actual = BTreeMap::new();
@@ -676,7 +687,7 @@ pub(super) fn inspect(p: MacProfile, binary: &[u8]) -> Result<Value, String> {
 #[cfg(test)]
 mod tests {
     // Synthetic metadata and owned local files only. Never mutate the process
-    // environment, invoke compiler/rustup/xcrun, or inspect the real SDK.
+    // environment, invoke actual compiler/rustup/xcrun, or inspect the real SDK.
     use super::*;
     use crate::audit_support::Scratch;
 
@@ -729,6 +740,58 @@ mod tests {
             env.insert(name.into(), path.to_str().unwrap().into());
         }
         (scratch, env)
+    }
+
+    #[test]
+    fn rustup_metadata_preserves_multicall_invocation_and_admitted_identity() {
+        use std::os::unix::fs::{PermissionsExt, symlink};
+        let p = profile("aarch64-apple-darwin").unwrap();
+        let (scratch, mut env) = fixture(p);
+        let cargo_home = PathBuf::from(&env["CARGO_HOME"]);
+        let bin = cargo_home.join("bin");
+        fs::create_dir(&bin).unwrap();
+        let actual = PathBuf::from(&env["RUSTUP_HOME"])
+            .join("toolchains/1.99.0-aarch64-apple-darwin/bin/rustc");
+        fs::create_dir_all(actual.parent().unwrap()).unwrap();
+        fs::write(&actual, b"synthetic compiler identity; not executed").unwrap();
+        let script = b"#!/bin/sh\n[ \"${0##*/}\" = rustup ] || exit 1\n[ \"$#\" = 4 ] && [ \"$1\" = which ] && [ \"$2\" = --toolchain ] && [ \"$3\" = 1.99.0 ] && [ \"$4\" = rustc ] || exit 2\nprintf '%s/toolchains/1.99.0-aarch64-apple-darwin/bin/rustc\\n' \"$RUSTUP_HOME\"\n";
+        let implementation = scratch.file("rustup-init", script).unwrap();
+        fs::set_permissions(&implementation, fs::Permissions::from_mode(0o700)).unwrap();
+        let alias = bin.join("rustup");
+        symlink(&implementation, &alias).unwrap();
+        env.insert("PATH".into(), format!("{}:/usr/bin:/bin", bin.display()));
+        let args = &["which", "--toolchain", "1.99.0", "rustc"];
+        let canonical = resolve_tool(&env, "rustup").unwrap();
+        assert_eq!(canonical, implementation);
+        let error = mac_capture(&env, &scratch.0, &canonical, args, 4096).unwrap_err();
+        assert!(error.contains("exit status: 1"), "{error}");
+        let (invocation, admitted_canonical) =
+            admitted_rustup_invocation(&env, &cargo_home).unwrap();
+        assert_eq!(invocation, alias);
+        assert_eq!(admitted_canonical, canonical);
+        assert_eq!(
+            selected_path(&env, &scratch.0, invocation.to_str().unwrap(), args).unwrap(),
+            actual
+        );
+        assert_eq!(
+            tool_descriptor(&admitted_canonical).unwrap(),
+            tool_descriptor(&canonical).unwrap()
+        );
+        assert!(tool_descriptor(&invocation).is_err());
+        let other_home = scratch.0.join("other-cargo-home");
+        fs::create_dir_all(other_home.join("bin")).unwrap();
+        fs::write(other_home.join("bin/rustup"), b"different Cargo-home tool").unwrap();
+        assert!(admitted_rustup_invocation(&env, &other_home).is_err());
+        let shadow_bin = scratch.0.join("shadow-bin");
+        fs::create_dir(&shadow_bin).unwrap();
+        let shadow = shadow_bin.join("rustup");
+        fs::write(&shadow, b"#!/bin/sh\nexit 0\n").unwrap();
+        fs::set_permissions(&shadow, fs::Permissions::from_mode(0o700)).unwrap();
+        env.insert(
+            "PATH".into(),
+            format!("{}:{}:/usr/bin:/bin", shadow_bin.display(), bin.display()),
+        );
+        assert!(admitted_rustup_invocation(&env, &cargo_home).is_err());
     }
 
     #[test]

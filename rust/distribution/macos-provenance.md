@@ -46,8 +46,10 @@ The Mac input witness records:
 - The clean exact Git checkout, lockfile, manifest, toolchain, Cargo config and
   workflow; the actual workflow/run/attempt and hosted runner architecture.
 - Rustup and its invocation shims, the actual `rustup which` compiler/Cargo,
-  compiler version/host/sysroot and compiler-driver library. Missing installed
-  toolchains are rejected before asking rustup to resolve them.
+  compiler version/host/sysroot and compiler-driver library. Rustup metadata uses
+  the admitted invocation name while the witness records its canonical file and
+  invocation path separately; resolving an alias must not select installer mode.
+  Missing installed toolchains are rejected before asking rustup to resolve them.
 - Developer directory, selected SDK/version/settings, system tool entrypoints
   and selected clang/linker/archiver identities. C++ driver invocation names are
   preserved even when `clang++` resolves to the same file as `clang`.
