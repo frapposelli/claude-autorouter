@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-10-22",
+  "kind": "native_musl_closed_metadata_home_environment",
+  "status": "local_checks_passed_fresh_hosted_confirmation_required",
+  "parent_commit": "de517b2dc8c7a35d33af142806f42e27980924ac",
+  "targets": [
+    "x86_64-unknown-linux-musl",
+    "aarch64-unknown-linux-musl"
+  ],
+  "observed_failure": {
+    "head": "de517b2dc8c7a35d33af142806f42e27980924ac",
+    "run_id": 39765586843,
+    "run_attempt": 1,
+    "job_id": 119780097654,
+    "run_url": "https://github.com/frapposelli/claude-autorouter/actions/runs/39765586843/attempts/1",
+    "command": "/opt/autorouter-rust/bin/cargo --version",
+    "command_exit_status": 101,
+    "enclosing_offline_step_exit_status": 1,
+    "public_error": "Musl metadata cargo failed: Fixture executable failed (exit status: 101); run the reference baseline check separately",
+    "diagnostic_review": {
+      "path": "artifacts/rust-rewrite/ci-de517b2-failed-job-logs-20261022-1/diagnostic-review-v3.json",
+      "bytes": 8572,
+      "sha256": "cbd5aace9f612bcfb4559ccee9a19994fb4f08c03b2f4e56cdcc6c115736e655"
+    },
+    "diagnosis": "Source-backed inference: the shared metadata capture clears HOME and CARGO_HOME, even though the build has already admitted them. Cargo can fail home discovery under a numeric container UID without a passwd home. The original Cargo stderr, actual numeric UID and passwd state were not observed, so this is not a confirmed hosted root cause.",
+    "not_a_cargo_metadata_invocation": true,
+    "closed_metadata_snapshot": {
+      "last_observed_utc": "2026-10-22 11:15:11 UTC",
+      "successful_jobs": 11,
+      "failed_musl_jobs": 2,
+      "running_intel_job": 1,
+      "samples": 3,
+      "GETs": 16,
+      "failed_GETs": 0,
+      "both_signed_sdk_preparations_and_locked_fetches_passed": true,
+      "only_arm_inner_command_diagnosed_from_log": true,
+      "receipt": {
+        "path": "artifacts/rust-rewrite/ci-de517b2-readonly-audit-20261022-1/final-metadata-review.json",
+        "bytes": 121021,
+        "sha256": "70767d18a11c6f4ed8029e4df29a0f4d404c27c409ca414fe4946e1f50115e05"
+      }
+    }
+  },
+  "change": {
+    "source": {
+      "path": "rust/xtask/src/native_provenance_musl.rs",
+      "bytes": 84963,
+      "sha256": "0b13ae97a816b3852524714e669152c6fa15c8a3b5161f3da40d3a668a213b9f"
+    },
+    "guide": {
+      "path": "rust/distribution/musl-provenance.md",
+      "bytes": 3067,
+      "sha256": "20ac53c9e2f5a099baf1c97aa287e23c420eb7db0c25a3aaf4dd544008438423"
+    },
+    "scope": "Musl metadata and compiler-wrapper queries only; the shared capture and all GNU/Mac helper bodies are unchanged.",
+    "exact_environment": {
+      "PATH": "previously admitted build PATH",
+      "HOME": "previously admitted build HOME",
+      "CARGO_HOME": "previously admitted build CARGO_HOME",
+      "LC_ALL": "C",
+      "GIT_CONFIG_NOSYSTEM": "1",
+      "GIT_CONFIG_GLOBAL": "/dev/null",
+      "GIT_NO_REPLACE_OBJECTS": "1"
+    },
+    "preserved": [
+      "Environment is cleared before installing the exact seven admitted/fixed keys; unrelated overrides and credentials remain excluded.",
+      "Existing process capture, 15-second deadline, bounded output, UTF-8 validation and sanitized errors remain in force.",
+      "No changes to SDK dependencies/pins, workflows, CPU profiles, source/archive budgets or product runtime behavior."
+    ],
+    "new_regressions": [
+      "metadata_environment_admits_exact_build_homes_and_excludes_other_values",
+      "owned_metadata_child_receives_build_homes_without_inheriting_overrides"
+    ],
+    "regression_scope": "Synthetic closed-map and owned shell child: the old common capture fails the required-home fixture; the new Musl path succeeds while excluding overrides and enforcing the output bound. No real Cargo/SDK/provider execution in these two fixtures."
+  },
+  "local_validation": {
+    "source": {
+      "path": "artifacts/rust-rewrite/musl-metadata-home-validation-20261022-1/source-candidate-v1.json",
+      "bytes": 126387,
+      "sha256": "4ca9a7ae8d4954f296ee8555801436d8b06afedbe5ff0392c5973c768a682c11"
+    },
+    "raw_source_inputs": 740,
+    "frozen_reference_inputs": 111,
+    "auxiliary_inputs": {
+      "initial_11_phases": 404,
+      "final_3_phases": 408
+    },
+    "completed_phases": [
+      "auditor-tests",
+      "audit-clippy",
+      "fmt",
+      "workspace-clippy",
+      "workspace",
+      "sdk-tests",
+      "node-check",
+      "node-tests",
+      "node-package",
+      "bootstrap-build",
+      "required-bundles",
+      "bootstrap-proof",
+      "vendor",
+      "help"
+    ],
+    "all_terminal_zero_and_post_checks_clear": true,
+    "counts": {
+      "rust_passed": 1754,
+      "rust_failed": 0,
+      "rust_ignored": 11,
+      "rust_result_groups": 66,
+      "independent_auditor_passed": 110,
+      "node_passed": 673,
+      "sdk_mock_passed": 50,
+      "optimized_bundle_tests": 3,
+      "shipping_package_files": 58,
+      "package_mock_lifecycle_scenarios": 17,
+      "bootstrap_packages": 65,
+      "vendor_components": 5
+    },
+    "node_syntax_files": 99,
+    "previous_1752_rust_named_outcomes_and_multiplicities_retained": true,
+    "root_report": {
+      "path": "artifacts/rust-rewrite/musl-metadata-home-validation-20261022-1/root-all14-result-v1.json",
+      "bytes": 12561,
+      "sha256": "e78da2b908cb1bdd4b8ba7c40dbfef9e02f0885b0afd9e7c6f3c40ed2983da6d"
+    },
+    "independent_outcome_review": {
+      "path": "artifacts/rust-rewrite/musl-metadata-home-validation-20261022-1/independent-all14-home-outcome-review-v1.json",
+      "bytes": 22053,
+      "sha256": "42fe35de24f86252aa47c391281597d7f2cecb7d70ebfa91886a3cd177dcff52"
+    },
+    "independent_static_review": {
+      "path": "artifacts/rust-rewrite/musl-metadata-home-validation-20261022-1/independent-static-metadata-home-review-v1.json",
+      "bytes": 3166,
+      "sha256": "5faf0fff3a308dbf02d65dd7256e3d872914affb70d4da7eceb75b8a20158743"
+    },
+    "retained_auditor": {
+      "path": "artifacts/rust-rewrite/musl-metadata-home-validation-20261022-1/retained/autorouter-audit",
+      "bytes": 8738928,
+      "sha256": "8e28adbcea2cf1547d9e01fd5c43efde49ea139c800e04873fb2e4cebe52189a"
+    },
+    "conditions": "Normal-use 16 GiB Apple Silicon Mac; Rust/Cargo 1.99.0, Node 22.14.0; locked offline Cargo, two jobs, debug information and incremental compilation disabled. The current auditor was freshly linked, with dependencies reused from the one existing correctness cache; this is not a cold whole-product build.",
+    "ownership": "Each phase retained before/after source, frozen and auxiliary guards, finite wall/output limits, direct-child waits and process-group cleanup. These observations do not establish universal descendant or crash/cancel cleanup.",
+    "postterminal_publication": "The two new public summaries, evidence-index entries and status prose are published after the completed validation cohort. Completed owners retain their original source/AUX snapshots; they are not rebound to later documentation bytes."
+  },
+  "limits": [
+    "Fresh hosted execution is required to confirm the home-discovery diagnosis and both real Musl producers. The preceding hosted failures remain failures.",
+    "No original successful Musl provenance pair has yet been collected or independently verified.",
+    "SDK mocks and shell fixtures are separate from actual signed SDK installation and native execution; local mock timing is not model or platform performance.",
+    "This evidence does not qualify minimum OS/CPU/kernel, TLS, WSL, PTY, reproducible builds, representative hardware, live task quality, the complete twelve-target release set or production release integration.",
+    "JavaScript 0.5.2 remains the shipping default; ordinary native TLS remains Rustls. No release, merge or default cutover is authorized by this checkpoint."
+  ]
+}

@@ -764,6 +764,45 @@ fn sdk_tool_descriptor(path: &Path) -> Result<Value, String> {
 fn tool_witness(tool: &Tool) -> Result<Value, String> {
     Ok(json!({"invocation_path":tool.invocation,"file":sdk_tool_descriptor(&tool.canonical)?}))
 }
+
+// Docker's numeric caller UID need not have a passwd entry. Keep metadata
+// commands on the already admitted build homes without inheriting other values.
+fn metadata_environment(
+    env: &BTreeMap<String, String>,
+) -> Result<BTreeMap<String, String>, String> {
+    Ok(BTreeMap::from([
+        ("PATH".into(), env_string(env, "PATH")?),
+        ("HOME".into(), env_string(env, "HOME")?),
+        ("CARGO_HOME".into(), env_string(env, "CARGO_HOME")?),
+        ("LC_ALL".into(), "C".into()),
+        ("GIT_CONFIG_NOSYSTEM".into(), "1".into()),
+        ("GIT_CONFIG_GLOBAL".into(), "/dev/null".into()),
+        ("GIT_NO_REPLACE_OBJECTS".into(), "1".into()),
+    ]))
+}
+
+fn capture_metadata(
+    env: &BTreeMap<String, String>,
+    root: &Path,
+    program: &Path,
+    args: &[&str],
+    maximum: usize,
+) -> Result<String, String> {
+    let mut command = Command::new(program);
+    command
+        .current_dir(root)
+        .env_clear()
+        .envs(metadata_environment(env)?)
+        .args(args);
+    let bytes = crate::process::capture(&mut command, b"", Duration::from_secs(15))?;
+    if bytes.len() > maximum {
+        return Err("Public compiler metadata exceeds bound".into());
+    }
+    String::from_utf8(bytes)
+        .map(|value| value.trim().to_owned())
+        .map_err(|_| "Invalid compiler metadata UTF-8".into())
+}
+
 fn metadata(
     env: &BTreeMap<String, String>,
     root: &Path,
@@ -782,7 +821,7 @@ fn metadata(
             .contains(name)
         })
         .unwrap_or("metadata-tool");
-    capture(env, root, &tool.invocation, args, maximum)
+    capture_metadata(env, root, &tool.invocation, args, maximum)
         .map_err(|error| format!("Musl metadata {name} failed: {error}"))
 }
 fn admitted_wrapper(
@@ -823,8 +862,8 @@ fn wrapper_witness(
     let expected = admitted_wrapper(p, name, compiler, &bytes)?;
     Ok(
         json!({"path":path,"contents":expected,"sha256":digest(&bytes),"identity":descriptor(&path,4096)?,"compiler":tool_witness(compiler)?,
-        "effective_target_options":capture(env,root,&path,&["-Q","--help=target"],65536)?,
-        "baseline_macros":capture(env,root,&path,&["-dM","-E","-x",if name=="CC" {"c"} else {"c++"},"-"],65536)?}),
+        "effective_target_options":capture_metadata(env,root,&path,&["-Q","--help=target"],65536)?,
+        "baseline_macros":capture_metadata(env,root,&path,&["-dM","-E","-x",if name=="CC" {"c"} else {"c++"},"-"],65536)?}),
     )
 }
 
@@ -1982,6 +2021,83 @@ mod tests {
             sdk_tool_descriptor(&oversized)
                 .unwrap_err()
                 .contains("oversized")
+        );
+    }
+
+    #[test]
+    fn metadata_environment_admits_exact_build_homes_and_excludes_other_values() {
+        let source = BTreeMap::from([
+            ("PATH".into(), "/usr/bin:/bin".into()),
+            ("HOME".into(), "/synthetic/build-home".into()),
+            ("CARGO_HOME".into(), "/synthetic/cargo-cache".into()),
+            ("RUSTFLAGS".into(), "synthetic-override".into()),
+            ("SYNTHETIC_PRIVATE_VALUE".into(), "synthetic-private".into()),
+        ]);
+        assert_eq!(
+            metadata_environment(&source).unwrap(),
+            BTreeMap::from([
+                ("PATH".into(), "/usr/bin:/bin".into()),
+                ("HOME".into(), "/synthetic/build-home".into()),
+                ("CARGO_HOME".into(), "/synthetic/cargo-cache".into()),
+                ("LC_ALL".into(), "C".into()),
+                ("GIT_CONFIG_NOSYSTEM".into(), "1".into()),
+                ("GIT_CONFIG_GLOBAL".into(), "/dev/null".into()),
+                ("GIT_NO_REPLACE_OBJECTS".into(), "1".into()),
+            ])
+        );
+        for name in ["PATH", "HOME", "CARGO_HOME"] {
+            let mut missing = source.clone();
+            missing.remove(name);
+            assert!(metadata_environment(&missing).is_err());
+        }
+    }
+
+    #[test]
+    fn owned_metadata_child_receives_build_homes_without_inheriting_overrides() {
+        let scratch = Scratch::new("musl-metadata-homes").unwrap();
+        let home = scratch.0.join("home");
+        let cargo_home = scratch.0.join("cargo-cache");
+        fs::create_dir(&home).unwrap();
+        fs::create_dir(&cargo_home).unwrap();
+        let script = scratch
+            .file(
+                "metadata-fixture",
+                br##"#!/bin/sh
+set -eu
+[ "${HOME-unset}" = "$1" ] || exit 41
+[ "${CARGO_HOME-unset}" = "$2" ] || exit 42
+[ "$LC_ALL" = C ] || exit 43
+[ "$GIT_CONFIG_GLOBAL" = /dev/null ] || exit 44
+[ "${RUSTFLAGS+present}" != present ] || exit 45
+[ "${SYNTHETIC_PRIVATE_VALUE+present}" != present ] || exit 46
+printf 'home metadata ok\n'
+"##,
+            )
+            .unwrap();
+        fs::set_permissions(&script, fs::Permissions::from_mode(0o700)).unwrap();
+        let home = home.to_str().unwrap();
+        let cargo_home = cargo_home.to_str().unwrap();
+        let env = BTreeMap::from([
+            ("PATH".into(), "/usr/bin:/bin".into()),
+            ("HOME".into(), home.into()),
+            ("CARGO_HOME".into(), cargo_home.into()),
+            ("RUSTFLAGS".into(), "synthetic-override".into()),
+            ("SYNTHETIC_PRIVATE_VALUE".into(), "synthetic-private".into()),
+        ]);
+        let args = [home, cargo_home];
+        assert!(capture(&env, &scratch.0, &script, &args, 64).is_err());
+        let tool = Tool {
+            invocation: script.clone(),
+            canonical: script,
+        };
+        assert_eq!(
+            metadata(&env, &scratch.0, &tool, &args, 64).unwrap(),
+            "home metadata ok"
+        );
+        assert!(
+            metadata(&env, &scratch.0, &tool, &args, 4)
+                .unwrap_err()
+                .contains("exceeds bound")
         );
     }
 

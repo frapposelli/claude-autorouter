@@ -21,6 +21,10 @@ tools, actual installed package inventory and relevant Cargo configuration.
 Tool witnesses retain both invocation paths and canonical executable identities
 so multicall programs keep their intended mode. Supplier executable hashes are
 streamed under a separate 512 MiB bound; product and report limits are unchanged.
+Metadata children receive the admitted `PATH`, `HOME` and `CARGO_HOME`, plus
+fixed locale and Git controls. Other environment values remain excluded, so
+numeric container users use the reviewed build homes without relying on a
+passwd entry.
 
 Both the host and target release directories must be absent before the first
 ordinary release build. Existing files, directories and symlinks cause refusal;
