@@ -416,6 +416,22 @@ def production():
         or result.get("binary_sha256") != copied["sha256"]
     ):
         raise ValueError("Independent production feature or binary audit failed")
+    native_receipt, native = read_json(OUT / "production-native/native-binary-provenance.json")
+    retained = elf32(OUT / "production-native/claude-autorouter", RELEASE_BINARY_CAP, OUT / "production-native")
+    inputs = receipt(OUT / "production-inputs.json", 2 * MIB)
+    actual_source = receipt(OUT / "source-commit.txt", 64, contents=True)[1].decode().strip()
+    if (
+        native.get("schema_version") != 1 or native.get("kind") != "native_binary_provenance"
+        or native.get("provenance") != "ci-source-build" or native.get("target") != TARGET
+        or native.get("source_commit") != actual_source or native.get("profile") != "release"
+        or native.get("portable_cpu") is not False or native.get("binary_sha256") != copied["sha256"]
+        or retained["sha256"] != copied["sha256"] or retained["bytes"] != copied["bytes"]
+        or native.get("inputs_sha256") != inputs["sha256"]
+        or native.get("cargo_report_sha256") != built["build"]["sha256"]
+        or native.get("feature_report_sha256") != audit["sha256"]
+        or native.get("rustflags") != ["-C", "target-cpu=pentium4", "-C", "linker=gcc"]
+    ):
+        raise ValueError("Observational i686 production pair/source/flags differ")
     version = receipt(OUT / "cli-version.txt", 64, contents=True)[1].decode().strip()
     if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version):
         raise ValueError("Invalid actual i686 CLI version output")
@@ -423,12 +439,32 @@ def production():
         "schema_version": 1, "kind": "native_runtime32_production",
         "target": TARGET, "release_approved": False, "cli": built,
         "frozen_cli": copied, "audit": audit, "version": version,
+        "provenance": native_receipt, "portable_cpu": False,
     })
+
+
+def check_production_pair(production):
+    # The saved production receipt is the authority for the retained pair.
+    # Re-read it at both later phase boundaries; the flat CLI alone is not it.
+    provenance = receipt(OUT / "production-native/native-binary-provenance.json", 2 * MIB)
+    retained = elf32(
+        OUT / "production-native/claude-autorouter",
+        RELEASE_BINARY_CAP,
+        OUT / "production-native",
+    )
+    frozen = production["frozen_cli"]
+    if (
+        provenance != production["provenance"]
+        or retained["sha256"] != frozen["sha256"]
+        or retained["bytes"] != frozen["bytes"]
+    ):
+        raise ValueError("Frozen observational production pair changed after admission")
 
 
 def helper():
     check_prepared()
     production = load("production.json")
+    check_production_pair(production)
     if elf32(OUT / "claude-autorouter-i686", RELEASE_BINARY_CAP, OUT) != production["frozen_cli"]:
         raise ValueError("Production executable changed after runtime-tools compilation")
     source = ROOT / "rust/xtask/src/main.rs"
@@ -748,6 +784,7 @@ def finish():
     helper_report = load("helper.json")
     if production["kind"] != "native_runtime32_production" or helper_report["kind"] != "native_runtime32_helper":
         raise ValueError("Missing prepared production or helper receipt")
+    check_production_pair(production)
     frozen = elf32(OUT / "claude-autorouter-i686", RELEASE_BINARY_CAP, OUT)
     xtask = elf32(TARGET_DIR / TARGET / "release/xtask", RELEASE_BINARY_CAP, TARGET_DIR / TARGET / "release")
     if frozen != production["frozen_cli"] or xtask != helper_report["xtask"]["executable"]:

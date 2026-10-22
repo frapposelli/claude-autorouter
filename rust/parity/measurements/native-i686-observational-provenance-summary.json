@@ -1,0 +1,198 @@
+{
+  "schema_version": 1,
+  "kind": "native_i686_observational_provenance_checkpoint",
+  "date": "2026-10-22",
+  "status": "LOCAL_VALIDATION_AND_INDEPENDENT_FULL_REVIEW_PASSED_HOSTED_PROFILE_PENDING",
+  "profile": {
+    "name": "i686-hosted-v1",
+    "target": "i686-unknown-linux-gnu",
+    "collector_host": "x86_64-unknown-linux-gnu",
+    "workflow": ".github/workflows/rust-runtime32.yml",
+    "job": "runtime32",
+    "runner": "ubuntu-24.04",
+    "portable_cpu": false
+  },
+  "implementation": {
+    "changed_or_added_files": [
+      {
+        "path": "rust/xtask/src/native_provenance.rs",
+        "bytes": 46520,
+        "sha256": "450b7e3ef155294fc6e4b8e63d06c9ba94f6fdcba06d4d23d205b52a18a7531b"
+      },
+      {
+        "path": "rust/xtask/src/native_provenance_i686.rs",
+        "bytes": 43486,
+        "sha256": "a1d3a965b52449bd1219d6ccd02c089eb087b5ff0efdd0ae63a672819d42dc4b"
+      },
+      {
+        "path": ".github/workflows/rust-runtime32.yml",
+        "bytes": 15089,
+        "sha256": "34e456970babbef54a9885c9586db073fc2235fa41a2cf1c75d98e6a28168d75"
+      },
+      {
+        "path": "rust/distribution/ci/runtime32-proof.py",
+        "bytes": 40109,
+        "sha256": "9a120b95103b0ebd1310342c3a166d6e318c124f56472f71809e4da34376efce"
+      },
+      {
+        "path": "rust/xtask/src/release_pack_tests.rs",
+        "bytes": 31780,
+        "sha256": "dd62d81c29422fea81d3418d5bcb9a27a1c08e28505979b9d6c921cfd51a054f"
+      },
+      {
+        "path": "test/runtime32-provenance.test.mjs",
+        "bytes": 11506,
+        "sha256": "ff4e5d84b0330ad7e6875c19123fe5aa6cb77a610eae136a327bc7abdd231db6"
+      },
+      {
+        "path": "rust/distribution/i686-provenance.md",
+        "bytes": 1607,
+        "sha256": "bad2a48d8406f164b3f21d2484165cbdcac9ade2347f3314c12f63a4101aa3fb"
+      }
+    ],
+    "source_snapshot": {
+      "path": "artifacts/rust-rewrite/i686-provenance-full-validation-20261022-2/source-candidate-v1.json",
+      "bytes": 126072,
+      "sha256": "8a0a642e78392e446d41f852e814cbb1363ccf799ea5b41f9cb7c7afc2b7d85e"
+    },
+    "native_source_inputs": 741,
+    "frozen_reference_files": 111,
+    "base_commit": "aa60db0bc9b5eb5e8e2725dfd27f77d6a39d7300",
+    "behavior": [
+      "Record the ordinary explicit-target i686 CLI before building the runtime-tools package helper. Both host and target release directories must be cold.",
+      "Use the existing shared begin/finish owned-output lifecycle with a reviewed i686 profile; bind source, configuration, actual host compiler tools, target standard-library files, the source-owned runner and selected installed multilib supplier observations.",
+      "A top-level subshell scopes Pentium4/gcc flags around begin, Cargo, feature inspection and finish. Restore empty original RUSTFLAGS, original homes/runner and temporary profile variables before the existing production proof; leave GITHUB_ENV unchanged.",
+      "Recheck the saved native provenance/binary pair after helper construction and at final proof, independently of the original flat CLI copy. Preserve the original saved production receipt; do not claim filesystem immutability.",
+      "Describe rolling APT/tool/std observations honestly. ELF inspection records actual version requirements without inventing the GNU profiles GLIBC2.28 floor."
+    ],
+    "rustflags": [
+      "-C",
+      "target-cpu=pentium4",
+      "-C",
+      "linker=gcc"
+    ],
+    "ordinary_runtime_defaults_and_dependency_policy_unchanged": true
+  },
+  "CPU_and_release_policy": {
+    "i686_portable_cpu": false,
+    "existing_GNU_Mac_Musl_profile_true_policies_preserved": true,
+    "release_pack_requires_true_unchanged": true,
+    "approved_target_false_CPU_regression": "An otherwise approved Mac fixture rejects portable_cpu=false with crosshashes rebound; restoring true succeeds. No i686 release exception was added.",
+    "release_gate_source": {
+      "path": "rust/xtask/src/release_pack.rs",
+      "bytes": 26234,
+      "sha256": "0f421db85b41e23db94d51230222eb974b3db4aa33cf26c7c56c9ad0f13f498a"
+    },
+    "selected_native_C_source_review": {
+      "path": "artifacts/rust-rewrite/i686-native-c-source-review-20261022-1/receipt-v1.json",
+      "bytes": 7822,
+      "sha256": "519151795889287f5b38bf4cdccca4cb3c6a828e1515922df57efc79c55c6d85"
+    },
+    "pinned_Rust_metadata_preflight": {
+      "path": "artifacts/rust-rewrite/i686-rust-cpu-metadata-preflight-20261022-1/result-v1.json",
+      "bytes": 4111,
+      "sha256": "8e3e32179415ea5cd914c1a94ca46222283c56d2bd9d5727ef5163c86ddfada3"
+    },
+    "facts": [
+      "Pinned Rust1.99 reports Pentium4 as the i686 target default; default and explicit Pentium4 cfg bytes match and include fxsr/sse/sse2. This was metadata on an ARM Mac, not native hosted x64/i686 code generation.",
+      "Selected lock-checksummed supplier sources show cc GNU adds both-m32 and-march=i686. Its compatible encoded-Rustflags translator ignores target-cpu; RustCPU flags alone do not establish equivalent CCPU flags.",
+      "OpenSSL selects linux-elf/x86 perlasm and forwards cc arguments. Actual GCC/native-C/assembly/runtime dispatch closure and oldest CPU/OS/libc/kernel qualification remain pending."
+    ]
+  },
+  "validation": {
+    "root_result": {
+      "path": "artifacts/rust-rewrite/i686-provenance-full-validation-20261022-2/root-all14-result-v1.json",
+      "bytes": 12928,
+      "sha256": "9176ff86eb4b21aca9699b57f2de4246d186a15e380124b1a798ea8a6fa74f4d"
+    },
+    "declaration": {
+      "path": "artifacts/rust-rewrite/i686-provenance-full-validation-20261022-2/declaration-v1.json",
+      "bytes": 1911,
+      "sha256": "e6ebd0fa9218f324bd60ffa2f6e612ef3d38ce1ec3a5872281ccf3af03a9f800"
+    },
+    "all_fourteen_owners_terminal_success": true,
+    "owner_failures": 0,
+    "post_execution_mismatches": [],
+    "auxiliary_inputs": {
+      "initial_eleven": 432,
+      "retained_three": 436
+    },
+    "counts": {
+      "rust_passed": 1775,
+      "rust_failed": 0,
+      "rust_ignored": 11,
+      "rust_result_groups": 66,
+      "independent_auditor_passed": 130,
+      "node_passed": 681,
+      "sdk_mock_passed": 50,
+      "optimized_bundle_tests": 3,
+      "shipping_package_files": 58,
+      "package_mock_lifecycle_scenarios": 17,
+      "bootstrap_packages": 65,
+      "vendor_components": 5
+    },
+    "conditions": "Normal-use16GiBM4;Rust/Cargo1.99,Node22.14;offlineexistingOcache/twojobs/debug0/incremental0. Currentauditor freshlylinked withdependenciesreused, notcoldwholebuild.",
+    "retained_independent_auditor": {
+      "path": "artifacts/rust-rewrite/i686-provenance-full-validation-20261022-2/retained/autorouter-audit",
+      "bytes": 8957696,
+      "sha256": "c3f03eb7bdbe0a7dd0b5d5e2dadb98e8aca8f316d1d5451ebb70ae212b7b3677"
+    },
+    "preflight": {
+      "source_snapshot": {
+        "path": "artifacts/rust-rewrite/i686-provenance-preflight-validation-20261022-1/source-candidate-v1.json",
+        "bytes": 125712,
+        "sha256": "39e86c3fe366ac6fd713fd739efc8adba41e674952f80f82f846a329780bfc32"
+      },
+      "review": {
+        "path": "artifacts/rust-rewrite/i686-provenance-preflight-validation-20261022-1/independent-preflight-review-v1.json",
+        "bytes": 11220,
+        "sha256": "7fd11b6a5a7db459b17c540cdf823e653705650a22ad73a48573449844b4b951"
+      },
+      "counts": {
+        "i686_Rust_groups": 20,
+        "approved_target_CPU_guard": 1,
+        "synthetic_workflow_groups": 8,
+        "synthetic_saved_pair_groups": 12
+      },
+      "scope": "Earlier source39e86 preflight retained unchanged; authored fixture/source review is explicitly distinguished from independent execution review."
+    },
+    "preserved_failure": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/i686-provenance-full-validation-20261022-1/fmt.json",
+        "bytes": 1901,
+        "sha256": "d899976543ffdfd5d0d70fe4ada447c84ed245a35ef4504e8f51abc1fde8ca92"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/i686-provenance-full-validation-20261022-1/fmt.stdout",
+        "bytes": 536,
+        "sha256": "7fdfc9b77b798dd0dfb53b33d60d76dadbade3dec072d0dbed45b7a6f17f23b9"
+      },
+      "exit_code": 1,
+      "cause": "One long Err expression required whitespace-only wrapping. Original failed cohort remains retained; new source/cohort reran the complete fourteen phases successfully.",
+      "old_source_sha256": "effb9c674342439dd97f66013c496b0f0b861fef316fa66233a173bdd54891cb"
+    },
+    "independent_full_outcome_review": {
+      "status": "PASSED_WITHIN_RETAINED_LOCAL_SCOPE",
+      "path": "artifacts/rust-rewrite/i686-provenance-full-validation-20261022-2/independent-all14-outcome-review-v1.json",
+      "bytes": 31042,
+      "sha256": "f50b8ef79690448a462fc0e5a5ad5d40263c7c1121728b2d52c1115b4d7b272b"
+    }
+  },
+  "hosted_evidence": {
+    "new_i686_profile_execution": "PENDING",
+    "prior_aa60_runtime32_success_is_profile_execution": false,
+    "reason": "aa60 CI ran the prior runtime32 workflow, before this observational producer was added. Local synthetic passes do not promote it to current hosted producer evidence."
+  },
+  "qualification": {
+    "release_approved": false,
+    "CPU_platform_TLS_performance_oldest_OS_qualification": false,
+    "default_cutover": false,
+    "limits": [
+      "Local synthetic/mock/native-host checks are distinct from hosted i686 SDK/compiler/collector execution.",
+      "No real evaluator/provider/model calls or user-configuration work formed part of these local checks.",
+      "The source-owned collector records build provenance; it does not itself build, download or execute the product.",
+      "Finite owner wall/output/direct-child/process-group checks do not establish universal crash/cancellation/descendant cleanup.",
+      "Independent full review checks retained named outcomes and bindings within local scope; hosted i686 producer execution remains pending."
+    ]
+  }
+}

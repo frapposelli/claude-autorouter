@@ -169,9 +169,31 @@ jobs:
           set -euo pipefail
           umask 077
           out=../artifacts/rust-rewrite/runtime32
-          cargo build --release --target i686-unknown-linux-gnu --package claude-autorouter \
-            --offline --locked --message-format=json > "$out/production-build.jsonl"
-          "$out/autorouter-audit-bootstrap" production-features --build-report "$out/production-build.jsonl" > "$out/production-features.json"
+          # Top-level subshell: do not place in if/&&/|| (errexit must remain active).
+          (
+            export RUSTFLAGS='-C target-cpu=pentium4 -C linker=gcc'
+            export AUTOROUTER_BUILD_TARGET=i686-unknown-linux-gnu AUTOROUTER_BUILD_MACHINE=x86_64 AUTOROUTER_BUILD_RUNNER=ubuntu-24.04
+            export OPENSSL_STATIC=1 OPENSSL_SRC_PERL=/usr/bin/perl
+            SOURCE_DATE_EPOCH="$(git show -s --format=%ct HEAD)"
+            CARGO_HOME="$(python3 -c 'import os; print(os.path.realpath(os.environ.get("CARGO_HOME", os.path.expanduser("~/.cargo"))))')"
+            RUSTUP_HOME="$(python3 -c 'import os; print(os.path.realpath(os.environ.get("RUSTUP_HOME", os.path.expanduser("~/.rustup"))))')"
+            export SOURCE_DATE_EPOCH CARGO_HOME RUSTUP_HOME
+            "$out/autorouter-audit-bootstrap" binary-provenance begin \
+              --target i686-unknown-linux-gnu \
+              --build-report "$GITHUB_WORKSPACE/artifacts/rust-rewrite/runtime32/production-build.jsonl" \
+              --feature-report "$GITHUB_WORKSPACE/artifacts/rust-rewrite/runtime32/production-features.json" \
+              --out "$GITHUB_WORKSPACE/artifacts/rust-rewrite/runtime32/production-inputs.json"
+            cargo build --release --target i686-unknown-linux-gnu --package claude-autorouter \
+              --offline --locked --message-format=json > "$out/production-build.jsonl"
+            "$out/autorouter-audit-bootstrap" production-features --build-report "$out/production-build.jsonl" > "$out/production-features.json"
+            "$out/autorouter-audit-bootstrap" binary-provenance finish \
+              --inputs "$GITHUB_WORKSPACE/artifacts/rust-rewrite/runtime32/production-inputs.json" \
+              --build-report "$GITHUB_WORKSPACE/artifacts/rust-rewrite/runtime32/production-build.jsonl" \
+              --feature-report "$GITHUB_WORKSPACE/artifacts/rust-rewrite/runtime32/production-features.json" \
+              --out "$GITHUB_WORKSPACE/artifacts/rust-rewrite/runtime32/production-native"
+          )
+          test -z "$RUSTFLAGS"
+          cmp "$CARGO_TARGET_DIR/i686-unknown-linux-gnu/release/claude-autorouter" "$out/production-native/claude-autorouter"
           cp "$CARGO_TARGET_DIR/i686-unknown-linux-gnu/release/claude-autorouter" "$out/claude-autorouter-i686"
           setarch i686 "$out/claude-autorouter-i686" --version > "$out/cli-version.txt"
           python3 distribution/ci/runtime32-proof.py production
@@ -213,6 +235,8 @@ jobs:
             artifacts/rust-rewrite/runtime32/*.txt
             artifacts/rust-rewrite/runtime32/*.tsv
             artifacts/rust-rewrite/runtime32/*.log
+            artifacts/rust-rewrite/runtime32/production-native/claude-autorouter
+            artifacts/rust-rewrite/runtime32/production-native/native-binary-provenance.json
             artifacts/rust-rewrite/runtime32/claude-autorouter-i686
             artifacts/rust-rewrite/runtime32/npm/*.json
             artifacts/rust-rewrite/runtime32/npm/*.tgz

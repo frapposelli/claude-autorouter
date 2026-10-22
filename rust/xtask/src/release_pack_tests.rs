@@ -704,3 +704,83 @@ fn shared_cli_fixture_preserves_complete_production_assembly_and_authorization()
         raw.expected_authorization(&expected, &final_materials)
     );
 }
+
+#[test]
+fn otherwise_approved_release_rejects_false_cpu_provenance_after_hash_rebinding() {
+    // Rebind every material that carries the provenance hash. This prevents a
+    // later report/approval mismatch from masking a missing CPU admission gate.
+    fn rebind(fixture: &mut Fixture, provenance: &Value, phase: &str) {
+        let target = fixture.inputs["artifacts"][0]["target"]
+            .as_str()
+            .unwrap()
+            .to_owned();
+        let provenance_desc = document(
+            &fixture.dir,
+            &format!("{phase}-provenance.json"),
+            provenance,
+        );
+        let artifact_binding = json!({target: {
+            "binary_sha256": fixture.inputs["artifacts"][0]["binary"]["sha256"],
+            "provenance_sha256": provenance_desc["sha256"]
+        }});
+        fixture.inputs["artifacts"][0]["provenance"] = provenance_desc;
+        let mut report_hashes = json!({});
+        for gate in GATES {
+            let gate = *gate;
+            let old_path = fixture.inputs["qualification"][gate]["path"]
+                .as_str()
+                .unwrap();
+            let mut report = json_read(
+                &std::fs::read(fixture.dir.0.join(old_path)).unwrap(),
+            )
+            .unwrap();
+            report["artifacts"] = artifact_binding.clone();
+            let descriptor = document(
+                &fixture.dir,
+                &format!("{phase}-gate-{gate}.json"),
+                &report,
+            );
+            report_hashes[gate] = descriptor["sha256"].clone();
+            fixture.inputs["qualification"][gate] = descriptor;
+        }
+        let approval_path = fixture.inputs["approval"]["path"].as_str().unwrap();
+        let mut approval = json_read(
+            &std::fs::read(fixture.dir.0.join(approval_path)).unwrap(),
+        )
+        .unwrap();
+        approval["artifacts"] = artifact_binding;
+        approval["qualification"] = report_hashes;
+        fixture.inputs["approval"] = document(
+            &fixture.dir,
+            &format!("{phase}-approval.json"),
+            &approval,
+        );
+    }
+
+    let mut fixture = Fixture::new();
+    assert_eq!(fixture.inputs["artifacts"].as_array().unwrap().len(), 1);
+    assert_eq!(fixture.inputs["artifacts"][0]["target"], "aarch64-apple-darwin");
+    assert!(fixture.qualified().is_ok(), "otherwise-approved baseline");
+    let provenance_path = fixture.inputs["artifacts"][0]["provenance"]["path"]
+        .as_str()
+        .unwrap();
+    let original = json_read(
+        &std::fs::read(fixture.dir.0.join(provenance_path)).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(original["portable_cpu"], true);
+    let mut observation = original.clone();
+    observation["portable_cpu"] = json!(false);
+    rebind(&mut fixture, &observation, "cpu-observation");
+    assert_eq!(
+        fixture.qualified().err().unwrap(),
+        "Native binary lacks matching reviewed CI build provenance"
+    );
+
+    // The same rebinding path must yield a valid fully approved fixture when
+    // the sole changed provenance field returns to its original true value.
+    observation["portable_cpu"] = json!(true);
+    assert_eq!(observation, original);
+    rebind(&mut fixture, &observation, "cpu-restored");
+    assert!(fixture.qualified().is_ok(), "rebound positive control");
+}

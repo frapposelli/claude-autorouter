@@ -1,4 +1,4 @@
-//! Reviewed GNU/Mac/Musl CI build provenance collector. Never builds or runs the product.
+//! GNU/Mac/Musl build provenance and observational i686 inputs. Never builds or runs the product.
 //! A reviewed workflow and original GitHub artifact identity remain the trust boundary.
 use crate::audit_support::{digest, regular};
 use serde_json::{Value, json};
@@ -68,16 +68,22 @@ mod macos;
 #[path = "native_provenance_musl.rs"]
 mod musl;
 
+#[path = "native_provenance_i686.rs"]
+mod i686;
+
 #[derive(Clone, Copy)]
 enum BuildProfile {
     Gnu(Profile),
     Mac(macos::MacProfile),
     Musl(musl::MuslProfile),
+    I686(i686::I686Profile),
 }
 
 impl BuildProfile {
     fn reviewed(target: &str) -> Result<Self, String> {
-        if target.ends_with("apple-darwin") {
+        if target == "i686-unknown-linux-gnu" {
+            i686::profile(target).map(Self::I686)
+        } else if target.ends_with("apple-darwin") {
             macos::profile(target).map(Self::Mac)
         } else if target.ends_with("-linux-musl") {
             musl::profile(target).map(Self::Musl)
@@ -92,14 +98,22 @@ impl BuildProfile {
             Self::Gnu(_) => "gnu-glibc228-v1",
             Self::Mac(_) => "macos-hosted-v1",
             Self::Musl(_) => "musl-alpine321-v1",
+            Self::I686(_) => "i686-hosted-v1",
         };
         if before["profile"] != expected {
             return Err("Unrecognized native build-input target/profile pair".into());
         }
-        if matches!(p, Self::Mac(_)) && before["builder"] != Value::Null {
+        if matches!(p, Self::Mac(_) | Self::I686(_)) && before["builder"] != Value::Null {
             return Err("Mac input record must not claim a GNU builder report".into());
         }
         Ok(p)
+    }
+
+    fn portable_cpu(self) -> bool {
+        match self {
+            Self::Gnu(_) | Self::Mac(_) | Self::Musl(_) => true,
+            Self::I686(_) => false,
+        }
     }
 
     fn target(self) -> &'static str {
@@ -107,6 +121,7 @@ impl BuildProfile {
             Self::Gnu(p) => p.target,
             Self::Mac(p) => p.target,
             Self::Musl(p) => p.target,
+            Self::I686(p) => p.target,
         }
     }
 
@@ -115,12 +130,14 @@ impl BuildProfile {
             Self::Gnu(p) => Ok(p.rustflags.to_owned()),
             Self::Mac(p) => Ok(p.rustflags.to_owned()),
             Self::Musl(p) => musl::rustflags(p, root),
+            Self::I686(p) => Ok(p.rustflags.to_owned()),
         }
     }
 
     fn require_cold_release(self, root: &Path, state: &Value) -> Result<(), String> {
         match self {
             Self::Musl(p) => musl::fresh_release_tree(root, state, p),
+            Self::I686(p) => i686::fresh_release_tree(root, state, p),
             _ => fresh_release_tree(root, state),
         }
     }
@@ -128,6 +145,7 @@ impl BuildProfile {
     fn executable(self, root: &Path, state: &Value, inspected: &Value) -> Result<PathBuf, String> {
         match self {
             Self::Musl(p) => musl::admitted_executable(root, state, inspected, p),
+            Self::I686(p) => i686::admitted_executable(root, state, inspected, p),
             _ => admitted_executable(root, state, inspected),
         }
     }
@@ -140,6 +158,7 @@ impl BuildProfile {
         match self {
             Self::Gnu(p) => snapshot(root, p, Path::new(&options["--builder-report"])),
             Self::Mac(p) => macos::snapshot(root, p),
+            Self::I686(p) => i686::snapshot(root, p),
             Self::Musl(p) => musl::snapshot(root, p, Path::new(&options["--builder-report"])),
         }
     }
@@ -148,6 +167,7 @@ impl BuildProfile {
         match self {
             Self::Gnu(p) => snapshot(root, p, Path::new(text(&before["builder"], "path")?)),
             Self::Mac(p) => macos::snapshot(root, p),
+            Self::I686(p) => i686::snapshot(root, p),
             Self::Musl(p) => musl::snapshot(root, p, Path::new(text(&before["builder"], "path")?)),
         }
     }
@@ -157,6 +177,7 @@ impl BuildProfile {
             Self::Gnu(p) => inspected_gnu_binary(p, binary),
             Self::Mac(p) => macos::inspect(p, binary),
             Self::Musl(p) => musl::inspect(p, binary),
+            Self::I686(p) => i686::inspect(p, binary),
         }
     }
 }
@@ -1053,7 +1074,7 @@ fn finish(root: &Path, args: &[String]) -> Result<bool, String> {
     let rustflags = p.rustflags(root)?;
     let provenance = json!({"schema_version":1,"kind":"native_binary_provenance","provenance":"ci-source-build",
         "source_commit":before["source_commit"],"cargo_lock_sha256":before["cargo_lock_sha256"],"target":p.target(),
-        "binary_sha256":digest(&binary),"repository":REPOSITORY,"profile":"release","portable_cpu":true,
+        "binary_sha256":digest(&binary),"repository":REPOSITORY,"profile":"release","portable_cpu":p.portable_cpu(),
         "rustc":before["compiler"]["rustc_text"],"workflow_run":before["ci"]["workflow_run"],
         "rustflags":rustflags.split_ascii_whitespace().collect::<Vec<_>>(),"workflow":before["ci"],
         "inputs_sha256":digest(&input_bytes),"cargo_report_sha256":digest(&build_bytes),"feature_report_sha256":digest(&feature_bytes),
@@ -1179,7 +1200,7 @@ pub(crate) fn run(args: &[String], root: &Path) -> Result<bool, String> {
         Some("finish") => finish(root, &args[1..]),
         Some("--help") => {
             println!(
-                "Reviewed GNU/Mac/Musl CI only: binary-provenance begin --target TARGET [--builder-report ABSOLUTE_PATH (GNU/Musl only)] --build-report NEW_ABSOLUTE_PATH --feature-report NEW_ABSOLUTE_PATH --out NEW_ABSOLUTE_FILE\n              binary-provenance finish --inputs ABSOLUTE_PATH --build-report ABSOLUTE_PATH --feature-report ABSOLUTE_PATH --out NEW_ABSOLUTE_DIRECTORY\nNo builds, product execution, downloads, provider calls, qualification or release approval. Local/unreviewed profiles fail closed."
+                "Reviewed GNU/Mac/Musl and observational i686 CI only: binary-provenance begin --target TARGET [--builder-report ABSOLUTE_PATH (GNU/Musl only)] --build-report NEW_ABSOLUTE_PATH --feature-report NEW_ABSOLUTE_PATH --out NEW_ABSOLUTE_FILE\n              binary-provenance finish --inputs ABSOLUTE_PATH --build-report ABSOLUTE_PATH --feature-report ABSOLUTE_PATH --out NEW_ABSOLUTE_DIRECTORY\nNo builds, product execution, downloads, provider calls, qualification or release approval. Local/unreviewed profiles fail closed."
             );
             Ok(true)
         }
