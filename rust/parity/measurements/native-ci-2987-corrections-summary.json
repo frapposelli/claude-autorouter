@@ -1,0 +1,224 @@
+{
+  "schema_version": 1,
+  "kind": "CI2987_targeted_corrections_summary",
+  "date": "2026-10-22",
+  "status": "LOCAL14_AND_INDEPENDENT_REVIEW_PASSED_FRESH_HOSTED_CONFIRMATION_REQUIRED",
+  "source": {
+    "raw_inputs": 741,
+    "snapshot": {
+      "path": "artifacts/rust-rewrite/ci-2987-corrections-full-validation-20261022-3/source-candidate-v1.json",
+      "bytes": 126413,
+      "sha256": "b62c1d879fb79f718c1ebf9410ec22dad70ea4322ddac8b132d8fa7a8d8bceb7"
+    },
+    "six_corrected_paths": [
+      "rust/distribution/ci/musl.Dockerfile",
+      "rust/distribution/musl-builder-pins.json",
+      "rust/xtask/src/native_provenance_musl.rs",
+      "rust/xtask/src/native_provenance_i686.rs",
+      "test/musl-sdk.test.mjs",
+      "test/runtime32-provenance.test.mjs"
+    ],
+    "scope": "Tool/provenance and synthetic-workspace corrections; no runtime/backend/default/policy/archive-cap change.",
+    "critical_input_pins": [
+      {
+        "path": "rust/distribution/ci/musl.Dockerfile",
+        "bytes": 2669,
+        "sha256": "1c44d177f282f43d4900c49d38955b101ca2de3c38934312d39ca59ec05cfec1"
+      },
+      {
+        "path": "rust/distribution/musl-builder-pins.json",
+        "bytes": 14119,
+        "sha256": "f763189402b9feef6bec42a185e9623bf10bb4ab2c47bba11a038c8b15f65964"
+      },
+      {
+        "path": "rust/xtask/src/native_provenance_musl.rs",
+        "bytes": 84963,
+        "sha256": "61a5e6fe622ac4c06497f4a0c26860448794ee98db4f362e7fe77071f9520fd3"
+      },
+      {
+        "path": "rust/xtask/src/native_provenance_i686.rs",
+        "bytes": 50253,
+        "sha256": "8305f82e4824d3d66524d0ac47f73d18fb363e786773c91b3bbabe544d8d14c4"
+      },
+      {
+        "path": "test/musl-sdk.test.mjs",
+        "bytes": 19311,
+        "sha256": "15f693ee01ed8499c1f4ecd60eee2be578feb4a96a5b9a4636b98bd9e2e97b40"
+      },
+      {
+        "path": "test/runtime32-provenance.test.mjs",
+        "bytes": 12195,
+        "sha256": "f34fcabc684b4d7b1dc63a70ea479b80b3ae7baf3a42378fb709f2cc00cfce90"
+      }
+    ]
+  },
+  "observed_CI": {
+    "head": "2987d0b39aacfd886a04e79e3a06892e9b3441e4",
+    "attempt": 1,
+    "last_observed_UTC": "2026-10-22T13:10:07.022298+00:00",
+    "success": 8,
+    "failure": 4,
+    "live": 2,
+    "checks": 14,
+    "workflows": 5,
+    "captures": 3,
+    "GETs": 19,
+    "transport_failures": 0,
+    "record": {
+      "path": "artifacts/rust-rewrite/i686-next-ci-window-20261022-1/final-metadata-review.json",
+      "bytes": 120799,
+      "sha256": "7b9b1bcf0d6215c2bae39c4415d8aec81b6abd2b16b04fed8f22ed2b3b359ce2"
+    },
+    "scope": "Closed finite metadata snapshot; not workflow overall conclusions. Last two Mac Rust jobs still live, not failures or later successes. API merge candidate was provisional; no current uploaded checkout claim."
+  },
+  "failure_attribution": {
+    "Mac_Node": {
+      "jobs": [
+        119833242553,
+        119833242858
+      ],
+      "run": 39781386828,
+      "step": "Run npm test",
+      "observed": "Synthetic runtime32 fixture compares lexical /var temporary roots against physical /private/var paths; the fixture stops at cmp. This is a test-workspace identity failure.",
+      "captured_evidence": [
+        {
+          "path": "artifacts/rust-rewrite/ci-2987d0b-failed-job-logs-20261022-2/node22-mac.json",
+          "bytes": 1162,
+          "sha256": "8f084fdd42c5fc29e7a8d39de7d95e8cdf0c99cd70301f4f9aa1856d8f878d48"
+        },
+        {
+          "path": "artifacts/rust-rewrite/ci-2987d0b-failed-job-logs-20261022-2/node24-mac.json",
+          "bytes": 1161,
+          "sha256": "9e042251367e7bcc1c24da5990ff6324d3f760de42ad490c313cbacf286ae1ec"
+        }
+      ],
+      "correction": "Canonicalize the newly owned temporary workspace root once; add real owned symlink-parent success/proof-failure controls. Retain original eight controls and no production path/workflow change.",
+      "local_focused_review": {
+        "path": "artifacts/rust-rewrite/runtime32-alias-correction-validation-20261022-1/independent-alias-correction-review-v1.json",
+        "bytes": 5568,
+        "sha256": "e7bb868aae3ca11e13d61315a67ee686abe026bc04a4ad1c4bc3a05799fb7bf8"
+      },
+      "focused_actual": "Before fix8pass2fail; after fix10pass0, separate bounded synthetic owners."
+    },
+    "ARM_Musl": {
+      "job": 119833243423,
+      "run": 39781386858,
+      "step": "Freeze source identity and build-only SDK",
+      "observed": "Actual download returned HTTP404 for ca-certificates-20260909-r0.apk. Later local HEADs for all four old CA URLs returned200; no permanent-removal, CDN or transport-root-cause claim.",
+      "captured_owner": {
+        "path": "artifacts/rust-rewrite/ci-2987d0b-failed-job-logs-20261022-2/musl-arm.json",
+        "bytes": 1161,
+        "sha256": "209540ec07b1f9d8cdcad4fc7fe5d4dfb4bb3b9744faf84940cd654feb325917"
+      },
+      "correction": "Refresh only the signed-index current CA family; synchronize collector PINS_SHA to actual manifest bytes."
+    },
+    "i686": {
+      "job": 119833242633,
+      "run": 39781386874,
+      "step": "Build and audit ordinary production i686 CLI before runtime-tools xtask",
+      "observed_error": "Provenance inputs require absolute lexical paths",
+      "captured_owner": {
+        "path": "artifacts/rust-rewrite/ci-2987d0b-i686-failure-log-20261022-1/i686.json",
+        "bytes": 1055,
+        "sha256": "58dd0e321220546fcf6348f05c169cdc189654fb516c66c0182b229e01ab9d2e"
+      },
+      "inference": "Fixed GCC -print-file-name supplier metadata is a likely rejection site from source analysis; the original reported path was not captured. Do not label that exact original spelling proven.",
+      "correction": "Only fixed GCC-reported absolute/control-free bounded supplier paths use filesystem canonicalization, preserving original spelling. Shared lexical path admission and subsequent regular-file/size/nofollow/hash guards remain strict. Six regressions cover parent/symlink order, decoys, invalid paths, file types, size and digest drift."
+    }
+  },
+  "CA_data": {
+    "collection": {
+      "path": "artifacts/rust-rewrite/alpine-ca-sdk-availability-20261022-1/closed-collection-review-v1.json",
+      "bytes": 9265,
+      "sha256": "6e5669204b90edb83ebc42c8a57d7ad6c187beaad80e5bdebdf7571b48275ab5"
+    },
+    "control_payload": {
+      "path": "artifacts/rust-rewrite/alpine-ca-sdk-availability-20261022-1/four-CA-control-payload-review-v2.json",
+      "bytes": 4834,
+      "sha256": "999de63a7f7e4602822c93c5544440f1e590fb03ce083d34dab1cffe0c6883bb"
+    },
+    "independent_data_review": {
+      "path": "artifacts/rust-rewrite/alpine-ca-sdk-availability-20261022-1/independent-CA-data-pin-review-v2.json",
+      "bytes": 10106,
+      "sha256": "44b292fa40cbeeec20213d1f8b4bc32028541aa39416cb140f57673f43e5418a"
+    },
+    "collector_coupling_review": {
+      "path": "artifacts/rust-rewrite/alpine-ca-sdk-availability-20261022-1/independent-musl-pin-coupling-review-v1.json",
+      "bytes": 2503,
+      "sha256": "3866757a6ee1992d9d50489b11ccdca2c76035902bbcc65231bedc077a0affbf"
+    },
+    "facts": "Ten HTTP operations(6GET/4HEAD)200/no redirects or retries within600s. Retained Root owners verify both index RSA signatures with pinned keys. Version20261020-r0; four full APK SHA256/lengths, index Q1/control SHA1 and payload datahash agree. PKGINFO distinguishes native CA from noarch bundle.",
+    "minimal_patch": "Two filename slots, four full hashes, two root CA versions and one Docker literal changed;59 other filename/hash pairs per architecture(118 total) unchanged. Collector PINS_SHA is the exact measured manifest SHA256; source/copy/builder guards remain. One inventory witness intentionally renamed curl-family to CA-family, other49 old SDK names unchanged; one new coupling regression binds manifest/collector/Docker roots.",
+    "limits": "Independent hash/metadata crosschecks reuse Root RSA executions; no independent crypto reenactment or local APK signature claim. Mandatory signed offline SDK installation remains unchanged; no new SDK execution proven.",
+    "collector_PINS_SHA": "f763189402b9feef6bec42a185e9623bf10bb4ab2c47bba11a038c8b15f65964"
+  },
+  "preserved_APFS_failure": {
+    "source_snapshot": {
+      "path": "artifacts/rust-rewrite/ci-2987-corrections-full-validation-20261022-2/source-candidate-v1.json",
+      "bytes": 125976,
+      "sha256": "34157422c187846102378c8117de064a6f943ba0863d7ea49ac96e0fdd7d61ef"
+    },
+    "owner": {
+      "path": "artifacts/rust-rewrite/ci-2987-corrections-full-validation-20261022-2/auditor-tests.json",
+      "bytes": 2201,
+      "sha256": "48638da83028dc59cfaac4ad812fa73e881ad3603c10070c1bc0a6e055dc44dd"
+    },
+    "outcome": "Formatting passed; auditor135passed/1failed with APFS EILSEQ constructing a nonUTF8 filename before helper invocation. Remaining12 local phases were not launched.",
+    "repair": "Production-used resolved-path guard factored unchanged. All hosts test a constructed nonUTF8 Path with the exact error; only real nonUTF8 filesystem creation/symlink case is Linux-only. Control-name/sparse checks and whole named group still run everywhere; no ignore.",
+    "inverse_preimage": {
+      "path": "artifacts/rust-rewrite/ci-2987-corrections-full-validation-20261022-3/inverse-preimage-review-v1.json",
+      "bytes": 1721,
+      "sha256": "11b506d4f095f5ffe7b04dbc5d46c78a351fdd64f2a096acd6940e0526be63d9"
+    }
+  },
+  "local_validation": {
+    "status": "ALL14_PASSED_INDEPENDENT_NAMED_OUTCOME_REVIEW_PASSED",
+    "cohort": "artifacts/rust-rewrite/ci-2987-corrections-full-validation-20261022-3",
+    "declaration": {
+      "path": "artifacts/rust-rewrite/ci-2987-corrections-full-validation-20261022-3/declaration-v1.json",
+      "bytes": 7005,
+      "sha256": "519960e65bb8577462430f824d49e2494373bc4c33c06f1bb424c94091013f0b"
+    },
+    "static_readiness": {
+      "path": "artifacts/rust-rewrite/ci-2987-corrections-full-validation-20261022-3/independent-execution-readiness-review-v1.json",
+      "bytes": 7388,
+      "sha256": "5c82665f9dd652c90b7da0b854e81e5771da93d1b2d41e22ce8d00935601c781"
+    },
+    "actual_result": {
+      "path": "artifacts/rust-rewrite/ci-2987-corrections-full-validation-20261022-3/root-all14-result-v1.json",
+      "bytes": 14606,
+      "sha256": "aa5c87c75976bfbf47217e24cb2d669a11c574b1e612ec57b63b08069fd39cba"
+    },
+    "independent_outcome_review": {
+      "path": "artifacts/rust-rewrite/ci-2987-corrections-full-validation-20261022-3/independent-full14-outcome-review-v1.json",
+      "bytes": 17480,
+      "sha256": "17c3e427c2aad1f097a0096f8fa6aa9936a6612e3bb83ffe4b0b65d0c548b73c"
+    },
+    "conditions": "Reused partially cleaned O cache, normal-use16GiB, pinned Rust1.99/Node22.14/Python3.14, jobs2/debug0/incremental0/offline and finite bounds; initial741/111/AUX735 and later739 verified before/after every applicable owner. No cold-build or real-provider promotion.",
+    "observed": {
+      "workspace_passed": 1781,
+      "workspace_failed": 0,
+      "workspace_ignored": 11,
+      "workspace_groups": 66,
+      "auditor_passed": 136,
+      "Node_passed": 684,
+      "SDK_passed": 51,
+      "optimized_bundles_passed": 3,
+      "archive_files": 58,
+      "package_lifecycle_scenarios": 17,
+      "bootstrap_packages": 65,
+      "vendor_components": 5
+    },
+    "package_count_clarification": "58 archive files and17 named lifecycle scenarios; prepared package_tests_passed58 shorthand is not58 tests.",
+    "review_scope": "Reviewer authored the i686 linker helper/control draft and cohort preparation; this is independent review of Root orchestration/results and byte bindings, not independent authorship review.",
+    "bootstrap_package_scope": "65 total Cargo package identities:64 registry packages plus local xtask. The prepared expected bootstrap_registry_units65 shorthand does not mean65 registry packages."
+  },
+  "next_hosted_CI": {
+    "status": "PENDING_NEW_COMMIT_AND_SEPARATE_EXACT_HEAD_WINDOW",
+    "head": null,
+    "transfer_old_success_to_new_source": false
+  },
+  "remaining": "No ARM proposal. Hosted correction/provenance, i686 runtime/CPU, minOS/kernel/TLS/WSL, reproducibility, release integration, representative performance and full rewrite/default gates remain open. i686 portable_cpu:false and release true gate unchanged; JavaScript ships by default.",
+  "release_approved": false,
+  "default_cutover_approved": false
+}

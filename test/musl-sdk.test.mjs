@@ -84,19 +84,38 @@ function timers(t) {
   return pending;
 }
 
-test('musl SDK pins bind the reviewed curl family and all59 unchanged filename/hash pairs per architecture', () => {
+test('musl collector source pin and Docker SDK roots match the checked-in manifest', () => {
+  const pinsBytes = readFileSync(new URL('../rust/distribution/musl-builder-pins.json', import.meta.url));
+  const pins = JSON.parse(pinsBytes);
+  const collector = readFileSync(new URL('../rust/xtask/src/native_provenance_musl.rs', import.meta.url), 'utf8');
+  const declarations = [...collector.matchAll(/^const PINS_SHA: &str = "([a-f0-9]{64})";$/gm)];
+  assert.equal(declarations.length, 1, 'one explicit reviewed SDK manifest hash');
+  assert.equal(declarations[0][1], sha256(pinsBytes), 'collector must admit the updated SDK bytes');
+  const docker = readFileSync(new URL('../rust/distribution/ci/musl.Dockerfile', import.meta.url), 'utf8');
+  for (const target of pins.targets) {
+    for (const [name, version] of Object.entries(target.packages)) {
+      assert.ok(docker.includes(`${name}-${version}`), `Docker SDK root ${name} must match the manifest`);
+    }
+  }
+});
+
+test('musl SDK pins bind the reviewed CA family and all59 unchanged filename/hash pairs per architecture', () => {
   const pins = JSON.parse(readFileSync(new URL('../rust/distribution/musl-builder-pins.json', import.meta.url)));
   const set = pins.apk_package_set;
   assert.equal(set.filenames.length, 61);
   assert.deepEqual(set.filenames, [...new Set(set.filenames)].sort());
-  assert.equal(sha256(set.filenames.join('\n') + '\n'), 'ebccc750d6b866f9245e9007d7842ea6d86e234646c10cca39099c2c1ed88a82');
-  const inventories = { aarch64: '36d5cc2928bce251943c915838098b3babe14c815065421a85915c1d726537ed',
-    x86_64: '716e5c6a2e10ce651c73c7ba25e1ee4ac5b85a60bf0da57d869ce220a49d6237' };
-  // Derived from the previous reviewed61 set after excluding exactly its two
-  // r2 curl family entries; these independent pins retain every other tuple.
-  const retainedInventories = { aarch64: '226633bf1b7377e387041feed8b36c8b44dff3eba1cb7e2d1e5be5303b66bf86',
-    x86_64: '0185e2c01cd7aaa58188243cc7c1afc95147e328a8a05e0b1479e60ef888a7a2' };
-  const replacements = new Set(['curl-8.14.1-r3.apk', 'libcurl-8.14.1-r3.apk']);
+  assert.equal(sha256(set.filenames.join('\n') + '\n'), 'ee48fae7322bfd52ebcca8e7302d7ed56cdbe1825ebbf67b6edb00837754f70c');
+  const inventories = { aarch64: '2b440f75d8f086b8a11bc2dfbc3be141f983b801e39f15a0575897250e8ba7b1',
+    x86_64: 'd2fde33332a759154db8cfb37e21dc17e51c8fdc1e1a24de7918524cd16c0f77' };
+  // Derived from the prior reviewed61 set after excluding only the two CA
+  // entries; these independent pins retain curl and every other package tuple.
+  const retainedInventories = { aarch64: '994e4335b0b41408e4a831ff44b16d7bcbc72c6ba99226cfc2aa447707efc023',
+    x86_64: '2836290bd6e9b176f35baf1e645327cdf972f0e2d95f9b44bba16e003c8507a1' };
+  const replacements = new Set(['ca-certificates-20261020-r0.apk', 'ca-certificates-bundle-20261020-r0.apk']);
+  for (const target of pins.targets) {
+    assert.equal(target.packages['ca-certificates'], '20261020-r0');
+    assert.equal(target.packages.curl, '8.14.1-r3');
+  }
   assert.deepEqual(set.filenames.filter(filename => replacements.has(filename)), [...replacements]);
   assert.deepEqual(Object.keys(set.sha256_base64).sort(), arches);
   for (const arch of arches) {

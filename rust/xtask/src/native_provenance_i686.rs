@@ -309,6 +309,36 @@ fn metadata(
         .map(|s| s.trim().to_owned())
         .map_err(|_| "Invalid hosted32 metadata UTF-8".into())
 }
+// GCC may report an absolute supplier path containing symlinks and `..`.
+// Resolve that compiler-owned spelling with filesystem semantics; shared input,
+// environment and user path admission remains strict and unchanged.
+fn compiler_reported_linker_file(reported: &str) -> Result<Value, String> {
+    if reported.is_empty()
+        || reported.len() > 8192
+        || reported.chars().any(char::is_control)
+        || !Path::new(reported).is_absolute()
+    {
+        return Err("Invalid Hosted32 compiler-reported linker supplier path".into());
+    }
+    let resolved = fs::canonicalize(reported)
+        .map_err(|_| "Cannot resolve Hosted32 compiler-reported linker supplier")?;
+    let mut row = resolved_linker_file(&resolved)?;
+    row["compiler_reported_path"] = json!(reported);
+    Ok(row)
+}
+
+fn resolved_linker_file(resolved: &Path) -> Result<Value, String> {
+    if resolved
+        .to_str()
+        .is_none_or(|path| path.len() > 8192 || path.chars().any(char::is_control))
+    {
+        return Err("Invalid resolved Hosted32 linker supplier path".into());
+    }
+    tool_descriptor(resolved).map_err(|_| {
+        "Hosted32 compiler-reported linker supplier is not an admitted regular file".into()
+    })
+}
+
 fn tool_witness(value: &Tool) -> Result<Value, String> {
     let mut row = tool_descriptor(&value.canonical)?;
     row["invocation_path"] = json!(value.invocation);
@@ -730,11 +760,11 @@ pub(super) fn snapshot(root: &Path, p: I686Profile) -> Result<Value, String> {
     let mut sysroot_files = serde_json::Map::new();
     for name in ["crt1.o", "crti.o", "crtn.o", "libc.so", "libgcc.a"] {
         let arg = format!("-print-file-name={name}");
-        let path = metadata(&env, root, &gcc.invocation, &["-m32", &arg], 8192)?;
-        if !Path::new(&path).is_absolute() {
-            return Err("Missing selected i386 linker supplier".into());
-        }
-        sysroot_files.insert(name.into(), tool_descriptor(&canonical(Path::new(&path))?)?);
+        let path = metadata(&env, root, &gcc.invocation, &["-m32", &arg], 8192)
+            .map_err(|_| format!("Hosted32 fixed GCC linker metadata failed for {name}"))?;
+        let supplier = compiler_reported_linker_file(&path)
+            .map_err(|reason| format!("Hosted32 fixed GCC linker supplier {name}: {reason}"))?;
+        sysroot_files.insert(name.into(), supplier);
     }
     let mut files = serde_json::Map::new();
     for name in [
@@ -1146,5 +1176,126 @@ mod tests {
         bad["target"] = json!(HOST);
         assert!(BuildProfile::from_inputs(&bad).is_err());
         assert!(!BuildProfile::reviewed(TARGET).unwrap().portable_cpu());
+    }
+
+    #[test]
+    fn compiler_linker_report_retains_parent_spelling_and_canonical_file() {
+        let s = Scratch::new();
+        let real = s.file("lib/libc.so", b"supplier");
+        fs::create_dir(s.0.join("lib/child")).unwrap();
+        let reported = s.0.join("lib/child/../libc.so");
+        assert!(
+            canonical(&reported).is_err(),
+            "shared lexical guard stays strict"
+        );
+        let row = compiler_reported_linker_file(reported.to_str().unwrap()).unwrap();
+        assert_eq!(row["compiler_reported_path"], reported.to_str().unwrap());
+        assert_eq!(row["path"], json!(real));
+        assert_eq!(row["bytes"], 8);
+        assert_eq!(row["sha256"], digest(b"supplier"));
+    }
+
+    #[test]
+    fn compiler_linker_report_resolves_symlink_before_parent_not_lexically() {
+        let s = Scratch::new();
+        let real = s.file("real/libc.so", b"real----");
+        let decoy = s.file("libc.so", b"decoy---");
+        let leaf = s.0.join("real/leaf");
+        fs::create_dir(&leaf).unwrap();
+        std::os::unix::fs::symlink(&leaf, s.0.join("alias")).unwrap();
+        let reported = s.0.join("alias/../libc.so");
+        assert!(canonical(&reported).is_err());
+        let row = compiler_reported_linker_file(reported.to_str().unwrap()).unwrap();
+        assert_eq!(row["path"], json!(real));
+        assert_ne!(row["path"], json!(decoy));
+        assert_eq!(row["sha256"], digest(b"real----"));
+        assert_ne!(row["sha256"], digest(b"decoy---"));
+        assert_eq!(row["compiler_reported_path"], reported.to_str().unwrap());
+    }
+
+    #[test]
+    fn compiler_linker_report_rejects_unresolved_relative_and_control_spellings() {
+        let s = Scratch::new();
+        let real = s.file("libc.so", b"supplier");
+        let text = real.to_str().unwrap();
+        for reported in ["", "libc.so", "./libc.so", "../libc.so"] {
+            assert!(compiler_reported_linker_file(reported).is_err());
+        }
+        for control in ['\0', '\t', '\n', '\r', '\u{7f}', '\u{85}'] {
+            let reported = format!("{text}{control}");
+            let error = compiler_reported_linker_file(&reported).unwrap_err();
+            assert_eq!(
+                error,
+                "Invalid Hosted32 compiler-reported linker supplier path"
+            );
+            assert!(!error.contains(text));
+        }
+        assert!(compiler_reported_linker_file(&format!("/{}", "x".repeat(8192))).is_err());
+    }
+
+    #[test]
+    fn compiler_linker_report_rejects_missing_directories_and_fifo_before_read() {
+        let s = Scratch::new();
+        for path in [s.0.join("missing"), s.0.clone()] {
+            let error = compiler_reported_linker_file(path.to_str().unwrap()).unwrap_err();
+            assert!(!error.contains(s.0.to_str().unwrap()));
+        }
+        let fifo = s.0.join("fifo");
+        nix::unistd::mkfifo(&fifo, nix::sys::stat::Mode::S_IRUSR).unwrap();
+        assert!(compiler_reported_linker_file(fifo.to_str().unwrap()).is_err());
+        std::os::unix::fs::symlink(s.0.join("missing"), s.0.join("dangling")).unwrap();
+        assert!(compiler_reported_linker_file(s.0.join("dangling").to_str().unwrap()).is_err());
+    }
+
+    #[test]
+    fn compiler_linker_report_rejects_bad_resolved_names_and_sparse_oversize() {
+        use std::os::unix::ffi::OsStringExt;
+        let s = Scratch::new();
+        let non_utf8 = s.0.join(OsString::from_vec(b"nonutf8-\xff".to_vec()));
+        // APFS refuses non-UTF-8 names. All hosts test the production guard;
+        // Linux also exercises filesystem resolution through a real symlink.
+        assert_eq!(
+            resolved_linker_file(&non_utf8).unwrap_err(),
+            "Invalid resolved Hosted32 linker supplier path"
+        );
+        #[cfg(target_os = "linux")]
+        {
+            fs::write(&non_utf8, b"supplier").unwrap();
+            let alias = s.0.join("utf8-alias");
+            std::os::unix::fs::symlink(&non_utf8, &alias).unwrap();
+            assert!(compiler_reported_linker_file(alias.to_str().unwrap()).is_err());
+        }
+        let control = s.file("control\nname", b"supplier");
+        let clean = s.0.join("clean-alias");
+        std::os::unix::fs::symlink(&control, &clean).unwrap();
+        assert!(compiler_reported_linker_file(clean.to_str().unwrap()).is_err());
+        let big = s.0.join("oversized");
+        fs::File::create(&big)
+            .unwrap()
+            .set_len(HOST_TOOL_MAX + 1)
+            .unwrap();
+        assert!(compiler_reported_linker_file(big.to_str().unwrap()).is_err());
+    }
+
+    #[test]
+    fn compiler_linker_report_binds_changed_supplier_bytes_at_same_spelling() {
+        let s = Scratch::new();
+        let real = s.file("libc.so", b"before!!");
+        fs::create_dir(s.0.join("child")).unwrap();
+        let reported = s.0.join("child/../libc.so");
+        let first = compiler_reported_linker_file(reported.to_str().unwrap()).unwrap();
+        fs::write(&real, b"after!!!").unwrap();
+        let second = compiler_reported_linker_file(reported.to_str().unwrap()).unwrap();
+        assert_eq!(
+            first["compiler_reported_path"],
+            second["compiler_reported_path"]
+        );
+        assert_eq!(first["path"], second["path"]);
+        assert_eq!(first["bytes"], second["bytes"]);
+        assert_ne!(first["sha256"], second["sha256"]);
+        assert_ne!(
+            first, second,
+            "before/after provenance snapshots detect supplier drift"
+        );
     }
 }

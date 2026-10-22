@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -138,9 +138,9 @@ if (role === 'git') {
 
 const quote = value => "'" + value.replaceAll("'", "'\\''") + "'";
 
-/** @param {import('node:test').TestContext} t @param {string} mode */
-function run(t, mode) {
-  const root = mkdtempSync(join(tmpdir(), 'autorouter-runtime32-workflow-'));
+/** @param {import('node:test').TestContext} t @param {string} mode @param {string} [parent] */
+function run(t, mode, parent = tmpdir()) {
+  const root = realpathSync(mkdtempSync(join(parent, 'autorouter-runtime32-workflow-')));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   assert.ok(!resolve(root).startsWith(resolve(dirname(fileURLToPath(workflow)), '../..') + '/'));
   const bin = join(root, 'bin'), out = join(root, 'artifacts/rust-rewrite/runtime32');
@@ -186,5 +186,17 @@ for (const [mode, last] of [['begin-failure', 'begin'], ['build-failure', 'build
     const { child, rows } = run(t, mode);
     assert.notEqual(child.status, 0);
     assert.deepEqual(rows.map(row => row.stage), fullTrace.slice(0, fullTrace.indexOf(last) + 1));
+  });
+}
+
+for (const mode of ['success', 'proof-failure']) {
+  test(`i686 workflow reaches its proof through a symlinked temporary parent: ${mode}`, t => {
+    const area = realpathSync(mkdtempSync(join(tmpdir(), 'autorouter-runtime32-alias-')));
+    t.after(() => rmSync(area, {recursive:true, force:true}));
+    mkdirSync(join(area, 'real'));
+    symlinkSync(join(area, 'real'), join(area, 'alias'), 'dir');
+    const {child, rows} = run(t, mode, join(area, 'alias'));
+    assert.equal(child.status, mode === 'success' ? 0 : 23, child.stderr);
+    assert.deepEqual(rows.map(row => row.stage), fullTrace);
   });
 }
