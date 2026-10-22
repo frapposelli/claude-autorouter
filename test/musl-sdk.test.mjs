@@ -99,19 +99,19 @@ test('musl collector source pin and Docker SDK roots match the checked-in manife
   }
 });
 
-test('musl SDK pins bind the reviewed CA family and all59 unchanged filename/hash pairs per architecture', () => {
+test('musl SDK pins bind six reviewed replacements and all55 retained filename/hash pairs per architecture', () => {
   const pins = JSON.parse(readFileSync(new URL('../rust/distribution/musl-builder-pins.json', import.meta.url)));
   const set = pins.apk_package_set;
   assert.equal(set.filenames.length, 61);
   assert.deepEqual(set.filenames, [...new Set(set.filenames)].sort());
-  assert.equal(sha256(set.filenames.join('\n') + '\n'), 'ee48fae7322bfd52ebcca8e7302d7ed56cdbe1825ebbf67b6edb00837754f70c');
-  const inventories = { aarch64: '2b440f75d8f086b8a11bc2dfbc3be141f983b801e39f15a0575897250e8ba7b1',
-    x86_64: 'd2fde33332a759154db8cfb37e21dc17e51c8fdc1e1a24de7918524cd16c0f77' };
-  // Derived from the prior reviewed61 set after excluding only the two CA
-  // entries; these independent pins retain curl and every other package tuple.
-  const retainedInventories = { aarch64: '994e4335b0b41408e4a831ff44b16d7bcbc72c6ba99226cfc2aa447707efc023',
-    x86_64: '2836290bd6e9b176f35baf1e645327cdf972f0e2d95f9b44bba16e003c8507a1' };
-  const replacements = new Set(['ca-certificates-20261020-r0.apk', 'ca-certificates-bundle-20261020-r0.apk']);
+  assert.equal(sha256(set.filenames.join('\n') + '\n'), 'b533df06470df811c5e8b45dd8252b22faead81aefd1d3041dd9751409adb196');
+  const inventories = { aarch64: '137b741111ce722e37bc0f33fc53a4591a8fe88f163f846f9b58d14c82fd5b8c',
+    x86_64: '3a4d9a3a5a3f65d5f55870e1d8b601af16d1fd39eadc15939d273ab2de87444d' };
+  // Derived from the prior reviewed61 set after excluding the six replacements;
+  // these independent pins retain CA, curl, GCC and every other package tuple.
+  const retainedInventories = { aarch64: '380963f983b83a0491670d60081caf65a37c6e1e4b2280c5854f7f8db8624aed',
+    x86_64: '8b0ba5351434835d0bb8fa6002dcc7eed63b8e148059f91b16a1b3806e18c51c' };
+  const replacements = new Set(['brotli-libs-1.1.1-r0.apk', 'c-ares-1.34.9-r0.apk', 'libexpat-2.9.0-r0.apk', 'musl-1.2.5-r12.apk', 'musl-dev-1.2.5-r12.apk', 'pcre2-10.43-r1.apk']);
   for (const target of pins.targets) {
     assert.equal(target.packages['ca-certificates'], '20261020-r0');
     assert.equal(target.packages.curl, '8.14.1-r3');
@@ -129,7 +129,7 @@ test('musl SDK pins bind the reviewed CA family and all59 unchanged filename/has
     assert.equal(sha256(hashes.join('\n') + '\n'), inventories[arch]);
     const retained = set.filenames.flatMap((filename, index) =>
       replacements.has(filename) ? [] : [`${filename}  ${hashes[index]}\n`]);
-    assert.equal(retained.length, 59);
+    assert.equal(retained.length, 55);
     assert.equal(sha256(retained.join('')), retainedInventories[arch]);
   }
 });

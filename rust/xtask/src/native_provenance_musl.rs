@@ -6,7 +6,7 @@ use std::io::Read;
 
 const MUSL_WORKFLOW: &str = ".github/workflows/rust-musl.yml";
 const PINS: &str = "rust/distribution/musl-builder-pins.json";
-const PINS_SHA: &str = "f763189402b9feef6bec42a185e9623bf10bb4ab2c47bba11a038c8b15f65964";
+const PINS_SHA: &str = "93e8004d68ee4f507cdc7d5305060410b1e0426370d5ca104302b242a2ab274b";
 const DOCKERFILE: &str = "rust/distribution/ci/musl.Dockerfile";
 const SCRIPT: &str = "rust/distribution/ci/check-musl.sh";
 const FETCHER: &str = "rust/distribution/ci/fetch-musl-apks.mjs";
