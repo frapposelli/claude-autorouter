@@ -1,0 +1,252 @@
+name: Rust 32-bit runtime and CLI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  runtime32:
+    name: runtime and installed CLI / i686-unknown-linux-gnu
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: bash
+        working-directory: rust
+    env:
+      CARGO_INCREMENTAL: '0'
+      CARGO_PROFILE_DEV_DEBUG: '0'
+      CARGO_PROFILE_TEST_DEBUG: '0'
+      CARGO_BUILD_JOBS: '4'
+      CARGO_TARGET_DIR: ${{ github.workspace }}/artifacts/rust-rewrite/runtime32/target
+      CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: gcc
+      OPENSSL_NO_VENDOR: '0'
+      RUSTFLAGS: ''
+      LC_ALL: C
+      CARGO_TERM_COLOR: never
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22.14.0'
+          package-manager-cache: false
+      - name: Declare exact source and workspace Rust version
+        run: |
+          set -euo pipefail
+          umask 077
+          out=../artifacts/rust-rewrite/runtime32
+          mkdir -p "$out"
+          test "$(uname -m)" = x86_64
+          test -z "$(git status --porcelain)"
+          git rev-parse HEAD > "$out/source-commit.txt"
+          git status --porcelain > "$out/source-status.txt"
+          python3 - <<'PYTHON'
+          import os, re, tomllib
+          from pathlib import Path
+          version = tomllib.loads(Path('rust-toolchain.toml').read_text())['toolchain']['channel']
+          if not re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', version):
+              raise SystemExit('Workspace Rust channel must be an exact version')
+          for name in [
+              'RUSTC', 'RUSTDOC', 'RUSTC_WRAPPER', 'RUSTC_WORKSPACE_WRAPPER',
+              'CARGO_BUILD_RUSTC', 'CARGO_BUILD_RUSTDOC', 'CARGO_BUILD_RUSTC_WRAPPER',
+              'CARGO_BUILD_RUSTC_WORKSPACE_WRAPPER', 'CARGO_ENCODED_RUSTFLAGS',
+              'CARGO_BUILD_TARGET', 'CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_RUNNER',
+              'OPENSSL_DIR', 'OPENSSL_LIB_DIR', 'OPENSSL_INCLUDE_DIR',
+          ]:
+              if os.environ.get(name):
+                  raise SystemExit('Unexpected compiler, target, execution or TLS override')
+          if os.environ.get('RUSTFLAGS') or os.environ.get('OPENSSL_NO_VENDOR') != '0':
+              raise SystemExit('Unexpected compiler flags or OpenSSL source policy')
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write('AUTOROUTER_RUNTIME32_RUST_HOST=' + version + '-x86_64-unknown-linux-gnu\n')
+          PYTHON
+      - name: Install exact selected multilib and OpenSSL build tools
+        run: |
+          set -euo pipefail
+          umask 077
+          out=../artifacts/rust-rewrite/runtime32
+          sudo apt-get update --error-on=any -o Acquire::Retries=0 -o Acquire::http::Timeout=60 -o Acquire::https::Timeout=60
+          apt-cache policy gcc-multilib libc6-dev-i386 make perl > "$out/apt-policy.txt"
+          packages=()
+          : > "$out/requested-root-versions.tsv"
+          for package in gcc-multilib libc6-dev-i386 make perl; do
+            version=$(apt-cache policy "$package" | awk '/Candidate:/ {print $2; exit}')
+            [[ "$version" =~ ^[0-9A-Za-z.+:~_-]+$ ]] && test "$version" != '(none)'
+            packages+=("$package=$version")
+            printf '%s\t%s\n' "$package" "$version" >> "$out/requested-root-versions.tsv"
+          done
+          sudo apt-get install --yes --no-install-recommends --no-remove "${packages[@]}"
+          for package in gcc-multilib libc6-dev-i386 make perl; do
+            version=$(awk -F '\t' -v name="$package" '$1 == name {print $2}' "$out/requested-root-versions.tsv")
+            test "$(dpkg-query -W -f='${Version}' "$package")" = "$version"
+          done
+          dpkg-query -W -f='${Package}\t${Version}\t${Architecture}\n' > "$out/installed-packages.tsv"
+          apt-get indextargets > "$out/apt-index-targets.txt"
+          gcc --version > "$out/gcc-version.txt"
+          perl -MIPC::Cmd -e 'print "IPC::Cmd $IPC::Cmd::VERSION\n"' > "$out/perl-ipc-cmd.txt"
+          make --version > "$out/make-version.txt"
+          python3 --version > "$out/python-version.txt" 2>&1
+          cp /etc/os-release "$out/os-release.txt"
+          uname -srmo > "$out/kernel.txt"
+      - name: Install pinned Rust target, fetch locked sources, and prove ELF32 execution
+        run: |
+          set -euo pipefail
+          umask 077
+          out=../artifacts/rust-rewrite/runtime32
+          rustup toolchain install "$AUTOROUTER_RUNTIME32_RUST_HOST" --profile minimal --component clippy --component rustfmt
+          rustup target add --toolchain "$AUTOROUTER_RUNTIME32_RUST_HOST" i686-unknown-linux-gnu
+          rustc "+$AUTOROUTER_RUNTIME32_RUST_HOST" -vV > "$out/rustc-version.txt"
+          cargo "+$AUTOROUTER_RUNTIME32_RUST_HOST" --version > "$out/cargo-version.txt"
+          rustup --version > "$out/rustup-version.txt"
+          rustc "+$AUTOROUTER_RUNTIME32_RUST_HOST" --print cfg --target i686-unknown-linux-gnu > "$out/target-cfg.txt"
+          grep -Fxq 'target_pointer_width="32"' "$out/target-cfg.txt"
+          cat > "$out/preflight32.c" <<'C'
+          int main(void) { return sizeof(void *) == 4 ? 0 : 1; }
+          C
+          gcc -m32 -march=i686 "$out/preflight32.c" -o "$out/preflight32"
+          "$out/preflight32"
+          setarch i686 "$out/preflight32"
+          uname -m > "$out/host-uname.txt"
+          setarch i686 uname -m > "$out/personality-uname.txt"
+          test "$(cat "$out/host-uname.txt")" = x86_64
+          test "$(cat "$out/personality-uname.txt")" = i686
+          setarch i686 rustc "+$AUTOROUTER_RUNTIME32_RUST_HOST" -vV > "$out/personality-rustc-version.txt"
+          grep -Fxq 'host: x86_64-unknown-linux-gnu' "$out/personality-rustc-version.txt"
+          cargo "+$AUTOROUTER_RUNTIME32_RUST_HOST" fetch --locked
+          cargo "+$AUTOROUTER_RUNTIME32_RUST_HOST" fetch --locked --target i686-unknown-linux-gnu
+          cargo "+$AUTOROUTER_RUNTIME32_RUST_HOST" metadata --format-version 1 --locked --offline > /dev/null
+          printf 'RUSTUP_TOOLCHAIN=%s\nCARGO_NET_OFFLINE=true\n' "$AUTOROUTER_RUNTIME32_RUST_HOST" >> "$GITHUB_ENV"
+      - name: Bootstrap independent auditor before inspected runtime dependencies
+        run: |
+          set -euo pipefail
+          umask 077
+          out=../artifacts/rust-rewrite/runtime32
+          cargo build --package xtask --no-default-features --bin autorouter-audit --offline --locked --message-format=json > "$out/auditor-build.jsonl"
+          cp "$CARGO_TARGET_DIR/debug/autorouter-audit" "$out/autorouter-audit-bootstrap"
+          "$out/autorouter-audit-bootstrap" bootstrap --build-report "$out/auditor-build.jsonl" > "$out/auditor-bootstrap-proof.json"
+          "$out/autorouter-audit-bootstrap" vendor > "$out/vendor-audit.json"
+          "$out/autorouter-audit-bootstrap" production-features --self-test > "$out/production-self-test.txt"
+          printf 'CARGO_BUILD_TARGET=i686-unknown-linux-gnu\n' >> "$GITHUB_ENV"
+      - name: Strict i686 runtime and CLI Clippy
+        run: |
+          set -euo pipefail
+          umask 077
+          cargo clippy --target i686-unknown-linux-gnu --package autorouter-runtime --package claude-autorouter \
+            --all-targets --offline --locked -- -D warnings > ../artifacts/rust-rewrite/runtime32/clippy.log 2>&1
+      - name: Build and inspect every runtime and CLI ELF32 test executable
+        run: |
+          set -euo pipefail
+          umask 077
+          out=../artifacts/rust-rewrite/runtime32
+          cargo test --target i686-unknown-linux-gnu --package autorouter-runtime \
+            --no-run --offline --locked --message-format=json > "$out/runtime-build.jsonl"
+          cargo test --target i686-unknown-linux-gnu --package claude-autorouter \
+            --no-run --offline --locked --message-format=json > "$out/cli-build.jsonl"
+          python3 distribution/ci/runtime32-proof.py inspect
+          test "${GITHUB_WORKSPACE// /}" = "$GITHUB_WORKSPACE"
+          printf 'CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_RUNNER=python3 %s/rust/distribution/ci/runtime32-proof.py run-test\n' \
+            "$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
+      - name: Execute complete i686 runtime and CLI packages with genuine i686 uname
+        run: |
+          set -euo pipefail
+          umask 077
+          out=../artifacts/rust-rewrite/runtime32
+          AUTOROUTER_RUNTIME32_PHASE=default-runtime setarch i686 cargo test --target i686-unknown-linux-gnu --package autorouter-runtime \
+            --offline --locked -- --test-threads=4 > "$out/runtime-tests.log" 2>&1
+          AUTOROUTER_RUNTIME32_PHASE=default-cli setarch i686 cargo test --target i686-unknown-linux-gnu --package claude-autorouter \
+            --offline --locked -- --test-threads=4 > "$out/cli-tests.log" 2>&1
+      - name: Build and audit ordinary production i686 CLI before runtime-tools xtask
+        run: |
+          set -euo pipefail
+          umask 077
+          out=../artifacts/rust-rewrite/runtime32
+          # Top-level subshell: do not place in if/&&/|| (errexit must remain active).
+          (
+            export RUSTFLAGS='-C target-cpu=pentium4 -C linker=gcc'
+            export AUTOROUTER_BUILD_TARGET=i686-unknown-linux-gnu AUTOROUTER_BUILD_MACHINE=x86_64 AUTOROUTER_BUILD_RUNNER=ubuntu-24.04
+            export OPENSSL_STATIC=1 OPENSSL_SRC_PERL=/usr/bin/perl
+            SOURCE_DATE_EPOCH="$(git show -s --format=%ct HEAD)"
+            CARGO_HOME="$(python3 -c 'import os; print(os.path.realpath(os.environ.get("CARGO_HOME", os.path.expanduser("~/.cargo"))))')"
+            RUSTUP_HOME="$(python3 -c 'import os; print(os.path.realpath(os.environ.get("RUSTUP_HOME", os.path.expanduser("~/.rustup"))))')"
+            export SOURCE_DATE_EPOCH CARGO_HOME RUSTUP_HOME
+            "$out/autorouter-audit-bootstrap" binary-provenance begin \
+              --target i686-unknown-linux-gnu \
+              --build-report "$GITHUB_WORKSPACE/artifacts/rust-rewrite/runtime32/production-build.jsonl" \
+              --feature-report "$GITHUB_WORKSPACE/artifacts/rust-rewrite/runtime32/production-features.json" \
+              --out "$GITHUB_WORKSPACE/artifacts/rust-rewrite/runtime32/production-inputs.json"
+            cargo build --release --target i686-unknown-linux-gnu --package claude-autorouter \
+              --offline --locked --message-format=json > "$out/production-build.jsonl"
+            "$out/autorouter-audit-bootstrap" production-features --build-report "$out/production-build.jsonl" > "$out/production-features.json"
+            "$out/autorouter-audit-bootstrap" binary-provenance finish \
+              --inputs "$GITHUB_WORKSPACE/artifacts/rust-rewrite/runtime32/production-inputs.json" \
+              --build-report "$GITHUB_WORKSPACE/artifacts/rust-rewrite/runtime32/production-build.jsonl" \
+              --feature-report "$GITHUB_WORKSPACE/artifacts/rust-rewrite/runtime32/production-features.json" \
+              --out "$GITHUB_WORKSPACE/artifacts/rust-rewrite/runtime32/production-native"
+          )
+          test -z "$RUSTFLAGS"
+          cmp "$CARGO_TARGET_DIR/i686-unknown-linux-gnu/release/claude-autorouter" "$out/production-native/claude-autorouter"
+          cp "$CARGO_TARGET_DIR/i686-unknown-linux-gnu/release/claude-autorouter" "$out/claude-autorouter-i686"
+          setarch i686 "$out/claude-autorouter-i686" --version > "$out/cli-version.txt"
+          python3 distribution/ci/runtime32-proof.py production
+      - name: Build i686 package helper after the production executable is frozen
+        run: |
+          set -euo pipefail
+          umask 077
+          out=../artifacts/rust-rewrite/runtime32
+          cargo build --release --target i686-unknown-linux-gnu --package xtask --bin xtask \
+            --offline --locked --message-format=json > "$out/xtask-build.jsonl"
+          python3 distribution/ci/runtime32-proof.py helper
+      - name: Exercise exact i686 npm/direct archives and offline upgrade/rollback
+        run: |
+          set -euo pipefail
+          umask 077
+          out=../artifacts/rust-rewrite/runtime32
+          xtask="$CARGO_TARGET_DIR/i686-unknown-linux-gnu/release/xtask"
+          version=$(cat "$out/cli-version.txt")
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          AUTOROUTER_RUNTIME32_PHASE=npm setarch i686 /bin/sh -c 'umask 022; exec "$@"' runtime32-npm "$xtask" package \
+            --binary "i686-unknown-linux-gnu=artifacts/rust-rewrite/runtime32/claude-autorouter-i686" \
+            --output artifacts/rust-rewrite/runtime32/npm --smoke > "$out/npm-command.json"
+          AUTOROUTER_RUNTIME32_PHASE=direct setarch i686 /bin/sh -c 'umask 022; exec "$@"' runtime32-direct "$xtask" package \
+            --direct-from "artifacts/rust-rewrite/runtime32/npm/claude-autorouter-$version.tgz" \
+            --target i686-unknown-linux-gnu --output artifacts/rust-rewrite/runtime32/direct --smoke > "$out/direct-command.json"
+          setarch i686 "$xtask" upgrade-rollback \
+            --native "artifacts/rust-rewrite/runtime32/npm/claude-autorouter-$version.tgz" \
+            --output artifacts/rust-rewrite/runtime32/upgrade-rollback > "$out/upgrade-rollback-command.json"
+          git rev-parse HEAD > "$out/source-commit-after.txt"
+          git status --porcelain > "$out/source-status-after.txt"
+          python3 distribution/ci/runtime32-proof.py finish
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: rust-runtime32-i686
+          path: |
+            artifacts/rust-rewrite/runtime32/*.json
+            artifacts/rust-rewrite/runtime32/*.jsonl
+            artifacts/rust-rewrite/runtime32/*.txt
+            artifacts/rust-rewrite/runtime32/*.tsv
+            artifacts/rust-rewrite/runtime32/*.log
+            artifacts/rust-rewrite/runtime32/production-native/claude-autorouter
+            artifacts/rust-rewrite/runtime32/production-native/native-binary-provenance.json
+            artifacts/rust-rewrite/runtime32/claude-autorouter-i686
+            artifacts/rust-rewrite/runtime32/npm/*.json
+            artifacts/rust-rewrite/runtime32/npm/*.tgz
+            artifacts/rust-rewrite/runtime32/npm/*.sha256
+            artifacts/rust-rewrite/runtime32/direct/*.json
+            artifacts/rust-rewrite/runtime32/direct/*.tar.gz
+            artifacts/rust-rewrite/runtime32/direct/*.sha256
+            artifacts/rust-rewrite/runtime32/upgrade-rollback/report.json
+            artifacts/rust-rewrite/runtime32/upgrade-rollback/candidate.tgz
+            artifacts/rust-rewrite/runtime32/upgrade-rollback/baseline/claude-autorouter-0.5.2.tgz
+            artifacts/rust-rewrite/runtime32/upgrade-rollback/baseline/claude-autorouter-0.5.2.tgz.sha256
+            artifacts/rust-rewrite/runtime32/runner-receipts/*/*.json
+          if-no-files-found: warn

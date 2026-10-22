@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "kind": "native_original_response_execution_future_assertion",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "status": "one_definition_covered_with_reviewed_native_adapter_migration",
+  "definition": "test/response-observer.test.mjs#32",
+  "source_direct_assertion_sites": 0,
+  "source_inherited_assertion_sites": 1,
+  "source_assertion_executions": 2,
+  "native_byte_assertion_executions": 2,
+  "callback_arguments_compared": 6,
+  "actual_future_starts_polls_drops_rejects_each": 3,
+  "mapping": {
+    "path": "rust/parity/assertion-mappings/response-execution-future-contracts.json",
+    "bytes": 35394,
+    "sha256": "f9714b3372da224000a94cbb5b0d310913ee119b66a218dc6f91dee2f0c516d1"
+  },
+  "independent_review": {
+    "path": "artifacts/rust-rewrite/evidence/b14c8782a65b9d52b66b343d3b3be66ac2d0dd631524b433151e523b4b949a08.json",
+    "bytes": 18047,
+    "sha256": "b14c8782a65b9d52b66b343d3b3be66ac2d0dd631524b433151e523b4b949a08",
+    "original_path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/peer-postexecution-review-1.json"
+  },
+  "root_API_review": {
+    "path": "artifacts/rust-rewrite/evidence/5f9c2d47683a93262477ac30d4c92201cc035bc66d0e851cd2066690b21a3769.json",
+    "bytes": 2670,
+    "sha256": "5f9c2d47683a93262477ac30d4c92201cc035bc66d0e851cd2066690b21a3769",
+    "original_path": "artifacts/rust-rewrite/response-execution-future-promotion-20261014-1/root-API-acceptance.json"
+  },
+  "native_execution": {
+    "path": "artifacts/rust-rewrite/response-execution-future-native-20261014-1/execution.json",
+    "bytes": 913,
+    "sha256": "b87dcaa7975033f173d16dfa391de76273cb1c7dc7967f1749475830a893f954"
+  },
+  "native_module_tests": {
+    "passed": 22,
+    "failed": 0,
+    "ignored": 0,
+    "old_tests_retained": 21
+  },
+  "strict_workspace_clippy": {
+    "path": "artifacts/rust-rewrite/transfer-v2-native-controls-20261014-2/clippy-execution.json",
+    "bytes": 577,
+    "sha256": "8c34f0cdcff6c7a22bc11264fb0bd198b15960afaf0f96e6f2d25dfb58d1d059"
+  },
+  "source_execution": {
+    "path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/source-execution-1.json",
+    "bytes": 5256,
+    "sha256": "caa7d84d5c7f80abdab9fe49fd94e828fe070cbdcf2ec38a3b7624bba87fc5fc"
+  },
+  "API_migration": "ResponseObserver::new accepts one synchronous owned FnMut(Observation), replacing five JavaScript callbacks. Dispatch only corresponding typed observation variants; bridge futures via public ObserverHandle::submit with exact serialized callback metadata charge and retained ObserverTasks owner. Actual Future::poll Err(ObserverRejected) replaces Promise settlement/Error payload identity; no automatic async overload, Promise/Error identity or microtask scheduling equivalence claimed.",
+  "scope": "Both original inherited byte assertions and all six original callback arguments are retained. Native ordinary panic and actual owned Future rejection preserve every data frame and clean EOF through explicit public adapter migration; no Promise/Error identity, microtask scheduling, implicit async overload or final downstream-flush/continuity claim.",
+  "coverage": {
+    "before": {
+      "covered": 523,
+      "partial": 65
+    },
+    "after": {
+      "covered": 524,
+      "partial": 64,
+      "definitions": 588
+    },
+    "other_rows_unchanged": 587
+  },
+  "historical_partial_mapping_preserved": true,
+  "provider_calls": 0,
+  "model_downloads": 0,
+  "all_other_full_goal_gates_unqualified": true,
+  "prepromotion_coverage_snapshot": {
+    "path": "artifacts/rust-rewrite/evidence/7ec2821b3171faeba96b1dbba7a14f19ac6f686966215eeb74601e8d1e49b1a7.json",
+    "bytes": 1756335,
+    "sha256": "7ec2821b3171faeba96b1dbba7a14f19ac6f686966215eeb74601e8d1e49b1a7"
+  }
+}

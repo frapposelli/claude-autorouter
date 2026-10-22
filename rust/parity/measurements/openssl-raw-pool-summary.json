@@ -1,0 +1,599 @@
+{
+  "schema_version": 1,
+  "kind": "OpenSSL_test_only_raw_agent_pool_summary",
+  "author": "protocol_2",
+  "production_eligible": false,
+  "declared_pool_scope_qualified": true,
+  "full_node_transport_equivalence": false,
+  "scope": "Separate test-only RawPoolClient; shipping JavaScript default, Rustls runtime, original SpikeHttpClient constructors and original failed matrices unchanged.",
+  "implementation": [
+    "Unique HTTP1 sender/driver ownership through actual consumer completion; final-data is_end_stream and header-only handoff do not require an extra poll(None). Drop alone never reports completion or downstream delivery.",
+    "Exact Http1Reservation retires before pool return; poisoned/claimed/stale ownership cannot return or claim a later request. Attached and unattached upgrade tokens reject before dialing.",
+    "Per-origin LIFO free list with actual256 limit, leading decimal Keep-Alive hint minus1000ms, default5000ms, per-entry generation expiry and actual IO inactivity observations; busy timeout does not close an active request.",
+    "Consumer completion resets busy timeout0 before sender readiness; cap check precedes hint policy, accepted insertion alone configures idle timeout. Rejected cap never starts an idle timer. Driver retirement and insertion share the pool lock; callbacks, wake and IO destruction remain outside.",
+    "Separate raw/fetch pools, separate origins, actual in-memory synthetic subscription gateway refresh, bounded request/dial cancellation, sibling survival, decoder-error discard, stale-timer rejection, wire Host and path normalization, timer/task/socket cleanup."
+  ],
+  "source_inputs": {
+    "frozen_delta": {
+      "path": "artifacts/rust-rewrite/raw-pool-final-snapshot/sources.json",
+      "sha256": "b7a26faa8b5a21b83b06b1883ae90714ab3ffc24c7ff36d3fd2212cb991ecccd",
+      "bytes": 4976
+    },
+    "full_root_inputs": {
+      "path": "artifacts/rust-rewrite/twelfth-final-1-source-inputs.json",
+      "sha256": "b652f4bf8d7eae04e4a9930dcae1e7abd0eaf791d265d46b0b0506767dd7b49c",
+      "bytes": 90508
+    },
+    "ownership": {
+      "protocol_2": [
+        "new raw_pool.rs",
+        "new raw_pool_tests.rs",
+        "new raw_pool_adversarial.rs",
+        "new raw_pool_child.rs",
+        "client.rs connector factory and pub(super) visibility only",
+        "openssl_spike.rs module registration only",
+        "check-openssl-raw-pool.mjs",
+        "raw-pool-reference.mjs"
+      ],
+      "validation_2": [
+        "additive vendor reservation bridge",
+        "dev-only feature/manifests",
+        "production feature verifier",
+        "vendor provenance/checksums"
+      ],
+      "root": [
+        "central ledger/docs/bundle",
+        "shipping runtime and host validation"
+      ]
+    },
+    "unchanged_legacy": "Independent review mechanically removes only connector factory/visibility and module hook to recover prior HEAD client/parent bytes; no server, CompletionRegistry or shared-core transport edits."
+  },
+  "binary": {
+    "path": "artifacts/rust-rewrite/raw-pool-final-snapshot/runtime-tests",
+    "sha256": "98860f2f5e4ea2147ba6061750adb759fbd6abdac61922b5c4d022dd5549f8e9",
+    "bytes": 83818544,
+    "sources": "artifacts/rust-rewrite/raw-pool-final-snapshot/sources.json"
+  },
+  "build_linkage": {
+    "audit": {
+      "path": "artifacts/rust-rewrite/evidence/c938e5b54a56dc5b451dc3439ecf962be7af41cb8a15a0af31f0c6b2f7be0003.json",
+      "sha256": "c938e5b54a56dc5b451dc3439ecf962be7af41cb8a15a0af31f0c6b2f7be0003",
+      "bytes": 4464
+    },
+    "description": "16 delta inputs frozen before original standalone build. Root505 full snapshot was captured after that build. Independent same-selection Cargo validation with locked/offline and incremental0 verified all505 and16 pairs before/after and produced byte-identical98860f candidate; Cargo cache reused. No clean-build reproducibility claim. Root workspace binary is a different feature-selection artifact and is not substituted for this candidate."
+  },
+  "pool_differential": {
+    "report": {
+      "path": "artifacts/rust-rewrite/evidence/openssl-raw-pool-4004c2d1f5df690675f692e41bf1678530e9ae7c1de43e73d875f9139739cfef.json",
+      "sha256": "4004c2d1f5df690675f692e41bf1678530e9ae7c1de43e73d875f9139739cfef",
+      "bytes": 10648465
+    },
+    "completed_executions": 126,
+    "matched": 63,
+    "declared": 63,
+    "protocols": [
+      "HTTP",
+      "TLS1.2",
+      "TLS1.3"
+    ],
+    "case_expansion": "Original51 case IDs plus6 duplicate-header cases,3 hinted-busy reuse cases and3 full-cap/257th-only zero-hint precedence cases. Original concurrent cap schedules remain retained; final cap/LIFO admission and reply/free barriers are an explicit schedule refinement for deterministic ownership comparison.",
+    "independent_wire": "Every probe assignment cross-binds to provider request-to-physical-connection ownership preserving duplicates. Cap257 follows retained request255; rejected request256 physical peer closes. LIFO3 follows request2. TLS peer identities use the same secure socket for requests and closure.",
+    "tls_resumption": "Per-peer first-request normalized resumption vectors are explicit comparison gates.",
+    "cleanup": {
+      "native_cases": 63,
+      "native_zero_fields": [
+        "live",
+        "tasks",
+        "fetch_live",
+        "fetch_tasks",
+        "shutdown_handles",
+        "shutdown_calls",
+        "session_error_closes"
+      ],
+      "all_parent_children_reaped": true,
+      "all_parent_peer_sockets_zero": true,
+      "all_parent_pending_requests_zero": true,
+      "all_parent_cleanup_failures_empty": true
+    },
+    "exclusions": [
+      "elapsed timestamps",
+      "JS-only close.had_error and timeout.destroyed",
+      "JS timer-set/refresh callback traces",
+      "active/queued diagnostic arrays and per-socket destroyed flags",
+      "complete observer, parser-error TLS-cache, downstream forwarding and unbarriered close equivalence"
+    ],
+    "bounds": {
+      "scenario_ms": 15000,
+      "cap_scenario_ms": 20000,
+      "ordinary_barrier_ms": 2000,
+      "expiry_barrier_ms": 7000,
+      "native_child_outer_ms": 25000,
+      "helper_cleanup_ms": 2000,
+      "connections": 260,
+      "requests": 520,
+      "events": 1024,
+      "commands": 1024,
+      "command_bytes": 4096,
+      "request_header_bytes": 16384,
+      "response_bytes": 65536,
+      "diagnostic_bytes": 65536,
+      "control_reply_bytes": 131072,
+      "parent_control_buffer_bytes": 262144
+    }
+  },
+  "native_tests": {
+    "raw_pool": {
+      "passed": 31,
+      "unit_assertion_tests": 8,
+      "real_loopback_adversarial_tests": 21,
+      "environment_gated_child_entrypoints": 2,
+      "child_note": "The2 child tests return without fixture env in the ordinary31-test run; the63 differential and separately derived18-session driver execute both real entrypoints.",
+      "log": {
+        "path": "artifacts/rust-rewrite/raw-pool-native-final-1.log",
+        "sha256": "8f7584b5b47f5474329865113c20a71dd4dd9a4e04b8fe4f760bfe714932abcd",
+        "bytes": 8282
+      }
+    },
+    "unchanged_spike": {
+      "passed": 90,
+      "log": {
+        "path": "artifacts/rust-rewrite/raw-pool-final-regressions/original-90.log",
+        "sha256": "0d3ba7c3e751850110073c16f33a46e4974fad22c8303d4ca10a448238aee3dd",
+        "bytes": 20465
+      }
+    },
+    "focused_clippy": {
+      "passed": true,
+      "log": {
+        "path": "artifacts/rust-rewrite/raw-pool-clippy-2.log",
+        "sha256": "e0917b04afc5a90e1121f482767ddf0ee8d4ab39c938ef89360953e249761030",
+        "bytes": 678
+      }
+    },
+    "javascript_syntax": "Both new drivers passed node --check; frozen full-source workspace fmt/Clippy/tests owned by root."
+  },
+  "regressions": {
+    "report": {
+      "path": "artifacts/rust-rewrite/raw-pool-final-regressions/report.json",
+      "sha256": "29974fb880cdf27093a6d953eb3a9cf7a876efda6905db9297eedabf5064a28b",
+      "bytes": 4884
+    },
+    "results": [
+      {
+        "name": "original-90",
+        "exit": 0,
+        "result": {
+          "passed": 90
+        },
+        "log": {
+          "path": "artifacts/rust-rewrite/raw-pool-final-regressions/original-90.log",
+          "sha256": "0d3ba7c3e751850110073c16f33a46e4974fad22c8303d4ca10a448238aee3dd",
+          "bytes": 20465
+        }
+      },
+      {
+        "name": "handshake-223",
+        "exit": 0,
+        "result": {
+          "report": "artifacts/rust-rewrite/evidence/openssl-spike-5959491470b0401cbfc9021fcbe48e9a7b4b2fe63cad8154d293e6af3fa5731a.json",
+          "matched": 223,
+          "count": 223,
+          "passed": true
+        },
+        "log": {
+          "path": "artifacts/rust-rewrite/raw-pool-final-regressions/handshake-223.log",
+          "sha256": "9a08abf860b92736bc1072b72d4277c6f45793a95672bbbc0597aaad2aa093d1",
+          "bytes": 107
+        }
+      },
+      {
+        "name": "original-sessions-18",
+        "exit": 1,
+        "result": {
+          "report": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/evidence/openssl-b2-sessions-35ee7d1a134cf85ea0b63052a2de0ff3b021b85eccf7db713dbbb2a87df6c78b.json",
+          "passed": false,
+          "matched": 13,
+          "count": 18
+        },
+        "log": {
+          "path": "artifacts/rust-rewrite/raw-pool-final-regressions/original-sessions-18.log",
+          "sha256": "50af22ae28b1bdb5d43b2c3203151dd00de25ff731ad1ae8a81702910c7c596f",
+          "bytes": 2201
+        }
+      },
+      {
+        "name": "gateway-intent-18",
+        "exit": 1,
+        "result": {
+          "report": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/evidence/openssl-b2-gateway-intent-49f63dda6c07b329ea9e2057eeaf2b117e8f6f342b7bd1e8490367eff65718a2.json",
+          "passed": false,
+          "matched": 15,
+          "count": 18
+        },
+        "log": {
+          "path": "artifacts/rust-rewrite/raw-pool-final-regressions/gateway-intent-18.log",
+          "sha256": "fe02c225434dfb3d1ec51c1b8029765111a584a82c96dd3264ab3970ca015db8",
+          "bytes": 2207
+        }
+      },
+      {
+        "name": "idle-close-10",
+        "exit": 1,
+        "result": {
+          "report": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/evidence/openssl-idle-close-449287511648159869d2ac4bf34b0f9001826225a47cfd37b48a93f8aeddb0b0.json",
+          "passed": false,
+          "matched": 4,
+          "count": 10
+        },
+        "log": {
+          "path": "artifacts/rust-rewrite/raw-pool-final-regressions/idle-close-10.log",
+          "sha256": "4bc5a2793385edb15aced2b85f8eb7b131fac99812a356ed45f5768c193419b1",
+          "bytes": 848
+        }
+      },
+      {
+        "name": "raw-pool-original-sessions-18",
+        "exit": 1,
+        "result": {
+          "report": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/evidence/openssl-raw-pool-original-sessions-0d4513b8505a0d510715c4c09f948d60acc6646e94725dfd1da7c49b44262772.json",
+          "passed": false,
+          "matched": 15,
+          "count": 18
+        },
+        "log": {
+          "path": "artifacts/rust-rewrite/raw-pool-final-regressions/raw-pool-original-sessions-18.log",
+          "sha256": "a9a486ec2023f8568a485cb85c483e53b9cacaed431793b9bd9f29777f9d4242",
+          "bytes": 2216
+        }
+      }
+    ],
+    "preserved_unmatched": {
+      "original_sessions": "13/18; five original mismatches remain",
+      "gateway_intent_sessions": "15/18; three original mismatches remain",
+      "idle_close": "4/10; all six original unbarriered mismatches remain; four barriers match",
+      "new_adapter_original_sessions": "15/18; remaining TLS1.2 abrupt-after-complete, TLS1.3 rejected-host-then-valid and TLS1.3 abrupt-after-complete. All18 application contracts and cleanup pass; this is not18/18 equivalence."
+    }
+  },
+  "negative_controls": {
+    "final_mutations": {
+      "path": "artifacts/rust-rewrite/raw-pool-mutations-2/report.json",
+      "sha256": "4a115a3947f6a1f9fdc6fc310c0a07e544c89549eb83f8de75ac03c8134db8eb",
+      "bytes": 4520
+    },
+    "count": 6,
+    "rejected": 6,
+    "mutations": [
+      {
+        "name": "missing-expiry",
+        "source_sha256": "1fdc8bea24634b07681c5512312c14b4874e3c40b8e49d854423bdabc88e56bf",
+        "binary_sha256": "8051a3808efcec16335667e6c0e1e3a67af01654ca87a66896898dc94b6d0a53",
+        "exit": 101,
+        "log": {
+          "path": "artifacts/rust-rewrite/raw-pool-mutations-2/missing-expiry/run.log",
+          "sha256": "5fcf4ab1831d92899c2a1977caa7b19149fe34d6e827140d069b0dc6fb59de73",
+          "bytes": 1240
+        },
+        "cleanup": [
+          {
+            "raw_active": 0,
+            "raw_tasks": 0,
+            "raw_shutdown_handles": 0,
+            "fetch_active": 0,
+            "fetch_tasks": 0,
+            "fetch_shutdown_handles": 0,
+            "peer_active": 0,
+            "cache_released": true
+          }
+        ],
+        "driver_report": null
+      },
+      {
+        "name": "ignored-hint",
+        "source_sha256": "0e35830d2df342a504252d31d562e9b3b38cec6b6d4eb6beeab4bc2b3bc4c638",
+        "binary_sha256": "c3f3cea9b2fa1d10fc2bca58200238599ea02935d8a9b49b60cbb6cc213f44cb",
+        "exit": 101,
+        "log": {
+          "path": "artifacts/rust-rewrite/raw-pool-mutations-2/ignored-hint/run.log",
+          "sha256": "003c4b24576101228a9d37a4108f3b560eb53c942dfc4c8c1f7dededdcc74098",
+          "bytes": 1240
+        },
+        "cleanup": [
+          {
+            "raw_active": 0,
+            "raw_tasks": 0,
+            "raw_shutdown_handles": 0,
+            "fetch_active": 0,
+            "fetch_tasks": 0,
+            "fetch_shutdown_handles": 0,
+            "peer_active": 0,
+            "cache_released": true
+          }
+        ],
+        "driver_report": null
+      },
+      {
+        "name": "disabled-cap",
+        "source_sha256": "257223117744ecd93576bdeed932006852668efbe9a0ac4cd659aa8f64d61f33",
+        "binary_sha256": "2f9b09952b3d13058a583461a8482f34c23f2c34312d56fe0414e319f15aa6f7",
+        "exit": 1,
+        "log": {
+          "path": "artifacts/rust-rewrite/raw-pool-mutations-2/disabled-cap/run.log",
+          "sha256": "1a221129c1d5a1e41464a23d0c312f319454f7bea973581ac5fd08c1b994352f",
+          "bytes": 382
+        },
+        "cleanup": [],
+        "driver_report": {
+          "path": "artifacts/rust-rewrite/evidence/openssl-raw-pool-4e6a340c268d1af6b9e159afb8ad0d7939cc310b989b83e6b7a278851d6ced21.json",
+          "sha256": "4e6a340c268d1af6b9e159afb8ad0d7939cc310b989b83e6b7a278851d6ced21",
+          "bytes": 197159
+        }
+      },
+      {
+        "name": "early-consumer-return",
+        "source_sha256": "6849ce041e174c50de6228813fd0e2701c8ca9769cc2620abdc0a31a9c0aa079",
+        "binary_sha256": "a415cd403cf7e32b87c0de3ebda29427c6254bbbe969f4550cbf7fd4b15ea64d",
+        "exit": 101,
+        "log": {
+          "path": "artifacts/rust-rewrite/raw-pool-mutations-2/early-consumer-return/run.log",
+          "sha256": "afef3d981f166261df48e719232582533d52feef473c41738b52e78408804e7d",
+          "bytes": 1261
+        },
+        "cleanup": [
+          {
+            "raw_active": 0,
+            "raw_tasks": 0,
+            "raw_shutdown_handles": 0,
+            "fetch_active": 0,
+            "fetch_tasks": 0,
+            "fetch_shutdown_handles": 0,
+            "peer_active": 0,
+            "cache_released": true
+          }
+        ],
+        "driver_report": null
+      },
+      {
+        "name": "stale-timer-aborts-new-owner",
+        "source_sha256": "3d0e37b8222dfc520e9fcde5728eb5c111f647020225b7763fd2eae6f6ac38a3",
+        "binary_sha256": "3a370bfff74a2bd80e179091e84e4c0681e2621960ff5261b4d4b38c723902d9",
+        "exit": 101,
+        "log": {
+          "path": "artifacts/rust-rewrite/raw-pool-mutations-2/stale-timer-aborts-new-owner/run.log",
+          "sha256": "e6e3414e15a2d9d09320f7a23a2ef4ed21e2458ec8227449653b60558b9ec602",
+          "bytes": 1337
+        },
+        "cleanup": [
+          {
+            "raw_active": 0,
+            "raw_tasks": 0,
+            "raw_shutdown_handles": 0,
+            "fetch_active": 0,
+            "fetch_tasks": 0,
+            "fetch_shutdown_handles": 0,
+            "peer_active": 0,
+            "cache_released": true
+          }
+        ],
+        "driver_report": null
+      },
+      {
+        "name": "detached-cancelled-acquisition",
+        "source_sha256": "ec6ab76747ce95a711777cdf2de98f44e3f45aa0e30f0c3f24617d7b190d4602",
+        "binary_sha256": "36d4f26778d037d28f6a6da8e1531f9d1ddca082f412054a9b675f02b24d2103",
+        "exit": 101,
+        "log": {
+          "path": "artifacts/rust-rewrite/raw-pool-mutations-2/detached-cancelled-acquisition/run.log",
+          "sha256": "8fba6a2599343bbc56be92be0351e09a7a19c7727632e1779c8f2e78490454dc",
+          "bytes": 1507
+        },
+        "cleanup": [
+          {
+            "raw_active": 0,
+            "raw_tasks": 0,
+            "raw_shutdown_handles": 0,
+            "fetch_active": 0,
+            "fetch_tasks": 0,
+            "fetch_shutdown_handles": 0,
+            "peer_active": 0,
+            "cache_released": true
+          }
+        ],
+        "driver_report": null
+      }
+    ],
+    "cleanup_distinction": "Five native assertion failures reached explicit intended stage and emitted zero raw/fetch tasks/sockets/shutdown handles, zero peer count and released cache after bounded teardown. Disabled-cap reached actual257 free entries then failed the256 barrier; the driver proves child reaped and zero parent peers/pending requests, not successful native graceful-shutdown counters.",
+    "first_batch_retained": {
+      "path": "artifacts/rust-rewrite/raw-pool-mutations-1/report.json",
+      "sha256": "0a673f425cbce243293eb2d14ecb97ad669829def8815f118071be0692f7f45c",
+      "bytes": 4520
+    },
+    "independent_driver_controls": "Separate reviewer checks malformed control, SIGINT, incompatible/invalid modes,12 semantic negative mutations and2 permitted adaptations; see driver review."
+  },
+  "retained_history": [
+    {
+      "label": "reference-original-51",
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-raw-pool-reference-ab5726c31c808d9e24e2e52bd01f513dfa71a135b07587e75e569a52abd502dc.json",
+        "sha256": "ab5726c31c808d9e24e2e52bd01f513dfa71a135b07587e75e569a52abd502dc",
+        "bytes": 1765631
+      },
+      "classification": "51 Node-only cases; no native qualification; original concurrent cap schedule retained"
+    },
+    {
+      "label": "reference-busy-timer-followup-3",
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-raw-pool-reference-a17024b7bf34174df5214ef0988e8af1e26a9fec34b4b015746d53304915fcbf.json",
+        "sha256": "a17024b7bf34174df5214ef0988e8af1e26a9fec34b4b015746d53304915fcbf",
+        "bytes": 50146
+      },
+      "classification": "Observed busy timeout then actual setTimeout0/reset5000/free/expiry; rejected indefinite-untimed hypothesis"
+    },
+    {
+      "label": "candidate-draft-1-cap-observer-failure",
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-raw-pool-a3e6803d230cb45618101b6ff98146bcd74cc88bc11da8ccad292303c40f238d.json",
+        "sha256": "a3e6803d230cb45618101b6ff98146bcd74cc88bc11da8ccad292303c40f238d",
+        "bytes": 110863
+      },
+      "classification": "14 cases completed before real cap reached optional intent observer128 bound. Ordinary gateway used for pool matrix; unchanged bounded intent observer remains in cancellation/session tests. Parent cleanup passed; child did not report graceful cleanup"
+    },
+    {
+      "label": "candidate-draft-2-native-only-57",
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-raw-pool-bb0648ce3596baacfc5ed2bbaedeb8f6d7ad636e2a010da96972f3dd23a7c987.json",
+        "sha256": "bb0648ce3596baacfc5ed2bbaedeb8f6d7ad636e2a010da96972f3dd23a7c987",
+        "bytes": 1646811
+      },
+      "classification": "57 native-only cases completed; historical kind label was overbroad and was corrected. Never a57/57 differential claim"
+    },
+    {
+      "label": "busy-differential-6",
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-raw-pool-147e7108ee26f5d0029491e5ef5ae63112c016304a43634aea73cb1a6009179e.json",
+        "sha256": "147e7108ee26f5d0029491e5ef5ae63112c016304a43634aea73cb1a6009179e",
+        "bytes": 235804
+      },
+      "classification": "6/6 default/hinted busy comparisons"
+    },
+    {
+      "label": "retained-full-draft-57-of-60",
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-raw-pool-42957faefc65dca462b3ae99ecd5f9c264510f84cd58b9ed592c9a89be1017ad.json",
+        "sha256": "42957faefc65dca462b3ae99ecd5f9c264510f84cd58b9ed592c9a89be1017ad",
+        "bytes": 5261261
+      },
+      "classification": "120 executions;57/60 comparison. Cap completed-return timeout0 versus5000 in all protocols; HTTP also differed in independent initial assignment order. Fixed actual timer sequencing and documented controlled admission schedule, preserving failure"
+    },
+    {
+      "label": "cap-recheck-3",
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-raw-pool-b2860eb9f5612700c810d6416142dce3bfcbdf1c30acdbf805c43461d9b33f4b.json",
+        "sha256": "b2860eb9f5612700c810d6416142dce3bfcbdf1c30acdbf805c43461d9b33f4b",
+        "bytes": 4761585
+      },
+      "classification": "3/3 cap comparisons with provider wire ownership"
+    },
+    {
+      "label": "interrupt-control",
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-raw-pool-reference-cda57243256bc4b16e7d4eb8b04009b9ae55e4cba127b3e5b162e50083b1389e.json",
+        "sha256": "cda57243256bc4b16e7d4eb8b04009b9ae55e4cba127b3e5b162e50083b1389e",
+        "bytes": 4753
+      },
+      "classification": "Deliberate SIGTERM exit143 retains incomplete report and verifies parent child/socket/request cleanup"
+    }
+  ],
+  "historical_source_snapshots": [
+    {
+      "path": "artifacts/rust-rewrite/raw-pool-reference-draft-1/snapshot.json",
+      "sha256": "a73d162257add7db8c0a6db3c62da98c886e8a35cc825bfa5d4f56d2d00de12f",
+      "bytes": 953
+    },
+    {
+      "path": "artifacts/rust-rewrite/raw-pool-reference-draft-2/snapshot.json",
+      "sha256": "5031ad11f37d0b340d3bd84448dd4452c39d3df6e2b4a2e4cb1e49eb02a9b6f5",
+      "bytes": 962
+    },
+    {
+      "path": "artifacts/rust-rewrite/raw-pool-candidate-draft-1/snapshot.json",
+      "sha256": "e2e8b7ff90563dac2db633dc5b294b7483f0c13ba854c432065fe4565d183387",
+      "bytes": 3451
+    },
+    {
+      "path": "artifacts/rust-rewrite/raw-pool-candidate-draft-2/snapshot.json",
+      "sha256": "0003210e5e3a83c87fc294122f8ddd9f6e06f329f4d848d28c3e6f593487ebac",
+      "bytes": 3451
+    },
+    {
+      "path": "artifacts/rust-rewrite/raw-pool-candidate-draft-3/snapshot.json",
+      "sha256": "4cca03adec939dee3cd62d9ecbca9a9d02f20cb51848152567be3d789a9299d0",
+      "bytes": 3939
+    },
+    {
+      "path": "artifacts/rust-rewrite/raw-pool-candidate-draft-4/snapshot.json",
+      "sha256": "ecc37e1543a82c21be2edc5b4439716d5b11b57b0d378ade90916655dd2c7340",
+      "bytes": 4341
+    }
+  ],
+  "retained_iteration_failures": [
+    {
+      "log": {
+        "path": "artifacts/rust-rewrite/raw-pool-adversarial-draft-2.log",
+        "sha256": "7224efd588c36001a02f6d1a6feb30f8fbd33825a35d9aafcbd58cda11bd94fe",
+        "bytes": 3468
+      },
+      "classification": "Pre-insertion race fixture asserted initial HTTP sender readiness without awaiting it; added actual ready barrier. Cleanup completed before rethrow."
+    },
+    {
+      "log": {
+        "path": "artifacts/rust-rewrite/raw-pool-adversarial-draft-4.log",
+        "sha256": "166dab929e62f68c7ae39bf5fea70166a2d72b8c26662e4e9149dde1e9b8093e",
+        "bytes": 4720
+      },
+      "classification": "Synthetic subscription local token was shorter than16; config guard correctly rejected before traffic. Corrected synthetic fixture only."
+    },
+    {
+      "log": {
+        "path": "artifacts/rust-rewrite/raw-pool-adversarial-draft-5.log",
+        "sha256": "436d2ba376393b141cd8576b3228f7e7d03805eaa7b364d0d727cb6e0d66778d",
+        "bytes": 4341
+      },
+      "classification": "Reviewer/fixture incorrectly expected lexical leading-zero generated Host port. Pinned http1.4 Port::Display and old legacy both format u16; corrected control now verifies numeric generated Host and exact explicit override."
+    },
+    {
+      "logs": [
+        {
+          "path": "artifacts/rust-rewrite/raw-pool-adversarial-build-2.log",
+          "sha256": "217e2e87388ac490a51cc23c4365a91af62d6dd12a10abc59f440d86dfe43184",
+          "bytes": 2306
+        },
+        {
+          "path": "artifacts/rust-rewrite/raw-pool-clippy-1.log",
+          "sha256": "c5cfe60163e5db293e0d8c13e01917d0543252ae4c81a57b79d06c2a76d25963",
+          "bytes": 2353
+        }
+      ],
+      "classification": "Development compile/lint failures retained; corrected Debug-bound assertion and local map/type-alias lint findings. Early ReadBufCursor reborrow compile failure was corrected by using safe Tokio ReadBuf activity observation; original tool output retained in session, no separate immutable binary exists for every edit/compile iteration."
+    }
+  ],
+  "reviews": {
+    "vendor_author": {
+      "path": "artifacts/rust-rewrite/evidence/3f7cbbe68a56a893ec81894977221f2a3a23fa80218fc0dad3b646008396775d.json",
+      "sha256": "3f7cbbe68a56a893ec81894977221f2a3a23fa80218fc0dad3b646008396775d",
+      "bytes": 12757
+    },
+    "vendor_independent": {
+      "path": "artifacts/rust-rewrite/evidence/33d376f411e40f345ac53e6e0fe7736b3266cc9f63ea0356c5d639efc8ba1538.json",
+      "sha256": "33d376f411e40f345ac53e6e0fe7736b3266cc9f63ea0356c5d639efc8ba1538",
+      "bytes": 16805
+    },
+    "adapter_independent_static": {
+      "path": "artifacts/rust-rewrite/evidence/4ea1bf6421e24c588593cd5b7780fab6672582e2d87b717100ed164d07531b4f.json",
+      "sha256": "4ea1bf6421e24c588593cd5b7780fab6672582e2d87b717100ed164d07531b4f",
+      "bytes": 28218
+    },
+    "driver_independent": {
+      "path": "artifacts/rust-rewrite/evidence/5186d68228ca0de7ee80e780f730c558b20ead85617cc1f2dc8d14b91bfa53cf.json",
+      "sha256": "5186d68228ca0de7ee80e780f730c558b20ead85617cc1f2dc8d14b91bfa53cf",
+      "bytes": 17839
+    },
+    "reference_independent": {
+      "path": "artifacts/rust-rewrite/evidence/907c2da76c1b61391482989d7dd7d7652b7460cbcd69d94395c73da1201a1e2c.json",
+      "sha256": "907c2da76c1b61391482989d7dd7d7652b7460cbcd69d94395c73da1201a1e2c",
+      "bytes": 6760
+    },
+    "build_provenance_independent": {
+      "path": "artifacts/rust-rewrite/evidence/c938e5b54a56dc5b451dc3439ecf962be7af41cb8a15a0af31f0c6b2f7be0003.json",
+      "sha256": "c938e5b54a56dc5b451dc3439ecf962be7af41cb8a15a0af31f0c6b2f7be0003",
+      "bytes": 4464
+    }
+  },
+  "limits": [
+    "Test-only spike and additive default-off vendor feature; production graph verifier rejects both opt-in lease/raw-pool features. No production OpenSSL TLS promotion or shipping behavior change.",
+    "Controlled pool schedules do not resolve the retained unbarriered close/reuse, TLS1.3 rejected-host session or independent buffered EOF propagation mismatches. No read-ahead, handshake weakening, retries, weak-is-open ownership inference or continuity relaxation.",
+    "Consumer/decoder end permits connection reuse but is not downstream flush, successful forwarding or confirmed continuity. Existing completion authority remains unchanged.",
+    "HTTP decoder-error control proves connection discard and lease retirement only. It does not qualify arbitrary parser-error had_error or TLS session-cache error parity. Fetch weak-session cache, complete observer equality, full transport/platform/performance parity remain unqualified.",
+    "Subscription refresh uses an explicitly in-memory synthetic loopback fixture, as existing contract tests do; public subscription origin guard remains unchanged. No providers, evaluator usage, credentials or user configuration were accessed.",
+    "Timing observations are fixture-local behavior checks, not performance claims; no numerical benchmark or external/live-provider qualification."
+  ]
+}

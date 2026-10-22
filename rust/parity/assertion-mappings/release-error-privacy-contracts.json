@@ -1,0 +1,266 @@
+{
+  "schema_version": 1,
+  "kind": "release_error_privacy_original9_assertion_supplement",
+  "original": {
+    "file": {
+      "path": "artifacts/rust-rewrite/reference/test/release-verification.test.mjs",
+      "bytes": 19510,
+      "sha256": "09f37e04109d688cc4b43d805935ed862b16323b664949f20045811d67ad7d38"
+    },
+    "statement": {
+      "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/original9.statement.mjs",
+      "bytes": 690,
+      "sha256": "4cee6e0c245f7076ddd2b4e467dadfea5b884897ed821abf6c123f4569e891c1"
+    },
+    "definition_sha256": "4cee6e0c245f7076ddd2b4e467dadfea5b884897ed821abf6c123f4569e891c1",
+    "source_record": {
+      "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/source-original9.json",
+      "bytes": 856,
+      "sha256": "e5f189405f8ef75056aae54b54b6576335695f23513e648d14891665c83fd2b9"
+    },
+    "stdout": {
+      "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/source-original9.stdout",
+      "bytes": 329,
+      "sha256": "c8f0f166ea8dfdb1740f49edb08a3d941cacb00583550a171c92177204925801"
+    },
+    "stderr": {
+      "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/source-original9.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "actual_command": [
+      "/usr/bin/env",
+      "-i",
+      "PATH=/usr/bin:/bin",
+      "TZ=UTC",
+      "LANG=C",
+      "LC_ALL=C",
+      "/Users/fabio.rapposelli/AI/autorouter/artifacts/dev-environment/node-v22.14.0-darwin-arm64/bin/node",
+      "--test",
+      "--experimental-test-isolation=none",
+      "--test-concurrency=1",
+      "--test-name-pattern=^an older dist-tag remains pending and installation is required before verified$",
+      "/Users/fabio.rapposelli/AI/autorouter/artifacts/rust-rewrite/reference/test/release-verification.test.mjs"
+    ],
+    "result": {
+      "exit_code": 0,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0
+    },
+    "source_binding": "Exact full frozen test file/name filter, no callback/assertion/import transformation; env-i and test isolation disabled avoid libtest subprocesses. Wrapper records696native+111frozen before/after. No injected syscall network guard is claimed; callback exclusively uses declared registry/install mocks."
+  },
+  "assertions": [
+    {
+      "id": "test/release-verification.test.mjs#9/assert-1",
+      "line": 140,
+      "expression": "assert.equal(pending.state, 'validating_unavailable')",
+      "expression_sha256": "32dee3be04b76ae4a050fac5d99eeb6aaae099b819d683e64b151066869f8af8",
+      "status": "represented",
+      "source_observation": "The exact unchanged Source callback completed once; this assertion has no loop/dynamic expansion.",
+      "native_evidence": {
+        "function": "release_contracts::tarball_mismatch_superseded_tag_older_tag_and_install_failure_stay_distinct",
+        "fragment_ref": "#/native_fragments/0",
+        "actual_named_pass": {
+          "line": 1644,
+          "text": "test release_contracts::tarball_mismatch_superseded_tag_older_tag_and_install_failure_stay_distinct ... ok"
+        },
+        "current_composition": "The unchanged native original contract actually passes in the current3590c998 workspace (stdout line1644), asserting pending state, dist_tag_not_updated and zero installer calls. Output projection preserves these fixed labels. The current workspace has an unrelated source-transfer cap failure."
+      }
+    },
+    {
+      "id": "test/release-verification.test.mjs#9/assert-2",
+      "line": 141,
+      "expression": "assert.equal(pending.reason, 'dist_tag_not_updated')",
+      "expression_sha256": "c503950547f4b739b04bc04a4dedfdabc89623a91ecf689be86c801f4b1ed086",
+      "status": "represented",
+      "source_observation": "The exact unchanged Source callback completed once; this assertion has no loop/dynamic expansion.",
+      "native_evidence": {
+        "function": "release_contracts::tarball_mismatch_superseded_tag_older_tag_and_install_failure_stay_distinct",
+        "fragment_ref": "#/native_fragments/0",
+        "actual_named_pass": {
+          "line": 1644,
+          "text": "test release_contracts::tarball_mismatch_superseded_tag_older_tag_and_install_failure_stay_distinct ... ok"
+        },
+        "current_composition": "The unchanged native original contract actually passes in the current3590c998 workspace (stdout line1644), asserting pending state, dist_tag_not_updated and zero installer calls. Output projection preserves these fixed labels. The current workspace has an unrelated source-transfer cap failure."
+      }
+    },
+    {
+      "id": "test/release-verification.test.mjs#9/assert-3",
+      "line": 142,
+      "expression": "assert.equal(installs, 0)",
+      "expression_sha256": "1bae664349f16462dac6762e5c9721a839868eb0559ef4b469f707083facdeb0",
+      "status": "represented",
+      "source_observation": "The exact unchanged Source callback completed once; this assertion has no loop/dynamic expansion.",
+      "native_evidence": {
+        "function": "release_contracts::tarball_mismatch_superseded_tag_older_tag_and_install_failure_stay_distinct",
+        "fragment_ref": "#/native_fragments/0",
+        "actual_named_pass": {
+          "line": 1644,
+          "text": "test release_contracts::tarball_mismatch_superseded_tag_older_tag_and_install_failure_stay_distinct ... ok"
+        },
+        "current_composition": "The unchanged native original contract actually passes in the current3590c998 workspace (stdout line1644), asserting pending state, dist_tag_not_updated and zero installer calls. Output projection preserves these fixed labels. The current workspace has an unrelated source-transfer cap failure."
+      }
+    },
+    {
+      "id": "test/release-verification.test.mjs#9/assert-4",
+      "line": 145,
+      "expression": "assert.equal(failed.state, 'failed')",
+      "expression_sha256": "824858ff2153634059631d988d9c22add6488224085d6d0306f2cb8930053f27",
+      "status": "represented",
+      "source_observation": "The exact unchanged Source callback completed once; this assertion has no loop/dynamic expansion.",
+      "native_evidence": {
+        "function": "release_verify::tests::private_installer_errors_are_projected_before_callbacks_events_and_report_files",
+        "fragment_ref": "#/native_fragments/2",
+        "actual": "GREEN test completed; every one of12 private/typed installer error profiles asserts failed state before checking safe reason/callbacks/files."
+      }
+    },
+    {
+      "id": "test/release-verification.test.mjs#9/assert-5",
+      "line": 146,
+      "expression": "assert.ok(!JSON.stringify(failed).includes('PRIVATE'))",
+      "expression_sha256": "7895a0fea1520c3f3c53756d85fdf5f47f0dab87fd05896a870d08c5dd92ddb4",
+      "status": "covered_reviewed_native_error_api",
+      "source_observation": "The exact unchanged Source callback completed once; this assertion has no loop/dynamic expansion.",
+      "native_evidence": {
+        "function": "release_verify::tests::private_installer_errors_are_projected_before_callbacks_events_and_report_files",
+        "fragment_ref": "#/native_fragments/2",
+        "actual": "GREEN test completed all12 fixture rows:9 inputs contain a literal PRIVATE marker in arbitrary error detail/code, and3 additional boolean/number/null reason controls test type normalization. Each row checks four report/callback/persisted outputs ->48 static loop assertion instances (36 have a marker-bearing injected input); no per-row instrumentation claimed. Before fix actual RED failed at the first private reason leak.",
+        "assertion": "assert!(!output.to_string().contains(\"PRIVATE\"));",
+        "native_api_review": "ESM ordinary Error(message) is not a Rust Result error type. Native Installer remains Result<Value,ReleaseError>; arbitrary/private detail/code injection now reaches the actual renderer, proves failure and cannot leak. This preserves the original failure/privacy assertion intent while using explicit typed Rust input. It does not assert original Error constructor/message/cause identity or equal unasserted error reason. Sanitizing arbitrary ReleaseError reason is intentionally stricter than Source forwarding."
+      }
+    }
+  ],
+  "native_fragments": [
+    {
+      "path": "rust/xtask/src/release_contracts.rs",
+      "function": "tarball_mismatch_superseded_tag_older_tag_and_install_failure_stay_distinct",
+      "start_line": 596,
+      "bytes": 1693,
+      "sha256": "74b82820db222b9d5395eefc8fe164092ee57b495649944d4b4685f1f3a5cb3d",
+      "hash_scope": "Function declaration without attributes through its closing brace; excludes trailing newline."
+    },
+    {
+      "path": "rust/xtask/src/release_verify.rs",
+      "function": "older_tag_does_not_start_install_and_install_failure_is_not_verified",
+      "start_line": 1013,
+      "bytes": 1039,
+      "sha256": "b49d1617f7dc7bb5ad83d2d14c9d57e0d1005ae6c50f9a847582233fd7dbfb5b",
+      "hash_scope": "Function declaration without attributes through its closing brace; excludes trailing newline."
+    },
+    {
+      "path": "rust/xtask/src/release_verify.rs",
+      "function": "private_installer_errors_are_projected_before_callbacks_events_and_report_files",
+      "start_line": 1087,
+      "bytes": 4216,
+      "sha256": "12b40687aecec5d31532a6d3a5d70c6f5335894541807b2c083732fae08300ec",
+      "hash_scope": "Function declaration without attributes through its closing brace; excludes trailing newline."
+    },
+    {
+      "path": "rust/xtask/src/release_verify.rs",
+      "function": "cancellation_precedes_private_error_projection_and_all_report_callbacks",
+      "start_line": 1444,
+      "bytes": 2100,
+      "sha256": "c9b1827a10ecd394a70046a594b3b2f6bee37670564e9cca4875e94ea38cb25d",
+      "hash_scope": "Function declaration without attributes through its closing brace; excludes trailing newline."
+    }
+  ],
+  "native_execution": {
+    "green_record": {
+      "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/green.json",
+      "bytes": 572,
+      "sha256": "74f0ade3251018a1483c7b7fca24cdbcfc8a6f46c846d0b074eeb4ecee209293"
+    },
+    "green_stdout": {
+      "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/green.stdout",
+      "bytes": 1273,
+      "sha256": "1f930dceca81343c596e511ca7696b2959051611fb3cafa595c64e077840a230"
+    },
+    "green_stderr": {
+      "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/green.stderr",
+      "bytes": 692,
+      "sha256": "4868d897b03e673f648b30d9cd4343571fe1d887647edd5493e7f0d0c0f62bf2"
+    },
+    "green_snapshot": {
+      "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/green-source.json",
+      "bytes": 116787,
+      "sha256": "3590c9985986672ea23e36c5fb11184dbb87a524f30def8462b6d8a3fb335a68"
+    },
+    "focused_review": {
+      "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/independent-focused-red-green-review.json",
+      "bytes": 8443,
+      "sha256": "0a0914fe159c2498225a31af1f1b0f3004ce675e72f4de87850c0b15bb5eda51"
+    },
+    "red_record": {
+      "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/red.json",
+      "bytes": 575,
+      "sha256": "75da3eb830ab0ffcb28f55a8a6e2478f2e06b47e84776fbd23c100a5fe2e7855"
+    },
+    "red_stdout": {
+      "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/red.stdout",
+      "bytes": 4638,
+      "sha256": "976ed92fa4cc94025a74ba7f2716168a760a0386034ccd6df39683bee75816af"
+    },
+    "historical_original_contract_pass_log": {
+      "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-2/workspace.stdout",
+      "bytes": 146797,
+      "sha256": "36c838b70432bd47062f3187a17171ade2a398f42c020519f42ec115c43edbb4"
+    },
+    "historical_snapshot": {
+      "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-2/candidate-source.json",
+      "bytes": 116787,
+      "sha256": "064a9a1848a5143b57f11e0058b0ccac030f475c381a30682c5ac83c1bf8c52b"
+    },
+    "provenance_limit": "Focused actual cargo command/source before-after binding, not a newly retained CargoJSON exact test binary hash proof. Historical raw paths from old release-contracts mapping are not rewritten or assumed reavailable.",
+    "current_workspace": {
+      "record": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/workspace.json",
+        "bytes": 513,
+        "sha256": "7f7c1b4f06065b6fb566a8928d337b89841444c69b480c964f69c7557a35a8ce"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/workspace.stdout",
+        "bytes": 147344,
+        "sha256": "58aa1eec7b14418b5496720951aeca863dd2cb70259a0808c01a7ad7b65a46d9"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/workspace.stderr",
+        "bytes": 7303,
+        "sha256": "05e21d8813d7a8c8c4a58a89c7bc4ad7f7df4f3e959eb69a49257dc6ee2ac4cd"
+      },
+      "exit_code": 101,
+      "passed": 1400,
+      "failed": 1,
+      "ignored": 10,
+      "qualification": "Named original release contract and new privacy/cancellation tests pass. Sole failure is the source-transfer cap; no global green claim."
+    }
+  },
+  "privacy_and_api_limits": [
+    "No blanket privacy sanitizer equivalence: Source forwards arbitrary injected ReleaseError.detail.reason, native now applies a closed report-output policy.",
+    "Recognized code/reason labels are not registry/install origin proof. Valid/null current_latest is contextual CLI preflight metadata and never an attempt field.",
+    "No sanitization promise for successful custom Installer Value, manually constructed Artifact fields or direct caller Debug of open ReleaseError.",
+    "Native typed cancelled error acts as cancellation even without canceled token; unchanged Source signal-aborted semantics are separately scoped.",
+    "No publication/install/provider/network/real-credential/release-provenance/platform/performance result follows from synthetic fixtures.",
+    "Known source-transfer cap failure remains open; any full-workspace results must be retained with their actual failures."
+  ],
+  "status": "one_definition_covered_after_reviewed_native_error_api_migration",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "recorded_at_utc": "2026-10-18T02:13:14.267280+00:00",
+  "root_acceptance": {
+    "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/root-original9-acceptance.json",
+    "bytes": 1391,
+    "sha256": "5eb4b34b78b1de586b88cebec246ffd9c6a83c5b18acd0ce42294ca1a7a67d47"
+  },
+  "scope": "Only original release-verification#9 and its five assertion sites; every other definition and all area/platform/performance/release gates remain unchanged.",
+  "historical_mapping": {
+    "path": "rust/parity/assertion-mappings/release-contracts.json",
+    "bytes": 92442,
+    "sha256": "1c83aaf515642b92af392752d253a486a9bc44f94d8f163fe7c95c75e3a82238"
+  },
+  "reviewed_proposal": {
+    "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/original9-assertion-supplement.draft-v2.json",
+    "bytes": 25933,
+    "sha256": "2a56b0af7d7c5f69dd7ee9923531ab54bfd080f1fa879524a667ccf1d69b1c13"
+  }
+}

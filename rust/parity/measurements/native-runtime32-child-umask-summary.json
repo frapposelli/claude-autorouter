@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "kind": "native_runtime32_installed_child_umask_checkpoint",
+  "status": "LOCAL_WORKFLOW_CONTROLS_PASS_REAL_I686_PENDING",
+  "recorded_at_utc": "2026-10-18T16:41:06.938881+00:00",
+  "source": {
+    "path": "artifacts/rust-rewrite/exact-artifact-installed-lifecycle-validation-20261018-1/source-after-owned-npm-smoke.json",
+    "bytes": 119176,
+    "sha256": "747307ee0810dbd7ed7aba0a0a1b92d77b09096460e037df13921d44df6bea70",
+    "raw_inputs": 706,
+    "raw_input_changes": 0,
+    "frozen_inputs": 111
+  },
+  "workflow": {
+    "path": ".github/workflows/rust-runtime32.yml",
+    "bytes": 13050,
+    "sha256": "9a8ceda3e3c70b53fbf44961032f09807bd6d077edf6581e76a0295d0c0126a3"
+  },
+  "change": "Only the npm and direct package helper children receive ordinary umask 022, through fixed /bin/sh exec wrappers inside the existing setarch i686 call. All arguments, phase variables and exit propagation are preserved. Parent umask 077 creates diagnostic redirections as 0600. Upgrade/rollback remains under 077. Installed byte/mode checks and private scratch permissions are unchanged.",
+  "preceding_remote_failure": {
+    "pr_head": "7ce3050ff6d3e1781ec8936fd63aba3fe42280cf",
+    "actual_merge_checkout": "cc1258c04645c3dcb0c667ac141587c4bc467ea0",
+    "run": "https://github.com/frapposelli/claude-autorouter/actions/runs/39143808340",
+    "logs": {
+      "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/preceding-runtime32-failed.log",
+      "bytes": 187137,
+      "sha256": "c552a1d3c05fb481b5cfb6d06cc8d0667a7d657d8ca579b3713a9090c9dd84ca"
+    },
+    "observed": "The first package --smoke exits with Installed npm permissions differ before installed CLI execution. Direct installation, rollback and final proof are not reached.",
+    "inference": "The remote log does not capture installed modes. The matching mechanism is supported by the retained actual host 077/022 npm mode diagnostic and installed lifecycle trials."
+  },
+  "validation": {
+    "candidate_handoff": {
+      "path": "artifacts/rust-rewrite/runtime32-installed-package-umask-draft-20261018-1/handoff.json",
+      "bytes": 6909,
+      "sha256": "3724caac60039a66ab4a4ca26840f74092b2a197d0f8808ee2c298eaa74b126a"
+    },
+    "controls_v2_handoff": {
+      "path": "artifacts/rust-rewrite/runtime32-installed-package-umask-draft-20261018-1/controls-v2-handoff.json",
+      "bytes": 4370,
+      "sha256": "940baa4507c71adba6de0e78644089d3d6a6537f1db4293c0fcef1226c737b29"
+    },
+    "first_attempt": {
+      "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/runtime32-child-umask.json",
+      "bytes": 1305,
+      "sha256": "a7293b1797b77a720aa55fbc424834494316f40f43f1513943bb17e02feacf6a",
+      "exit_code": 1,
+      "elapsed_seconds": 6.389306291937828,
+      "stdout": {
+        "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/runtime32-child-umask.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/runtime32-child-umask.stderr",
+        "bytes": 495,
+        "sha256": "8bfd223069fbedb4bf2a5f60950464c0e4ff2354e8b25946f3ab3ed776700cb1"
+      }
+    },
+    "successful_retry": {
+      "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/runtime32-child-umask-v2.json",
+      "bytes": 1546,
+      "sha256": "364e79544d225cf30f9f2802ac1ff5fab7b9afa5b2ade44f9ffd1fd8996b8937",
+      "exit_code": 0,
+      "elapsed_seconds": 5.550185917178169,
+      "stdout": {
+        "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/runtime32-child-umask-v2.stdout",
+        "bytes": 1146,
+        "sha256": "4b200a29f3e03475d3fd985b6ea45d905b68d2264a1aff806663771eed18a98b"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/runtime32-child-umask-v2.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "seven_case_report": {
+      "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/runtime32-child-umask-controls-v2/report.json",
+      "bytes": 1558,
+      "sha256": "26efc970fa7e0412133b652319cb9ca70fb77ad42fb18cef92d291bce4c44825"
+    },
+    "syntax": {
+      "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/runtime32-syntax.json",
+      "bytes": 1080,
+      "sha256": "6ad657cd813b99f8d44f87ee152731f089e3aba202bc4e0783e313cdfd0c96d5",
+      "exit_code": 0,
+      "elapsed_seconds": 0.213297083042562,
+      "stdout": {
+        "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/runtime32-syntax.stdout",
+        "bytes": 279,
+        "sha256": "7946bc2451f5bc92edbfc63decbca52030d298f7ccc3c312664df243a48c8b2b"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/runtime32-syntax.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "scope": "Exact extracted workflow blocks with inert setarch/xtask/git/proof tools; actual shell process masks, created modes, argument/environment handling and statuses. Both complete YAML ASTs differ only at the two command prefixes; all ten Bash blocks parse."
+  },
+  "first_attempt_limit": "All first six controls passed with the system Bash 3.2. The invalid-version control continued past a false top-level [[ ]] condition, reached the safely quoted invalid direct argument, then failed its argument oracle. The additive retry changes only the local control shell to the existing pinned Bash 5.3.20, retaining all seven cases and assertions. This is a local shell-semantics correction, not a product or public-workflow change.",
+  "preceding_ci_audit": {
+    "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/independent-ci-failure-audit-20261018-1/independent-ci-failure-review.json",
+    "bytes": 11396,
+    "sha256": "23ad0aa7f81ae263a07e19d98fa64e4bef32d2d6fafb202330e5d7d8b5231695",
+    "observed": "Five completed native workspace logs (two GNU, two Linux hosts, macOS ARM) each fail only the unchanged joint 32 MiB transfer test. GNU later steps 18\u201335 and host later steps 13\u201331 pass their independent checks. Four Node jobs pass. Both musl jobs stop at SDK inputs, with later product checks skipped. Intel remains unfinished in the retained snapshot; its workspace failure cause is not attributed without terminal raw logs."
+  },
+  "limits": [
+    "No actual i686, npm, Cargo, provider, evaluator or network execution occurs in these seven controls. Actual installed lifecycle and proof must pass fresh CI.",
+    "No new Rust workspace run is claimed. Raw source 747307ee, all frozen inputs and existing source/archive limits are unchanged. The separate schema-7 joint 40 MiB proposal remains unapproved and unapplied.",
+    "These workflow fixes do not qualify broader platform, protocol, performance, live task, immutable release, license, stabilization or cutover gates. JavaScript 0.5.2 remains shipping default."
+  ]
+}

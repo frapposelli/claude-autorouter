@@ -1,0 +1,12 @@
+Usage: claude-autorouter config show [--json] [--check-all]
+       claude-autorouter config set KEY VALUE
+       claude-autorouter config set KEY --stdin
+       claude-autorouter config unset KEY
+
+Show effective settings and their source; secrets are always redacted.
+--check-all also validates settings for the inactive evaluator.
+Set/unset changes only the named saved setting. Environment values still win.
+Secret keys require --stdin or a hidden prompt, never a command-line value.
+Setting AUTOROUTER_SECRET_STORE to keychain or file moves saved keys (macOS).
+
+Example: claude-autorouter config set AUTOROUTER_OLLAMA_TIMEOUT_MS 0

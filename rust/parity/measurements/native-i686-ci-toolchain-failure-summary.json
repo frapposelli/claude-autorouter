@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "kind": "native_i686_ci_host_toolchain_selection_failure",
+  "date": "2026-10-15",
+  "failed_head_commit": "0373631ed1794a59edf9b76222458bc9703cba29",
+  "failure": {
+    "source_commit": "0373631ed1794a59edf9b76222458bc9703cba29",
+    "run_id": 38741756827,
+    "job_id": 116444969345,
+    "failed_step_number": 6,
+    "failed_step": "Install pinned Rust target, fetch locked sources, and prove ELF32 execution",
+    "full_ci_log_bytes": 92842,
+    "full_ci_log_sha256": "4dddaf7c154beb7f16cac583bae687da2fcf86973e2ff30f2a856f026fa05050",
+    "bounded_lines": [
+      "runtime and installed CLI / i686-unknown-linux-gnu\tUNKNOWN STEP\t2026-10-15T13:20:13.7356222Z ^[[36;1mrustup toolchain install \"$AUTOROUTER_RUNTIME32_RUST\" --profile minimal --component clippy --component rustfmt^[[0m",
+      "runtime and installed CLI / i686-unknown-linux-gnu\tUNKNOWN STEP\t2026-10-15T13:20:13.7364673Z ^[[36;1msetarch i686 rustc \"+$AUTOROUTER_RUNTIME32_RUST\" -vV > \"$out/personality-rustc-version.txt\"^[[0m",
+      "runtime and installed CLI / i686-unknown-linux-gnu\tUNKNOWN STEP\t2026-10-15T13:20:13.7365317Z ^[[36;1mgrep -Fxq 'host: x86_64-unknown-linux-gnu' \"$out/personality-rustc-version.txt\"^[[0m",
+      "runtime and installed CLI / i686-unknown-linux-gnu\tUNKNOWN STEP\t2026-10-15T13:20:35.8324429Z warn: the missing active toolchain `1.99.0-i686-unknown-linux-gnu` has been auto-installed",
+      "runtime and installed CLI / i686-unknown-linux-gnu\tUNKNOWN STEP\t2026-10-15T13:20:35.8350616Z /home/runner/.rustup/toolchains/1.99.0-i686-unknown-linux-gnu/bin/rustc: error while loading shared libraries: libz.so.1: cannot open shared object file: No such file or directory",
+      "runtime and installed CLI / i686-unknown-linux-gnu\tUNKNOWN STEP\t2026-10-15T13:20:35.8366267Z ##[error]Process completed with exit code 127."
+    ],
+    "diagnosis": "Unqualified +1.99.0 rustc under setarch i686 selected an i686-host toolchain; auto-installed compiler then could not load 32-bit libz.so.1. No Rust target/package test executed."
+  },
+  "retained_failure": {
+    "path": "artifacts/rust-rewrite/ci-0373631-runtime32/failure.json",
+    "bytes": 1843,
+    "sha256": "df75bfc2483e58b6c77652146d757fcc0cc6a3fb2b40a9c263af1d922b6a072b"
+  },
+  "run_url": "https://github.com/frapposelli/claude-autorouter/actions/runs/38741756827",
+  "subsequent_correction": {
+    "host": "x86_64-unknown-linux-gnu",
+    "target": "i686-unknown-linux-gnu",
+    "exact_rust_version_from": "rust/rust-toolchain.toml",
+    "changes": "Use full host-qualified pinned toolchain in rustup, explicit compiler/Cargo commands and inherited RUSTUP_TOOLCHAIN. Keep all target/personality/ELF32 checks.",
+    "inputs": [
+      {
+        "path": ".github/workflows/rust-runtime32.yml",
+        "bytes": 12355,
+        "sha256": "ad150f3128147c4768ed460e3bc6b52479af322abb2c2cea3f931a254e846775"
+      },
+      {
+        "path": "rust/distribution/ci/runtime32-proof.py",
+        "bytes": 32473,
+        "sha256": "a0a2427f4731143afad16ce680d58600273726bdc4ed973f15afdb7cb3d84569"
+      }
+    ],
+    "validation": "Python AST, YAML and ten Bash step syntax plus independent review; fresh GitHub runtime execution pending"
+  },
+  "limits": [
+    "Original failure remains failed and executed no runtime/CLI tests.",
+    "This runner configuration correction changes no product code, deadlines or archive caps.",
+    "No minimum-platform, complete architecture, task/performance, release or cutover qualification."
+  ]
+}

@@ -1,0 +1,204 @@
+{
+  "kind": "native_numeric_conversion_order_correctness_checkpoint",
+  "recorded_at_utc": "2026-10-18T01:08:26.525091+00:00",
+  "root_decision": "Retain the scoped numeric conversion-order correction and regression. No configuration-key, original-definition, resource-limit or area promotion. MIN_CONFIDENCE remains pending; shipping default remains JavaScript0.5.2.",
+  "source_snapshot": {
+    "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-2/candidate-source.json",
+    "bytes": 116787,
+    "sha256": "f7c82c6bb326ef2d9488ea40d38bac12a4b76a742eaa03f86293bc5df28db43b"
+  },
+  "pre_fix_snapshot": {
+    "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-1/candidate-source.json",
+    "bytes": 116787,
+    "sha256": "c4def5e6a57efa4bd7da24524c7123e8a11bc32351a1925048378902918ff7ee"
+  },
+  "source_delta": {
+    "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-2/source-delta.json",
+    "bytes": 535,
+    "sha256": "f763be20cd83080ef9c83b63e28d8209f02b51f1e8b8686ddf13379ebaf6b430"
+  },
+  "source_semantics": [
+    "Source Number(raw) runs before its later string/number type guard. Plain JSON objects with own noncallable toString, including when reached through array elements, throw Cannot convert object to primitive value before the key-specific numeric error.",
+    "Four reachable numeric-helper keys are affected: PORT, JEV_TIMEOUT_MS, TOKEN_COUNT_TIMEOUT_MS and MIN_CONFIDENCE. The correction detects only conversion failure using the existing primitive conversion helper before unchanged decimal/type/range validation. Numbers and strings retain their fast path. Arrays and objects remain rejected as numeric settings.",
+    "STOP_HOOK_BLOCK_CAP and Ollama timeout have earlier type guards and retain their key-specific errors. Selected/inactive evaluator masking, validateAll and earlier configuration-error precedence remain.",
+    "The native regression performs124error and4inactive-success checks across Value and owned-document APIs, including all six JSON noncallable property kinds, arrays, ordinary objects, valueOf-only controls, both earlier type guards and earlier errors. Both inputs remain unchanged."
+  ],
+  "actual_observations": {
+    "declared_cases": 25,
+    "pre_fix_common_envelopes": {
+      "matched": 16,
+      "mismatches": 9,
+      "report": {
+        "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-1/pre-fix-comparison.json",
+        "bytes": 1610,
+        "sha256": "c79d9513d59977788a6403931d8d1a7cbc8aa53c7fa7f85506c70fdb2d42f595"
+      }
+    },
+    "post_fix_common_envelopes": {
+      "matched": 25,
+      "mismatches": 0,
+      "report": {
+        "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-2/post-fix-comparison.json",
+        "bytes": 1166,
+        "sha256": "0e8a70034ee045aa460c326bd3b2989f866ffe5cedafd3e09754a4ae16fcc864"
+      }
+    },
+    "source_observation_executions": 1,
+    "source_record": {
+      "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-1/source.json",
+      "bytes": 2050,
+      "sha256": "869d2d8a1f24bcc8725e54c283402c9625538df66c1f1524862ef4ab10085423"
+    },
+    "pre_fix_native_record": {
+      "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-1/pre-fix-native.json",
+      "bytes": 1938,
+      "sha256": "1610e6000b11c437730c85bcd30375780b153f7e32413acc268de180454b7e31"
+    },
+    "post_fix_native_record": {
+      "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-2/post-fix-native.json",
+      "bytes": 1940,
+      "sha256": "22fec93ad001ef6365817fb509fe1daf1c642a8959e2acf8526bd257b9796247"
+    },
+    "source_copy_provenance": "Post-fix comparison reuses byte-identical Source observations from the one pre-fix run. All111 frozen files agree across both native snapshots. It is not a second Source execution.",
+    "comparison": "Every common response field, object key, array position and error message is compared. Exact finite JSON numeric values compose integer/decimal representations; booleans remain distinct. Source exception names are observed separately, not fabricated as a native exception API."
+  },
+  "ownership": {
+    "pre_run_root": {
+      "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-1/root-pre-run-admission.json",
+      "bytes": 2135,
+      "sha256": "b35f839fc2f2322ea74f1e9c0ef091310dc61162e300d947b584306cb2fa2f58"
+    },
+    "pre_run_independent": {
+      "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-1/independent-pre-fix-admission-review.json",
+      "bytes": 8931,
+      "sha256": "561ddd685b9a9ddf2648ae44f432419f1748db3f5a27c04ba38694b6e61d9c61"
+    },
+    "post_run_root": {
+      "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-2/root-pre-run-admission.json",
+      "bytes": 2892,
+      "sha256": "3d2dba4cd17911cbbede01932eef42f2a170c6efbe6a2059775acd6cd3c161b7"
+    },
+    "scope": "Three exact pure nonspawning configuration observations under bounded output/deadline ownership. Every actual run exits0 with completeEOF, reaping and zero recorded supervision errors. Literal direct-PID prereap SIGKILL attempts remain in records; no zero-signal or generic descendant/cross-crash guarantee. Native696 and frozen111 source pins are checked before/after each pure observation. Compiler wrappers check696 and frozen agreement is separately composed; do not infer historical per-compiler-stage111 checks."
+  },
+  "independent_reviews": {
+    "design": {
+      "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-1/independent-repair-scope-review.json",
+      "bytes": 11121,
+      "sha256": "ad86a556853b66cd3ded181b50ea323da64ad8926d3b57d94b20b359ec3b4226"
+    },
+    "actual_patch": {
+      "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-2/independent-applied-repair-review.json",
+      "bytes": 7285,
+      "sha256": "9b5080ca41d1505ebfcd906b93a3830b779cbfbb2e2e9214804ab8e34b16e5bb"
+    },
+    "actual_execution_and_census": {
+      "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-2/independent-actual-results-review.json",
+      "bytes": 18968,
+      "sha256": "388a22b8fc72651048bae13abd2b0e5a328596d804d35b7e4cf1bae079c64f17"
+    }
+  },
+  "checks": {
+    "core-tests": {
+      "record": {
+        "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-2/core-tests.json",
+        "bytes": 430,
+        "sha256": "5a144057704c94a785d4d510e38b829db8881f3f38363cb4063e5b1839a15106"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-2/core-tests.stdout",
+        "bytes": 23333,
+        "sha256": "d1125754c74fd491c9aef13350510e8b6093c722f34048a01808408298e902c5"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-2/core-tests.stderr",
+        "bytes": 1577,
+        "sha256": "0168e61c943268a7efa0ad1f58fe3b05f839b4d563c29604cd36a7833433ca18"
+      }
+    },
+    "post-fix-build": {
+      "record": {
+        "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-2/post-fix-build.json",
+        "bytes": 477,
+        "sha256": "ea5ad0c32b8fb8ade6d31a5ed14afbf677d8684b007ad37e0d081d2d033bb808"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-2/post-fix-build.stdout",
+        "bytes": 167183,
+        "sha256": "cf7bc7d2acaae0405a01c1a1055177f6d896660830b2e64c2fda9b2e890ded4f"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-2/post-fix-build.stderr",
+        "bytes": 351,
+        "sha256": "8c7736b1bc70e6912baf4cf8d841f9a2f7befb2248b73b01f9b8ccba7303a58c"
+      }
+    },
+    "clippy": {
+      "record": {
+        "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-2/clippy.json",
+        "bytes": 477,
+        "sha256": "717b0923b7b7d464ba54ef8129d46f6d6895c4c115827334f94be0e2cacb6565"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-2/clippy.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-2/clippy.stderr",
+        "bytes": 960,
+        "sha256": "6f4000bbf03b928ba89c7b7a4257487605ad7319a85c3922266e80cda96449bc"
+      }
+    },
+    "fmt": {
+      "record": {
+        "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-2/fmt.json",
+        "bytes": 374,
+        "sha256": "fc296029e96a2916aa9c8eb74799890d7c216302eae50ec27d930abb0d65019c"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-2/fmt.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/numeric-conversion-order-validation-20261018-2/fmt.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  },
+  "core_results": {
+    "groups": 14,
+    "passed": 242,
+    "failed": 0,
+    "ignored": 2,
+    "new_regression_passed": true
+  },
+  "clippy_limit": "Existing vendored hyper-util unused timer warning is retained; command exits0, not a warning-free dependency claim.",
+  "transfer": {
+    "census": {
+      "path": "artifacts/rust-rewrite/source-transfer-census-20261018-9/census.json",
+      "bytes": 13938,
+      "sha256": "dd191b0881474de02229fcca7ebbce640285c4d01bc3c354fb182782aa3ed415"
+    },
+    "logical_bytes": 33631576,
+    "logical_cap": 33554432,
+    "logical_overage": 77144,
+    "expanded_carrier_bytes": 33606144,
+    "expanded_carrier_cap": 33554432,
+    "expanded_carrier_overage": 51712,
+    "scope": "Offline exact size arithmetic, not archive/export/restore success. Repair+regression add3806 raw/logical bytes and3584 expanded carrier bytes. Existing source allowlist, fixtures, vendor, licenses, schemas, manifest representation and caps remain. No commit/push/CI approval while gate fails."
+  },
+  "open_limits": [
+    "Extreme-depth Node Array.toString/join can encounter implementation stack/resource limits. Native conversion remains iterative; exact RangeError occurrence/message/precedence is unqualified and existing migration documentation does not waive it.",
+    "Rejected nonprimitive inputs use temporary primitive-string allocation. No zero-allocation, benchmark or performance improvement is claimed.",
+    "Latest prior complete Rust checkpoint on c4def retains1398passes/1size-capfailure/11ignored across64groups. It is not rerun or relabeled current after this production change.",
+    "A separate static review found tool_process async child group signaling after leader reaping. That path is not used by these pure fixtures and remains an independent ownership repair before full qualification.",
+    "No ordinary shipping archive, supported-platform execution, live Claude/model/evaluator/hardware test, user configuration, remote repository change, fresh CI or release is performed. All remaining plan gates remain open."
+  ],
+  "pending_tool_process_static_review": {
+    "path": "artifacts/rust-rewrite/tool-process-pgid-ownership-review-20261018-1/review.json",
+    "bytes": 14211,
+    "sha256": "9c1fa88dca0d7c50d6c7d34fbc2d1cd4c0dfd4fbcf0161b9ecc8ed9d1bd15b48"
+  }
+}

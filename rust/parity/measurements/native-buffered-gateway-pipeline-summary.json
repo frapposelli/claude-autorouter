@@ -1,0 +1,304 @@
+{
+  "kind": "native_experimental_buffered_gateway_pipeline_controls",
+  "recorded_at_utc": "2026-10-18T03:25:46.750775+00:00",
+  "status": "REVIEWED_LOCAL_PIPELINE_CONTROLS_WITH_CURRENT_BROAD_REGRESSION_RESULTS",
+  "scope": "Twelve native actual Gateway A/B buffered-response controls over private provider HTTP/TLS1.2/TLS1.3; no production transport or behavior-area qualification.",
+  "source_snapshot": {
+    "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/extended-source.json",
+    "bytes": 116787,
+    "sha256": "303d83354b9080b69205c352e67fd82e47972005a465e376c04ebbb525949745"
+  },
+  "test_module": {
+    "path": "rust/crates/autorouter-runtime/src/server_failed_flush_contracts.rs",
+    "bytes": 77459,
+    "sha256": "54b23dd08cb6b2fd736f9397089a89568f7b5488bf83ab18d24dab5c7bbece45"
+  },
+  "test_only_change": {
+    "native_inputs": 696,
+    "changed_paths": [
+      "rust/crates/autorouter-runtime/src/server_failed_flush_contracts.rs"
+    ],
+    "old_entire36785byte_prefix_preserved": true,
+    "original_prefix": {
+      "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/preimage-server_failed_flush_contracts.rs",
+      "bytes": 36785,
+      "sha256": "f60425f1f633ae75efc77072fb6a606a885f8530f65006d5ad1836483ea90671"
+    }
+  },
+  "predeclared_drafts": {
+    "base": {
+      "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-draft-20261018-1/review.json",
+      "bytes": 15456,
+      "sha256": "1b64090ffc39611151a22c391f3ef2bdeff5a4904428323881d3d70ce52104a7"
+    },
+    "extensions": {
+      "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-extensions-draft-20261018-1/review.json",
+      "bytes": 10146,
+      "sha256": "14d8eab6054d1d898334b520bf3716dc82365a5ae0ef6bb46934f0b62fb7dbf5"
+    }
+  },
+  "actual_results": {
+    "module_test_functions": 21,
+    "passed": 21,
+    "failed": 0,
+    "ignored": 0,
+    "filtered_out": 524,
+    "new_pipeline_controls": 12,
+    "preexisting_module_test_functions": 9,
+    "protocols": [
+      "plain HTTP",
+      "exact negotiated TLS1.2",
+      "exact negotiated TLS1.3"
+    ],
+    "per_protocol_schedules": [
+      "out-of-order B readiness followed by A/B successful final flushes",
+      "B actual final-flush BrokenPipe after A confirmation",
+      "B actual per-request token cancellation after A confirmation",
+      "B real terminal deadline crossing after A confirmation"
+    ],
+    "all_control_stale_A_check": "Cancel actual retired A request token; stale A Upstream/Deadline publisher returns false and cannot cancel/confirm B.",
+    "mechanism": "Existing isolated experimental buffered constructor, actual Gateway connection/parser/service, RequestLease, response observer, CompletionRegistry and final IO flush. Injected deterministic router owns real TurnState; no Jev/Ollama/provider evaluator calls.",
+    "assertions": "Exact provider requests and complete downstream payload/framing/order, flush ordinal, actual B failure identity/cause, callback/outcome counts, old/new tool ownership, and successful end zero measured resources. Named successful libtests retain assertion verdicts; standalone event traces are not emitted."
+  },
+  "checks": {
+    "compile-extended": {
+      "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/compile-extended.json",
+      "bytes": 553,
+      "sha256": "d74f6e9f170fd4c2cb77368d3147a3a5a8bdf2fe86b98a081ff72bc314196255"
+    },
+    "focused-extended": {
+      "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/focused-extended.json",
+      "bytes": 580,
+      "sha256": "937e5bfee5a6b62dc5e73b1b1c7944263ae28806d80e23950d5c354cab603a80"
+    },
+    "clippy-extended": {
+      "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/clippy-extended.json",
+      "bytes": 536,
+      "sha256": "8889fb0bae9afe493193d77c8ca770252e7b31ad879355d28a2b1d42c6497f5b"
+    },
+    "fmt-extended": {
+      "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/fmt-extended.json",
+      "bytes": 444,
+      "sha256": "f57124c0e54c2ca23b85558d8f99fae0f6814e6669319f9e4733badd1399cf40"
+    }
+  },
+  "raw_evidence": {
+    "focused_stdout": {
+      "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/focused-extended.stdout",
+      "bytes": 2572,
+      "sha256": "0a41faae80cf1f58f2657723ae49ccc1c0a671927f4c29119aa7f336b91f2084"
+    },
+    "focused_stderr": {
+      "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/focused-extended.stderr",
+      "bytes": 627,
+      "sha256": "afaf1511fad50bf8bee4251a8b35143900e1db785051348aca52ba453ea85501"
+    },
+    "compiler_json": {
+      "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/compile-extended.stdout",
+      "bytes": 164346,
+      "sha256": "68874581295e9d020640d798e053da1650d9f32117f7c63752cfb0a0b61f5e0b"
+    },
+    "compiler_stderr": {
+      "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/compile-extended.stderr",
+      "bytes": 172,
+      "sha256": "47b660ac19f464f5aa0b729af107bc638276ba8eb691cb0273a65e8c8820d659"
+    }
+  },
+  "compiler_binding": {
+    "target": "autorouter_runtime",
+    "features": [
+      "default"
+    ],
+    "profile": {
+      "opt_level": "0",
+      "debuginfo": 0,
+      "debug_assertions": true,
+      "overflow_checks": true,
+      "test": true
+    },
+    "fresh": false,
+    "executable": "/Users/fabio.rapposelli/AI/autorouter/rust/target/debug/deps/autorouter_runtime-f3deea33ddaadfcc",
+    "build_finished_success": true,
+    "core_dependency_fresh": true,
+    "scope": "Cargo-reported fresh compilation of default-feature test executable, whose path appears in focused stderr; not independently archived shipping provenance."
+  },
+  "reviews": {
+    "base_static": {
+      "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-draft-20261018-1/independent-static-review.json",
+      "bytes": 10816,
+      "sha256": "ab44573ffb6967e8574a08886f36d2a836ef3cc5a950ceba4b7346eed3f5316e"
+    },
+    "extension_static": {
+      "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-extensions-draft-20261018-1/independent-static-review.json",
+      "bytes": 6859,
+      "sha256": "087509394591f8b0b72d163bb65393246f11ff5828de4d6f3db95ffd4d0038ed"
+    },
+    "actual_focused": {
+      "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/independent-actual-focused-review.json",
+      "bytes": 19941,
+      "sha256": "7fa8fc20aa7f41973fd10b06604cb69db9366e7ddfd2d6acdf85b37e0453f21f"
+    },
+    "authorship": "Summary author also authored these independent read-only reviews, not candidate tests or Root executions; Root must review before publication."
+  },
+  "broad_validation": {
+    "source_snapshot_sha256": "303d83354b9080b69205c352e67fd82e47972005a465e376c04ebbb525949745",
+    "rust_execution_counts": {
+      "kind": "current_source_combined_Rust_execution_counts",
+      "source_snapshot_sha256": "303d83354b9080b69205c352e67fd82e47972005a465e376c04ebbb525949745",
+      "commands": [
+        {
+          "label": "workspace-extended",
+          "exit_code": 101,
+          "groups": 61,
+          "passed": 1422,
+          "failed": 1,
+          "ignored": 10
+        },
+        {
+          "label": "deferred-extended",
+          "exit_code": 0,
+          "groups": 3,
+          "passed": 11,
+          "failed": 0,
+          "ignored": 1
+        }
+      ],
+      "combined": {
+        "groups": 64,
+        "passed": 1433,
+        "failed": 1,
+        "ignored": 11
+      },
+      "failure": "bundle::transfer::tests::transfer_has_only_verified_sources_a_shared_budget_and_create_only_evidence: Complete logical transfer exceeds32MiB",
+      "scope": "Cargo execution counts across two commands, not unique tests or final all-feature/doc-test/platform/release approval; known cap failure preserved, deferred three targets explicitly executed after Cargo failure."
+    },
+    "terminal_evidence": {
+      "workspace-extended": {
+        "receipt": {
+          "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/workspace-extended.json",
+          "bytes": 514,
+          "sha256": "314cc15e2c27c9e6c0d4e6f2e4bbf65a09bcf0dabc81e8411a3097833d179065"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/workspace-extended.stdout",
+          "bytes": 149713,
+          "sha256": "bd471c79b6758da729a71a8ea91703d30b59aa7126f1e7c3ad4841ec2cf01963"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/workspace-extended.stderr",
+          "bytes": 7522,
+          "sha256": "d402bf4f3d8f02df29c74a928a0d56fc6b4b7a2e269e2deb336eae933d67e9e8"
+        }
+      },
+      "deferred-extended": {
+        "receipt": {
+          "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/deferred-extended.json",
+          "bytes": 629,
+          "sha256": "dfe2e6efea2e3c07408d7734bbf1fa0f5382d10c41cc1283bffd8205c0a686b1"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/deferred-extended.stdout",
+          "bytes": 1298,
+          "sha256": "6cc75050816d17a231a6c1112fe9e35aef0577703b620d7dc65d3743d70006ea"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/deferred-extended.stderr",
+          "bytes": 1001,
+          "sha256": "2eb8576e02da146843a08769ff1a27470737793412e1e4c3b4343a790f1dc358"
+        }
+      },
+      "npm-check-extended": {
+        "receipt": {
+          "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/npm-check-extended.json",
+          "bytes": 442,
+          "sha256": "275ba32443f1259cec075b6788c4f0f8e6380ee97add769c6f8887f4ffadaf89"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/npm-check-extended.stdout",
+          "bytes": 153,
+          "sha256": "4882654ddbf9853bf4f185dc398c36b83eaa63b59fbb76d525b746ce417b768f"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/npm-check-extended.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "npm-test-extended": {
+        "receipt": {
+          "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/npm-test-extended.json",
+          "bytes": 444,
+          "sha256": "a2160c16c9690e4f5d8d229c6529d4f5e447fb8af69838072ffb5ca2288515a7"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/npm-test-extended.stdout",
+          "bytes": 135685,
+          "sha256": "4ed9cfd4ac224d5adffec8dc59701a4b042bd981b4088cf630ac34ced5fc7d37"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/npm-test-extended.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "npm-package-extended": {
+        "receipt": {
+          "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/npm-package-extended.json",
+          "bytes": 448,
+          "sha256": "5f1257a60810e0662cb1d1007fe91121563e2ef76499ab8a7ee8bb3b0df73997"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/npm-package-extended.stdout",
+          "bytes": 884,
+          "sha256": "03a5a91b3def0df2eba03614be17fb154ced476a05b68a73ad0fdd831f701707"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/buffered-gateway-pipeline-validation-20261018-1/npm-package-extended.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    },
+    "node_test_result": {
+      "pass": 596,
+      "fail": 0,
+      "skip": 0
+    },
+    "shipping_package_result": {
+      "version": "0.5.2",
+      "safe_archive_files": 58,
+      "offline_install_and_mock_lifecycle": "passed; shipping JavaScript archive, not native release qualification"
+    },
+    "scope": "Rust execution counts across two commands, not unique tests. One actual unchanged32MiB logical-source-cap failure; no doc-test/allfeature/crossplatform or final native archive approval. Ordinarycheckowner has no finite outerwall/outputbound. Node testchildumask022; logs private."
+  },
+  "claim_limits": [
+    "Check owner run-check.py uses ordinary subprocess.wait, no finite outer wall/output bound; do not apply pure-direct-PID supervisor or zero-signal ownership claims to these Cargo checks.",
+    "Secondary abort-join timeout can drop an unjoined handle on an already failed test path. No always-joined exceptional cleanup, process-crash, blocking kernel or general descendant guarantee.",
+    "A/B deadline control crosses the actual configured30000ms deadline by advancing30001ms with provider IO complete and a declared60000ms virtual watchdog. No exact equality, wall-time, allocation, memory or performance qualification.",
+    "This is only buffered experimental constructor ownership evidence. Current production Rustls transport, full OpenSSL promotion, all TLS option modes/platforms, real providers, Source equivalence, installed artifacts, release and cutover remain open.",
+    "All source/fixtures/new tests remain charged under unchanged source-transfer caps, still known failing; no carrier/restore success or40MiB contract change claimed."
+  ],
+  "coverage_effect": {
+    "original_definitions_covered": 544,
+    "original_definitions_partial": 44,
+    "configuration_keys_covered": 18,
+    "configuration_keys_pending": 9,
+    "fixed_limits_covered": 19,
+    "fixed_limits_pending": 34,
+    "areas_partial": 13,
+    "change": "Evidence increment only; no definition, configuration, fixed-limit or area promotion."
+  },
+  "current_source_transfer": {
+    "census": {
+      "path": "artifacts/rust-rewrite/source-transfer-census-20261018-15/census.json",
+      "bytes": 13941,
+      "sha256": "b1d89999ac1d370ac059e786b1b0f1d3e631bef3c634c932cb64d252a226ed7b"
+    },
+    "limits_unchanged": 33554432,
+    "logical_total": 33765631,
+    "logical_overage": 211199,
+    "expanded_carrier_total": 33740288,
+    "expanded_overage": 185856,
+    "scope": "Exact offline arithmetic only; actual workspace transfer test rejects logicalsize beforeencoding, no successful export/restore. Proposeddevelopment40MiBcontract remains unapproved/unapplied."
+  }
+}

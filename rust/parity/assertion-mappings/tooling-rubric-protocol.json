@@ -1,0 +1,867 @@
+{
+  "schema_version": 1,
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "scope": "Exact original bundle, live rubric and protocol fixture assertions; provider-free native runtime and source-tooling counterparts.",
+  "definition_hash_rule": "SHA256 of exact TypeScript-AST test call source[start:end], UTF8, excluding the statement semicolon.",
+  "counts": {
+    "covered": 4,
+    "partial": 1,
+    "original_assertion_call_sites": 63,
+    "inherited_helper_call_sites": 3,
+    "original_protocol_scenarios": 7,
+    "original_protocol_steps": 14,
+    "original_live_cases": 10,
+    "original_live_prompts": 12
+  },
+  "evidence": {
+    "frozen_capture": {
+      "path": "rust/parity/cases/tooling-rubric-protocol.capture.json",
+      "sha256": "12c4788d8d515cf8698975b72ce9759d7be3d541eae16d0d4a063cea5da4ed6b"
+    },
+    "native_local_execution": {
+      "path": "artifacts/rust-rewrite/tooling-protocol-native-20261013-1/report.json",
+      "sha256": "62d680b4f319f01446d52e52cad2d8aa486103a5749a8563f65da8323f7be58a",
+      "qualified_scope": "First 5 commands/7 native tests passed; full report remains false because its concurrent xtask Clippy attempt encountered unwired performance helpers. Retained as an unsuccessful union attempt, not an all-checks pass."
+    },
+    "original_node_and_workspace_help": {
+      "path": "artifacts/rust-rewrite/tooling-protocol-native-20261013-2/report.json",
+      "sha256": "0136aa0afcaa360fc1aa7b5508e2df8da46de28fda4fecd9eb647bba5a46fecd",
+      "passed": true,
+      "original_expanded_tests": 11
+    },
+    "frozen_reference_added_document_inputs": {
+      "path": "artifacts/dev-environment/tooling-reference-doc-inputs.json",
+      "sha256": "9e5833f955f2c7e59d6730b06735ada1518f788f7466a26113a311499069141c",
+      "source_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+      "extra_docs": 3
+    },
+    "source_inputs": [
+      {
+        "path": "rust/xtask/src/live.rs",
+        "sha256": "5bd2e4eca167a0d7f0a07e6e64361c6375387457620ea4d3b99dc90f5b55729e"
+      },
+      {
+        "path": "rust/xtask/src/live_rubric_contracts.rs",
+        "sha256": "e0c16fb73a678bb7378132d138890b0cb81bd5d7e1e183d89431c4857bae0a48"
+      },
+      {
+        "path": "rust/xtask/src/bundle.rs",
+        "sha256": "136dc1a54810d95e4cd8ea796971dbb59ed6bc12a551c2cfb36185ce99214444"
+      },
+      {
+        "path": "rust/xtask/src/bundle_original_contracts.rs",
+        "sha256": "057793d1c41aa99405005cef374a62fdf0bf20e593659f43df0b3608ce0a057e"
+      },
+      {
+        "path": "rust/xtask/src/ollama_evaluation.rs",
+        "sha256": "9f388dc488341e8a981694f81863852236b0e3e661d61fa3128ca5d805753c5d"
+      },
+      {
+        "path": "rust/xtask/fixtures/live-cases-v2.json",
+        "sha256": "90b3e5b7b8e4e5bacd3a4ad3990b341807bd13b075d9379f022e0042fcdf8e21"
+      },
+      {
+        "path": "rust/crates/autorouter-core/tests/evaluation_report_contracts.rs",
+        "sha256": "8de055f44e55cd397a7caef0616e84f249e02c1b93913ab56735d95609950ac9"
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/tests/protocol_provenance_contracts.rs",
+        "sha256": "a6ee6a9de3986f573ce59d161a1317acf69522a74e74f6dbc2227b787846ac0a"
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/tests/gateway.rs",
+        "sha256": "9cbd6d9afc499314dc85d3f459572890db3bf83182ae3c54311692a4d38b2115"
+      },
+      {
+        "path": "rust/parity/capture-tooling-protocol-contracts.mjs",
+        "sha256": "0839c041611b47f6c403725ec0eafdbe772c80d476b040d47a5fe8d704089544"
+      },
+      {
+        "path": "rust/parity/cases/tooling-rubric-protocol.capture.json",
+        "sha256": "12c4788d8d515cf8698975b72ce9759d7be3d541eae16d0d4a063cea5da4ed6b"
+      }
+    ],
+    "final_strict_clippy": {
+      "path": "artifacts/dev-environment/logs/tooling-protocol-clippy-final-2.log",
+      "sha256": "ee1bad486aa44af1b426e0b27d285a1e03eeba90b5125d01fe3e849d65f6bd88",
+      "exit_code": 0,
+      "command": [
+        "artifacts/dev-environment/run",
+        "cargo",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--package",
+        "autorouter-core",
+        "--test",
+        "evaluation_report_contracts",
+        "--package",
+        "autorouter-runtime",
+        "--test",
+        "gateway",
+        "--test",
+        "protocol_provenance_contracts",
+        "--package",
+        "xtask",
+        "--bin",
+        "xtask",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "rust",
+      "qualified_scope": "Final scoped package/target strict Clippy passed after the other agent wired its performance helpers and corrected its len_zero lint. Earlier unsuccessful union attempts remain retained."
+    }
+  },
+  "semantics": {
+    "review_date": "2026-10-13",
+    "live_fixture_adaptation": "Native live-cases-v2 declares the existing Rust/cargo coding repair adaptation and historical fixture identity. All original case names,prompt counts and labels remain; every non-coding prompt matches the frozen original projection. This does not relabel held-out model cases.",
+    "native_usage_projection": "Original JSON numbers are compared numerically through as_f64; missing optional fields use get/contains_key so null cannot masquerade as undefined.",
+    "native_source_format_adaptation": "Native source bundles require a pinned Rust toolchain/C compiler/Make/Perl and locked dependencies. Schema2 and exactly 3 public upstream .github/.gitignore paths differ from the original Node source format. No dependency-free extracted execution claim.",
+    "limits": [
+      "Mock HTTP/evaluator choices only; no current client/provider compatibility, evaluator accuracy, downstream task quality or model timing claim.",
+      "Historical artifact versions/timestamps retain their recorded provenance; no observation date is manufactured.",
+      "Local dirty-source checkpoint; root owns final combined fixed-source/CI admission. No publication,platform qualification or default cutover."
+    ]
+  },
+  "mappings": [
+    {
+      "baseline_test": "test/benchmark-bundle.test.mjs#1",
+      "name": "transfer bundle contains verified synthetic benchmark sources and works without installing dependencies",
+      "baseline_file_sha256": "0b2a56a4f7deecd4e7a0e3382c0db5ebbcefbc2019e5e364d3bf5dde93f3d69a",
+      "baseline_definition_sha256": "d874b4b197d2833a8f931bef91a0f261c228227c28f61a98493591cd3e77e59a",
+      "baseline_line": 10,
+      "status": "partial",
+      "reviewed_assertion_calls": 10,
+      "rust_tests": [
+        "rust/xtask/src/bundle_original_contracts.rs#original_bundle_archive_hash_count_fixture_and_privacy_assertions_are_retained"
+      ],
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 16,
+          "expression": "assert.equal(created.sha256, sha256(await readFile(archive)))",
+          "status": "covered",
+          "native_counterpart": "SHA256 of the exact compressed native archive equals create() result sha256.",
+          "rust_tests": [
+            "rust/xtask/src/bundle_original_contracts.rs#original_bundle_archive_hash_count_fixture_and_privacy_assertions_are_retained"
+          ]
+        },
+        {
+          "index": 2,
+          "line": 17,
+          "expression": "assert.equal(await readFile(`${archive}.sha256`, 'utf8'), `${created.sha256}  benchmark.tar.gz\\n`)",
+          "status": "covered",
+          "native_counterpart": "Sidecar bytes equal SHA256 plus two spaces, exact basename benchmark.tar.gz and one LF.",
+          "rust_tests": [
+            "rust/xtask/src/bundle_original_contracts.rs#original_bundle_archive_hash_count_fixture_and_privacy_assertions_are_retained"
+          ]
+        },
+        {
+          "index": 3,
+          "line": 19,
+          "expression": "assert.ok(listing.every(path => path.startsWith('autorouter-benchmark/') && !path.includes('..')))",
+          "status": "covered",
+          "native_counterpart": "decode_root requires the exact autorouter-benchmark root for every member; all decoded paths are safe and contain no parent traversal.",
+          "rust_tests": [
+            "rust/xtask/src/bundle_original_contracts.rs#original_bundle_archive_hash_count_fixture_and_privacy_assertions_are_retained"
+          ]
+        },
+        {
+          "index": 4,
+          "line": 20,
+          "expression": "assert.ok(listing.every(path => !/(?:^|\\/)(?:\\.env|\\.git|node_modules|artifacts|config\\.json|autorouter-session)/.test(path)))",
+          "status": "partial",
+          "native_counterpart": "The original privacy predicate is applied to all paths. Its only matches are exactly three reviewed public upstream hyper-util files, each present in the closed vendor inventory; literal original predicate equivalence is not claimed.",
+          "rust_tests": [
+            "rust/xtask/src/bundle_original_contracts.rs#original_bundle_archive_hash_count_fixture_and_privacy_assertions_are_retained"
+          ]
+        },
+        {
+          "index": 5,
+          "line": 24,
+          "expression": "assert.equal(manifest.schema_version, 1)",
+          "status": "partial",
+          "native_counterpart": "Native source format deliberately emits schema_version 2. The original schema_version 1 assertion is not literally met; no legacy Node bundle reader equivalence is claimed.",
+          "rust_tests": [
+            "rust/xtask/src/bundle_original_contracts.rs#original_bundle_archive_hash_count_fixture_and_privacy_assertions_are_retained"
+          ]
+        },
+        {
+          "index": 6,
+          "line": 25,
+          "expression": "assert.equal(created.files, Object.keys(manifest.files).length + 1)",
+          "status": "covered",
+          "native_counterpart": "Native result files equals manifest.files length plus the single source-manifest entry.",
+          "rust_tests": [
+            "rust/xtask/src/bundle_original_contracts.rs#original_bundle_archive_hash_count_fixture_and_privacy_assertions_are_retained"
+          ]
+        },
+        {
+          "index": 7,
+          "line": 26,
+          "expression": "assert.equal(sha256(await readFile(join(root, path))), hash, path)",
+          "status": "covered",
+          "native_counterpart": "Every extracted entry SHA256 equals its full manifest hash.",
+          "rust_tests": [
+            "rust/xtask/src/bundle_original_contracts.rs#original_bundle_archive_hash_count_fixture_and_privacy_assertions_are_retained"
+          ]
+        },
+        {
+          "index": 8,
+          "line": 27,
+          "expression": "assert.equal(manifest.fixture_sha256, manifest.files['test/fixtures/ollama-routing.json'])",
+          "status": "covered",
+          "native_counterpart": "fixture_sha256 equals the exact manifest hash of the shared original Ollama routing fixture.",
+          "rust_tests": [
+            "rust/xtask/src/bundle_original_contracts.rs#original_bundle_archive_hash_count_fixture_and_privacy_assertions_are_retained"
+          ]
+        },
+        {
+          "index": 9,
+          "line": 29,
+          "expression": "assert.match(stdout, /Does not download models or contact Claude\\/Jev/)",
+          "status": "partial",
+          "native_counterpart": "Native workspace CLI help says Downloads nothing and does not contact Claude/Jev. The command was not run dependency-free from an extracted bundle.",
+          "rust_tests": [
+            "rust/xtask/src/bundle_original_contracts.rs#original_bundle_archive_hash_count_fixture_and_privacy_assertions_are_retained"
+          ]
+        },
+        {
+          "index": 10,
+          "line": 30,
+          "expression": "assert.match(stdout, /--timeout-ms 0 disables the warm timer/)",
+          "status": "partial",
+          "native_counterpart": "Native workspace CLI help says --timeout-ms 0 disables only the warm deadline. The command was not run dependency-free from an extracted bundle.",
+          "rust_tests": [
+            "rust/xtask/src/bundle_original_contracts.rs#original_bundle_archive_hash_count_fixture_and_privacy_assertions_are_retained"
+          ]
+        }
+      ],
+      "remaining": [
+        "Provide and validate a contributor artifact that executes evaluator help after extraction without Rust/Cargo dependency installation; compilation against an existing cache is insufficient.",
+        "Original Node schema1 and raw privacy-regex equivalence remain explicit source-format migrations; retain separate native schema2/public-vendor provenance rather than treating them as unchanged original bytes."
+      ]
+    },
+    {
+      "baseline_test": "test/live-rubric.test.mjs#1",
+      "name": "all bundled live tasks declare rubric labels before provider invocation, including easy thinking follow-ups",
+      "baseline_file_sha256": "69b2de3ea94933f539150254b77e389d9a07f883f6fbf6a394c5a2dbca71881b",
+      "baseline_definition_sha256": "0a32a998bdec97e6c58406d56cf84d238bbee2e26dd323bf78d120be02f0aaa6",
+      "baseline_line": 6,
+      "status": "covered",
+      "reviewed_assertion_calls": 2,
+      "rust_tests": [
+        "rust/xtask/src/live_rubric_contracts.rs#all_bundled_live_prompts_have_declared_labels_before_any_provider_call"
+      ],
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 12,
+          "expression": "assert.ok(['haiku', 'sonnet', 'opus'].includes(liveExpectedTier(scenario, body)), name)",
+          "status": "covered",
+          "native_counterpart": "Every original case/name, prompt count and declared tier field is retained. Non-coding prompt bytes equal the frozen Node projection; only the existing versioned Rust coding adaptation differs. Every prompt uses the actual LiveRouter expected-tier helper with the original alternating history construction.",
+          "rust_tests": [
+            "rust/xtask/src/live_rubric_contracts.rs#all_bundled_live_prompts_have_declared_labels_before_any_provider_call"
+          ]
+        },
+        {
+          "index": 2,
+          "line": 15,
+          "expression": "assert.equal(liveExpectedTier(LIVE_CASES.thinking_continuation, { messages: [\n    { role: 'user', content: LIVE_CASES.thinking_continuation.prompts[0] },\n    { role: 'assistant', content: 'Synthetic reasoning.' },\n    { role: 'user', content: LIVE_CASES.thinking_continuation.prompts[1] },\n  ] }), 'haiku')",
+          "status": "covered",
+          "native_counterpart": "The exact thinking-continuation second prompt resolves to Haiku after the difficult first prompt and synthetic assistant response.",
+          "rust_tests": [
+            "rust/xtask/src/live_rubric_contracts.rs#all_bundled_live_prompts_have_declared_labels_before_any_provider_call"
+          ]
+        }
+      ]
+    },
+    {
+      "baseline_test": "test/live-rubric.test.mjs#2",
+      "name": "a live tier permutation cannot pass merely because aggregate tier coverage is complete",
+      "baseline_file_sha256": "69b2de3ea94933f539150254b77e389d9a07f883f6fbf6a394c5a2dbca71881b",
+      "baseline_definition_sha256": "1e69f40082f40426efc4b881403758110520b9220e022c6a3705b83bed977318",
+      "baseline_line": 22,
+      "status": "covered",
+      "reviewed_assertion_calls": 4,
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/evaluation_report_contracts.rs#original_live_tier_permutation_fails_each_rubric_despite_complete_coverage"
+      ],
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 28,
+          "expression": "assert.equal(accepted.gates.rubric.passed, false)",
+          "status": "covered",
+          "native_counterpart": "All three cyclic expected/actual tier permutations individually fail their rubric despite successful Claude/result checks and evaluator routes.",
+          "rust_tests": [
+            "rust/crates/autorouter-core/tests/evaluation_report_contracts.rs#original_live_tier_permutation_fails_each_rubric_despite_complete_coverage"
+          ]
+        },
+        {
+          "index": 2,
+          "line": 32,
+          "expression": "assert.equal(report.gates.coverage.passed, true)",
+          "status": "covered",
+          "native_counterpart": "Aggregate tier coverage remains true for all three observed tiers.",
+          "rust_tests": [
+            "rust/crates/autorouter-core/tests/evaluation_report_contracts.rs#original_live_tier_permutation_fails_each_rubric_despite_complete_coverage"
+          ]
+        },
+        {
+          "index": 3,
+          "line": 33,
+          "expression": "assert.equal(report.passed, false)",
+          "status": "covered",
+          "native_counterpart": "Aggregate report passed remains false; coverage cannot override incorrect declared labels.",
+          "rust_tests": [
+            "rust/crates/autorouter-core/tests/evaluation_report_contracts.rs#original_live_tier_permutation_fails_each_rubric_despite_complete_coverage"
+          ]
+        },
+        {
+          "index": 4,
+          "line": 34,
+          "expression": "assert.equal(evaluateLiveCase({ checks: { claude_success: true, expected_result: true }, evaluator: 'jev',\n    routes: [{ source: 'jev', classified_tier: 'haiku' }] }).gates.rubric.passed, false)",
+          "status": "covered",
+          "native_counterpart": "A route with an observed Haiku tier and no declared expected label fails the rubric.",
+          "rust_tests": [
+            "rust/crates/autorouter-core/tests/evaluation_report_contracts.rs#original_live_tier_permutation_fails_each_rubric_despite_complete_coverage"
+          ]
+        }
+      ]
+    },
+    {
+      "baseline_test": "test/protocol-fixtures.test.mjs#1",
+      "name": "protocol corpus versions synthetic examples separately from historical client evidence",
+      "baseline_file_sha256": "55e193ed07c30718997af2a0b49aeeaf0c0f0229887151250397bcba828fc9ae",
+      "baseline_definition_sha256": "03400f287d987ec8caceb40917e29b27cac36b7031fbd30e08d44b41998dd898",
+      "baseline_line": 20,
+      "status": "covered",
+      "reviewed_assertion_calls": 18,
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/protocol_provenance_contracts.rs#original_synthetic_protocol_metadata_retains_every_provenance_boundary"
+      ],
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 21,
+          "expression": "assert.equal(corpus.fixture_version, 1)",
+          "status": "covered",
+          "native_counterpart": "Pinned shared corpus fixture_version equals1.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/protocol_provenance_contracts.rs#original_synthetic_protocol_metadata_retains_every_provenance_boundary"
+          ]
+        },
+        {
+          "index": 2,
+          "line": 22,
+          "expression": "assert.equal(corpus.synthetic, true)",
+          "status": "covered",
+          "native_counterpart": "synthetic equals true.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/protocol_provenance_contracts.rs#original_synthetic_protocol_metadata_retains_every_provenance_boundary"
+          ]
+        },
+        {
+          "index": 3,
+          "line": 23,
+          "expression": "assert.match(corpus.reviewed_at, /^\\d{4}-\\d{2}-\\d{2}$/)",
+          "status": "covered",
+          "native_counterpart": "reviewed_at retains original ASCII YYYY-MM-DD shape.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/protocol_provenance_contracts.rs#original_synthetic_protocol_metadata_retains_every_provenance_boundary"
+          ]
+        },
+        {
+          "index": 4,
+          "line": 24,
+          "expression": "assert.match(corpus.description, /not captured traffic/)",
+          "status": "covered",
+          "native_counterpart": "Description explicitly says not captured traffic.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/protocol_provenance_contracts.rs#original_synthetic_protocol_metadata_retains_every_provenance_boundary"
+          ]
+        },
+        {
+          "index": 5,
+          "line": 25,
+          "expression": "assert.match(corpus.limits.join(' '), /not evaluator quality or downstream task success/)",
+          "status": "covered",
+          "native_counterpart": "Joined limits retain not evaluator quality or downstream task success.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/protocol_provenance_contracts.rs#original_synthetic_protocol_metadata_retains_every_provenance_boundary"
+          ]
+        },
+        {
+          "index": 6,
+          "line": 26,
+          "expression": "assert.deepEqual([...new Set(corpus.historical_evidence.map(row => row.claude_version))], ['2.1.284', '2.1.285'])",
+          "status": "covered",
+          "native_counterpart": "Ordered unique historical client versions remain2.1.284 and2.1.285.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/protocol_provenance_contracts.rs#original_synthetic_protocol_metadata_retains_every_provenance_boundary"
+          ]
+        },
+        {
+          "index": 7,
+          "line": 28,
+          "expression": "assert.match(evidence.sha256, /^[a-f0-9]{64}$/)",
+          "status": "covered",
+          "native_counterpart": "Every historical checksum matches64 lowercase hex digits.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/protocol_provenance_contracts.rs#original_synthetic_protocol_metadata_retains_every_provenance_boundary"
+          ]
+        },
+        {
+          "index": 8,
+          "line": 29,
+          "expression": "assert.match(evidence.artifact, /^artifacts\\/[\\w-]+\\.json$/)",
+          "status": "covered",
+          "native_counterpart": "Every historical artifact name matches the original artifacts/[word-or-hyphen].json rule.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/protocol_provenance_contracts.rs#original_synthetic_protocol_metadata_retains_every_provenance_boundary"
+          ]
+        },
+        {
+          "index": 9,
+          "line": 30,
+          "expression": "assert.ok(Number.isFinite(Date.parse(evidence.observed_at)))",
+          "status": "covered",
+          "native_counterpart": "Both actually recorded non-null ISO timestamp forms produce finite validated calendar/time values. The general JavaScript Date.parse API is outside this pinned-corpus assertion.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/protocol_provenance_contracts.rs#original_synthetic_protocol_metadata_retains_every_provenance_boundary"
+          ]
+        },
+        {
+          "index": 10,
+          "line": 34,
+          "expression": "assert.equal(corpus.historical_evidence.find(row => row.kind === 'historical_synthetic_auto_permission_probe').observed_at, null)",
+          "status": "covered",
+          "native_counterpart": "The historical synthetic auto-permission probe timestamp remains explicitly null; the mutation control rejects invented timestamps.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/protocol_provenance_contracts.rs#original_synthetic_protocol_metadata_retains_every_provenance_boundary"
+          ]
+        },
+        {
+          "index": 11,
+          "line": 35,
+          "expression": "assert.deepEqual(corpus.official_contracts.map(row => row.area), ['messages', 'streaming', 'fallback', 'tool_search'])",
+          "status": "covered",
+          "native_counterpart": "All four ordered official contract areas are messages,streaming,fallback,tool_search.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/protocol_provenance_contracts.rs#original_synthetic_protocol_metadata_retains_every_provenance_boundary"
+          ]
+        },
+        {
+          "index": 12,
+          "line": 36,
+          "expression": "assert.ok(corpus.official_contracts.every(row => new URL(row.url).origin === 'https://platform.claude.com'))",
+          "status": "covered",
+          "native_counterpart": "Every official URL origin equals https://platform.claude.com; this is metadata validation, not fresh provider-document compatibility verification.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/protocol_provenance_contracts.rs#original_synthetic_protocol_metadata_retains_every_provenance_boundary"
+          ]
+        },
+        {
+          "index": 13,
+          "line": 37,
+          "expression": "assert.equal(new Set(corpus.cases.map(row => row.id)).size, corpus.cases.length)",
+          "status": "covered",
+          "native_counterpart": "All shared corpus case IDs are unique.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/protocol_provenance_contracts.rs#original_synthetic_protocol_metadata_retains_every_provenance_boundary"
+          ]
+        },
+        {
+          "index": 14,
+          "line": 40,
+          "expression": "assert.ok(coverage.has(required), required)",
+          "status": "covered",
+          "native_counterpart": "The same eleven required protocol coverage labels are retained.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/protocol_provenance_contracts.rs#original_synthetic_protocol_metadata_retains_every_provenance_boundary"
+          ]
+        },
+        {
+          "index": 15,
+          "line": 42,
+          "expression": "assert.ok(step.request && step.response && step.expected)",
+          "status": "covered",
+          "native_counterpart": "Every one of the 14 steps has request,response,expected data.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/protocol_provenance_contracts.rs#original_synthetic_protocol_metadata_retains_every_provenance_boundary"
+          ]
+        },
+        {
+          "index": 16,
+          "line": 43,
+          "expression": "assert.ok(step.evaluator_tier === null || ['haiku', 'sonnet', 'opus'].includes(step.evaluator_tier))",
+          "status": "covered",
+          "native_counterpart": "Every evaluator tier is null or one of Haiku/Sonnet/Opus.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/protocol_provenance_contracts.rs#original_synthetic_protocol_metadata_retains_every_provenance_boundary"
+          ]
+        },
+        {
+          "index": 17,
+          "line": 44,
+          "expression": "assert.deepEqual(Object.keys(step.expected_request_overrides).filter(key => !['model', 'thinking'].includes(key)), [])",
+          "status": "covered",
+          "native_counterpart": "Every request adaptation key is model or thinking; the extra-system mutation is rejected.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/protocol_provenance_contracts.rs#original_synthetic_protocol_metadata_retains_every_provenance_boundary"
+          ]
+        },
+        {
+          "index": 18,
+          "line": 46,
+          "expression": "assert.ok(!JSON.stringify(step.request).includes('\"signature\"'))",
+          "status": "covered",
+          "native_counterpart": "No authored request has a signature key; invented signed history is rejected.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/protocol_provenance_contracts.rs#original_synthetic_protocol_metadata_retains_every_provenance_boundary"
+          ]
+        }
+      ],
+      "additional_controls": [
+        "rust/crates/autorouter-runtime/tests/protocol_provenance_contracts.rs#protocol_provenance_validation_rejects_quality_laundering_and_invented_history"
+      ]
+    },
+    {
+      "baseline_test": "test/protocol-fixtures.test.mjs#2",
+      "name": "`protocol v1: ${scenario.id}`",
+      "baseline_file_sha256": "55e193ed07c30718997af2a0b49aeeaf0c0f0229887151250397bcba828fc9ae",
+      "baseline_definition_sha256": "c78159afb14aae2c2e8d3e1ce9c93f790630c3fb9698d34acc9d451f9a7fd145",
+      "baseline_line": 97,
+      "status": "covered",
+      "reviewed_assertion_calls": 29,
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+      ],
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 103,
+          "expression": "assert.equal(response.status, 200, step.id)",
+          "status": "covered",
+          "native_counterpart": "Each real synthetic HTTP response has status200.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 2,
+          "line": 104,
+          "expression": "assert.equal(response.headers.get('request-id'), `synthetic-${step.id}`)",
+          "status": "covered",
+          "native_counterpart": "request-id exactly equals synthetic- plus the shared step ID.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 3,
+          "line": 105,
+          "expression": "assert.deepEqual(Buffer.from(await response.arrayBuffer()), wire(step.response), `${step.id}: response bytes`)",
+          "status": "covered",
+          "native_counterpart": "Every complete returned response byte equals the shared wire() encoding, preserving CRLF/comments/UTF8 under fragmentation.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 4,
+          "line": 107,
+          "expression": "assert.deepEqual(gateway.failures, [])",
+          "status": "covered",
+          "native_counterpart": "Synthetic provider connection/task failures remain empty; child failures are collected and checked.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 5,
+          "line": 108,
+          "expression": "assert.equal(gateway.evaluations() - before, step.evaluator_tier === null ? 0 : 1, `${step.id}: evaluator calls`)",
+          "status": "covered",
+          "native_counterpart": "Each auxiliary step makes zero evaluator calls and every other step exactly one.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 6,
+          "line": 110,
+          "expression": "assert.deepEqual(upstream.body, { ...step.request, ...step.expected_request_overrides }, `${step.id}: only declared request adaptations`)",
+          "status": "covered",
+          "native_counterpart": "Full upstream request JSON equals original request plus only the declared adaptations.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 7,
+          "line": 111,
+          "expression": "assert.equal(upstream.path, '/v1/messages?beta=true')",
+          "status": "covered",
+          "native_counterpart": "Full upstream path/query remains /v1/messages?beta=true.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 8,
+          "line": 112,
+          "expression": "assert.equal(upstream.headers['anthropic-beta'], 'synthetic-protocol-contract')",
+          "status": "covered",
+          "native_counterpart": "anthropic-beta retains the exact synthetic protocol-contract value.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 9,
+          "line": 113,
+          "expression": "assert.equal(upstream.headers['anthropic-version'], '2023-06-01')",
+          "status": "covered",
+          "native_counterpart": "anthropic-version remains2023-06-01.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 10,
+          "line": 114,
+          "expression": "assert.equal(upstream.headers['x-api-key'], 'synthetic-upstream-key')",
+          "status": "covered",
+          "native_counterpart": "Upstream x-api-key contains only the fake synthetic-upstream-key.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 11,
+          "line": 115,
+          "expression": "assert.equal(upstream.headers[name], value)",
+          "status": "covered",
+          "native_counterpart": "Every declared identity header is forwarded unchanged.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 12,
+          "line": 117,
+          "expression": "assert.deepEqual(pair.map(row => row.event), ['decision', 'outcome'])",
+          "status": "covered",
+          "native_counterpart": "Each ordered record pair is exactly decision followed by outcome; total pairs equal completed step count.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 13,
+          "line": 119,
+          "expression": "assert.equal(decision.schema_version, 2)",
+          "status": "covered",
+          "native_counterpart": "Decision schema_version remains2.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 14,
+          "line": 120,
+          "expression": "assert.equal(outcome.request_id, decision.request_id)",
+          "status": "covered",
+          "native_counterpart": "Outcome request_id equals its decision request_id.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 15,
+          "line": 122,
+          "expression": "assert.equal(decision[field], value)",
+          "status": "covered",
+          "native_counterpart": "Every declared identity field matches on the decision.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 16,
+          "line": 123,
+          "expression": "assert.equal(outcome[field], value)",
+          "status": "covered",
+          "native_counterpart": "Every declared identity field matches on the outcome.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 17,
+          "line": 125,
+          "expression": "assert.equal(decision[field], step.expected[field], `${step.id}: ${field}`)",
+          "status": "covered",
+          "native_counterpart": "All four original decision fields match, distinguishing omitted properties from explicit null.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 18,
+          "line": 126,
+          "expression": "assert.equal(decision.classified_tier, step.evaluator_tier ?? undefined)",
+          "status": "covered",
+          "native_counterpart": "Classified tier matches the evaluator tier; auxiliary null means the property is absent, not null.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 19,
+          "line": 127,
+          "expression": "assert.equal(outcome.status, 'completed')",
+          "status": "covered",
+          "native_counterpart": "Outcome status equals completed, including the corpus truncated-response case whose completion_confirmed is separately false.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 20,
+          "line": 129,
+          "expression": "assert.equal(outcome[field], step.expected[field], `${step.id}: ${field}`)",
+          "status": "covered",
+          "native_counterpart": "All six original outcome fields match, distinguishing omission from null.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 21,
+          "line": 131,
+          "expression": "assert.deepEqual(outcome.model_transitions, step.expected.model_transitions ?? [step.expected.confirmed_model])",
+          "status": "covered",
+          "native_counterpart": "Full model-transition arrays match; absent/null expected transitions default to the confirmed model array.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 22,
+          "line": 133,
+          "expression": "assert.equal(outcome.usage.input_tokens, 100)",
+          "status": "covered",
+          "native_counterpart": "Complete usage input_tokens equals 100 numerically.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 23,
+          "line": 134,
+          "expression": "assert.equal(outcome.usage.output_tokens, 12)",
+          "status": "covered",
+          "native_counterpart": "Complete usage output_tokens equals 12 numerically.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 24,
+          "line": 135,
+          "expression": "assert.equal(outcome.usage.cache_read_input_tokens, 20)",
+          "status": "covered",
+          "native_counterpart": "Complete usage cache_read_input_tokens equals 20 numerically.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 25,
+          "line": 137,
+          "expression": "assert.ok(!Object.hasOwn(decision, 'prompt_excerpt'))",
+          "status": "covered",
+          "native_counterpart": "Decision metadata omits prompt_excerpt.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 26,
+          "line": 138,
+          "expression": "assert.ok(!JSON.stringify(pair).includes('synthetic-evaluator-key'))",
+          "status": "covered",
+          "native_counterpart": "Neither record includes the fake evaluator key.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 27,
+          "line": 139,
+          "expression": "assert.equal(gateway.router.turns.attempts.size, 0, `${step.id}: no unfinished routing attempt`)",
+          "status": "covered",
+          "native_counterpart": "The actual production Router numeric continuity snapshot has zero pending attempts before shutdown, without inference from complete(false).",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 28,
+          "line": 141,
+          "expression": "assert.deepEqual(scenario, original, 'Fixtures and request bodies must remain immutable')",
+          "status": "covered",
+          "native_counterpart": "The full shared scenario and its requests remain equal to their pre-execution clone.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        },
+        {
+          "index": 29,
+          "line": 142,
+          "expression": "assert.equal(new Set(gateway.records.filter(row => row.event === 'decision').map(row => row.request_id)).size, scenario.steps.length)",
+          "status": "covered",
+          "native_counterpart": "Unique decision request IDs equal the exact number of scenario steps.",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+          ]
+        }
+      ],
+      "shared_case_ids": [
+        "auto-haiku-floor",
+        "auto-opus-thinking-adaptation",
+        "native-thinking-preservation",
+        "deferred-tool-reference",
+        "scoped-goal-side-requests",
+        "fallback-tool-ownership",
+        "truncated-response"
+      ],
+      "steps": 14,
+      "scenario_timeout_ms": 10000,
+      "inherited_helper_assertions": [
+        {
+          "line": 78,
+          "expression": "assert.equal(url, config.jevEndpoint)",
+          "status": "covered",
+          "native_counterpart": "The evaluator uses the configured private synthetic endpoint and the real mock accepts only /v1/systemone; other unexpected endpoints fail the scenario."
+        },
+        {
+          "line": 79,
+          "expression": "assert.notEqual(activeStep.evaluator_tier, null, 'Auxiliary verdict requests must bypass the evaluator')",
+          "status": "covered",
+          "native_counterpart": "Mock evaluator handler rejects any call for a null auxiliary tier; evaluator count also remains zero for these steps."
+        },
+        {
+          "line": 83,
+          "expression": "assert.fail('Small fixtures do not require token counting')",
+          "status": "covered",
+          "native_counterpart": "The synthetic mock accepts only /v1/messages or /v1/systemone; an unexpected token-count request fails rather than being silently accepted."
+        }
+      ]
+    }
+  ]
+}

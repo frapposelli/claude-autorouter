@@ -1,0 +1,746 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_local_setup_diagnostic_assertion_mapping",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "source_head": "541f3be3e430ca98b15cf49a571a82c3d4e002dc",
+  "production_changes": false,
+  "validation": {
+    "frozen_node_tests": 28,
+    "frozen_node_failed": 0,
+    "finite_capture_cases": 9,
+    "native_tests": 3,
+    "native_failed": 0,
+    "warm_pull_schedules": 6,
+    "residency_cancel_schedules": 1,
+    "scoped_clippy": "pass",
+    "loopback_or_provider_calls": 0,
+    "timing_claim": "Synthetic bounds only, not evaluator performance"
+  },
+  "files": [
+    {
+      "path": "rust/crates/autorouter-runtime/tests/local_setup_diagnostic_contracts.rs",
+      "bytes": 9174,
+      "sha256": "86be58e8b9011038ff68a5e32da2404a37444e20ddc5d2778ba4bfab2bf3f596"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/support/local_ollama.rs",
+      "bytes": 7127,
+      "sha256": "8245eaa5eea2f8f6e62d7a664b1075111bd440ecd45de426b711f6e600b9e67d"
+    },
+    {
+      "path": "rust/parity/capture-local-setup-diagnostic.mjs",
+      "bytes": 5730,
+      "sha256": "09286fc3aa908f87a0b67837d34c54aab3e763e773ada0e0c85ea2f0635b9a60"
+    },
+    {
+      "path": "rust/parity/cases/local-setup-diagnostic.jsonl",
+      "bytes": 11653,
+      "sha256": "e7ee94e954db3e2e78735921b5e6412f3d26d45f9fe2158292aa63406717457d"
+    },
+    {
+      "path": "rust/parity/cases/local-setup-diagnostic.capture.json",
+      "bytes": 1215,
+      "sha256": "26bc8e5d46b922333a87b154dc01b90744764839fd81bbb9ceb0b05f96b6f1d8"
+    },
+    {
+      "path": "artifacts/rust-rewrite/local-setup-diagnostic-frozen-tests.log",
+      "bytes": 6432,
+      "sha256": "94230896557781db3f6855a29e552a00a1ba94a8302bffa3218b70ba3c003d93"
+    },
+    {
+      "path": "artifacts/rust-rewrite/local-setup-diagnostic-capture-2.log",
+      "bytes": 1057,
+      "sha256": "4c68158905240051b5517a5becc06346d574b4bef2357c4d65f22e02b7eca95a"
+    },
+    {
+      "path": "artifacts/rust-rewrite/local-setup-diagnostic-native-tests-4.log",
+      "bytes": 712,
+      "sha256": "aef3ce306045e919ef605a2d715c4bc08b634a8f46ff4bcef38737cc719a4fa5"
+    },
+    {
+      "path": "artifacts/rust-rewrite/local-setup-diagnostic-clippy-2.log",
+      "bytes": 178,
+      "sha256": "775d455f642ed3fe6477acba5c898a48ac7e023415ccdad23800c9ff5440face"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/http_client.rs",
+      "bytes": 16711,
+      "sha256": "c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1"
+    },
+    {
+      "path": "artifacts/rust-rewrite/sixth-final-2-workspace.log",
+      "bytes": 55877,
+      "sha256": "434638d314a2db611028c29ac3995a70a18c34c1d11f0b6a83a2ac61f70d84d0"
+    },
+    {
+      "path": "artifacts/rust-rewrite/sixth-final-2-source-inputs.json",
+      "bytes": 60915,
+      "sha256": "7d196463bf3cc1ccf93f0a0d0746b1ae8d349f5ce91756650373ebf51f9cc7c1"
+    }
+  ],
+  "retained_negative_evidence": [
+    {
+      "path": "artifacts/rust-rewrite/local-setup-diagnostic-native-tests.log",
+      "bytes": 6512,
+      "sha256": "27e40880603641fc8d9657c56973723a71b073ebf018c2b39c0843a67d3bd829",
+      "reason": "Initial assertion mismatch was serde_json representation0.0 versus0; final test compares the complete JS-compatible wire observation without dropping any fields.",
+      "retained": {
+        "path": "artifacts/rust-rewrite/evidence/27e40880603641fc8d9657c56973723a71b073ebf018c2b39c0843a67d3bd829.log",
+        "sha256": "27e40880603641fc8d9657c56973723a71b073ebf018c2b39c0843a67d3bd829",
+        "original_path": "artifacts/rust-rewrite/local-setup-diagnostic-native-tests.log"
+      }
+    }
+  ],
+  "rows": [
+    {
+      "id": "test/ollama-setup.test.mjs#9",
+      "name": "warmup timeout and caller cancellation stop stalled classifier bodies with safe errors",
+      "previous_status": "pending_assertion_mapping",
+      "native_evidence": [
+        "rust/crates/autorouter-runtime/tests/local_setup_diagnostic_contracts.rs#setup_warm_and_pull_deadlines_cancel_pending_bodies_without_leaking_reason_or_warming_after_pull"
+      ],
+      "assertion_mapping": [
+        {
+          "source_assertion": "cancelled=false/true; warmTimeoutMs20 or1000; abort at10ms",
+          "native_evidence": "Both baseline schedules under nimble:9b-q4_K_M,9B completion details, keep_alive5m. Paused Tokio time reaches exactly20ms deadline or10ms caller cancellation after body-read readiness."
+        },
+        {
+          "source_assertion": "OLLAMA_TIMEOUT versus OLLAMA_CANCELLED; safe error message",
+          "native_evidence": "Exact typed error code and absence of PRIVATE_ asserted in every schedule; Error::source is absent."
+        },
+        {
+          "source_assertion": "bodyCancelled===true; total elapsed<500ms",
+          "native_evidence": "Drop-observed pending response plus both elapsed virtual time and actual wall time<500ms; outer2s virtual watchdog."
+        }
+      ],
+      "remaining_literal_assertions": [
+        "The source injects Error(PRIVATE_CANCEL_REASON) into AbortController; native CancellationToken has no arbitrary reason payload. No literal custom-reason injection assertion is represented."
+      ],
+      "explicit_adaptations_or_limits": [
+        "The native test waits for the pending body to be polled before cancelling, eliminating timing-dependent pre-I/O cancellation. No numerical performance claim."
+      ],
+      "file": "test/ollama-setup.test.mjs",
+      "line": 202,
+      "baseline_file_sha256": "1558c1820c78228b849ab4a3a16549617509806af43356c38f6a0b5737d8de4a",
+      "definition": {
+        "start_line": 202,
+        "end_line": 225,
+        "statement": "test('warmup timeout and caller cancellation stop stalled classifier bodies with safe errors', async () => {\n  for (const cancelled of [false, true]) {\n    const controller = new AbortController();\n    let bodyCancelled = false;\n    const started = performance.now();\n    const pending = setupOllama(config(), { write: () => {}, signal: controller.signal,\n      warmTimeoutMs: cancelled ? 1000 : 20, fetchImpl: async url => {\n        const path = new URL(url).pathname;\n        if (path === '/api/version') return currentVersion();\n        if (path === '/api/tags') return tags(true);\n        if (path === '/api/show') return localDetails();\n        assert.equal(path, '/v1/systemone');\n        return new Response(new ReadableStream({ cancel() { bodyCancelled = true; } }));\n      } });\n    if (cancelled) setTimeout(() => controller.abort(new Error('PRIVATE_CANCEL_REASON')), 10);\n    await assert.rejects(pending, error => {\n      assert.equal(error.code, cancelled ? 'OLLAMA_CANCELLED' : 'OLLAMA_TIMEOUT');\n      assert.ok(!error.message.includes('PRIVATE_'));\n      return true;\n    });\n    assert.equal(bodyCancelled, true);\n    assert.ok(performance.now() - started < 500);\n  }\n});",
+        "statement_sha256": "e77e5816ca4e5fda6aa2fc6653a119e188e3292cd81644c1b8bcf0b6035b8112",
+        "call_sha256": "4bdf729662982fd98ce84153a233d4223aa5464b71f565083f059951c2fa4e35",
+        "hash_boundary": "statement includes trailing semicolon; call excludes it; both exclude leading comments/whitespace"
+      },
+      "static_assertions": [
+        {
+          "id": "test/ollama-setup.test.mjs#9/assert-1",
+          "method": "equal",
+          "line": 213,
+          "end_line": 213,
+          "expression": "assert.equal(path, '/v1/systemone')",
+          "expression_sha256": "a00f5d7b8c9ea99650369e800f02847dea4b23fa66eb6dcf101072e2d2262ce4",
+          "status": "covered",
+          "detail": "Native evidence linked on this definition proves the asserted observable value for every source loop scenario.",
+          "native_evidence_ref": "#/rows/0/native_evidence"
+        },
+        {
+          "id": "test/ollama-setup.test.mjs#9/assert-2",
+          "method": "rejects",
+          "line": 217,
+          "end_line": 221,
+          "expression": "assert.rejects(pending, error => {\n      assert.equal(error.code, cancelled ? 'OLLAMA_CANCELLED' : 'OLLAMA_TIMEOUT');\n      assert.ok(!error.message.includes('PRIVATE_'));\n      return true;\n    })",
+          "expression_sha256": "bc1dc1ec564e2477d8cefd35bcf7e2e1dc000b58b9266624cbddee3251ed2d4b",
+          "status": "partial_assertion_mapping",
+          "detail": "Exact rejection code and safe error text pass; the source injects a private Error as abort reason, which CancellationToken cannot carry. Literal reason-injection scenario remains explicit.",
+          "native_evidence_ref": "#/rows/0/native_evidence"
+        },
+        {
+          "id": "test/ollama-setup.test.mjs#9/assert-3",
+          "method": "equal",
+          "line": 218,
+          "end_line": 218,
+          "expression": "assert.equal(error.code, cancelled ? 'OLLAMA_CANCELLED' : 'OLLAMA_TIMEOUT')",
+          "expression_sha256": "be9af1da8b179e4f391260a26ec1de8b9c8440e61cd21257b20a0ad2397b3c99",
+          "status": "covered",
+          "detail": "Native evidence linked on this definition proves the asserted observable value for every source loop scenario.",
+          "native_evidence_ref": "#/rows/0/native_evidence"
+        },
+        {
+          "id": "test/ollama-setup.test.mjs#9/assert-4",
+          "method": "ok",
+          "line": 219,
+          "end_line": 219,
+          "expression": "assert.ok(!error.message.includes('PRIVATE_'))",
+          "expression_sha256": "8b8f5ba6a28c2525bf5c9f73386c1e1c16ffa458a65089f8e4b0f669c371e1bd",
+          "status": "partial_assertion_mapping",
+          "detail": "Exact rejection code and safe error text pass; the source injects a private Error as abort reason, which CancellationToken cannot carry. Literal reason-injection scenario remains explicit.",
+          "native_evidence_ref": "#/rows/0/native_evidence"
+        },
+        {
+          "id": "test/ollama-setup.test.mjs#9/assert-5",
+          "method": "equal",
+          "line": 222,
+          "end_line": 222,
+          "expression": "assert.equal(bodyCancelled, true)",
+          "expression_sha256": "2428da9e87732d6a63511615b4ed3f58fad91c421de84a8f531e3965402fe6ff",
+          "status": "covered",
+          "detail": "Native evidence linked on this definition proves the asserted observable value for every source loop scenario.",
+          "native_evidence_ref": "#/rows/0/native_evidence"
+        },
+        {
+          "id": "test/ollama-setup.test.mjs#9/assert-6",
+          "method": "ok",
+          "line": 223,
+          "end_line": 223,
+          "expression": "assert.ok(performance.now() - started < 500)",
+          "expression_sha256": "275a9b517797f106ce323dc375b2ce4b311720c96f7484977830535aa2a3945c",
+          "status": "covered",
+          "detail": "Native evidence linked on this definition proves the asserted observable value for every source loop scenario.",
+          "native_evidence_ref": "#/rows/0/native_evidence"
+        }
+      ],
+      "status": "partial_assertion_mapping"
+    },
+    {
+      "id": "test/ollama-setup.test.mjs#10",
+      "name": "disabling the runtime deadline does not disable the independent warmup deadline",
+      "previous_status": "pending_assertion_mapping",
+      "native_evidence": [
+        "rust/crates/autorouter-runtime/tests/local_setup_diagnostic_contracts.rs#setup_warm_and_pull_deadlines_cancel_pending_bodies_without_leaking_reason_or_warming_after_pull"
+      ],
+      "assertion_mapping": [
+        {
+          "source_assertion": "ollamaTimeoutMs0 remains0; separate warmTimeoutMs20 rejects OLLAMA_TIMEOUT",
+          "native_evidence": "runtime_zero=true branch preserves config0, asserts20ms deadline and exact code."
+        },
+        {
+          "source_assertion": "ready synthetic task, bodyCancelled, exact5-path sequence",
+          "native_evidence": "Exact current_task and /api/version,/api/tags,/api/show,/api/show,/v1/systemone paths, observed Drop; no private content or unexpected requests."
+        }
+      ],
+      "remaining_literal_assertions": [
+        "Source observes the injected fetch decisionSignal.aborted===true. HttpTransport request does not expose a JavaScript AbortSignal object; response release and independent deadline are proven, literal signal observation is not."
+      ],
+      "explicit_adaptations_or_limits": [
+        "Native adds an independent caller-cancellation case with runtime0; this is extra evidence, not substitution for the missing signal assertion."
+      ],
+      "file": "test/ollama-setup.test.mjs",
+      "line": 227,
+      "baseline_file_sha256": "1558c1820c78228b849ab4a3a16549617509806af43356c38f6a0b5737d8de4a",
+      "definition": {
+        "start_line": 227,
+        "end_line": 249,
+        "statement": "test('disabling the runtime deadline does not disable the independent warmup deadline', { timeout: 1000 }, async () => {\n  const settings = { ...config(), ollamaTimeoutMs: 0 };\n  const paths = [];\n  let decisionSignal;\n  let bodyCancelled = false;\n  await assert.rejects(setupOllama(settings, {\n    write: () => {}, warmTimeoutMs: 20, fetchImpl: async (url, options) => {\n      const path = new URL(url).pathname;\n      paths.push(path);\n      if (path === '/api/version') return currentVersion();\n      if (path === '/api/tags') return tags(true);\n      if (path === '/api/show') return localDetails();\n      assert.equal(path, '/v1/systemone');\n      assert.equal(JSON.parse(options.body).state.current_task, 'Return the literal word ready.');\n      decisionSignal = options.signal;\n      return new Response(new ReadableStream({ cancel() { bodyCancelled = true; } }));\n    },\n  }), error => error.code === 'OLLAMA_TIMEOUT');\n  assert.equal(settings.ollamaTimeoutMs, 0);\n  assert.equal(decisionSignal.aborted, true);\n  assert.equal(bodyCancelled, true);\n  assert.deepEqual(paths, ['/api/version', '/api/tags', '/api/show', '/api/show', '/v1/systemone']);\n});",
+        "statement_sha256": "3c01a39a197a06c14c5e2cbf26212014d38b07737627c522faa04b792bbb12d1",
+        "call_sha256": "fc97fa7403cefbaf1e961c71b976ff217a5d7a3d1032b29115fc8841d0dcd338",
+        "hash_boundary": "statement includes trailing semicolon; call excludes it; both exclude leading comments/whitespace"
+      },
+      "static_assertions": [
+        {
+          "id": "test/ollama-setup.test.mjs#10/assert-1",
+          "method": "rejects",
+          "line": 232,
+          "end_line": 244,
+          "expression": "assert.rejects(setupOllama(settings, {\n    write: () => {}, warmTimeoutMs: 20, fetchImpl: async (url, options) => {\n      const path = new URL(url).pathname;\n      paths.push(path);\n      if (path === '/api/version') return currentVersion();\n      if (path === '/api/tags') return tags(true);\n      if (path === '/api/show') return localDetails();\n      assert.equal(path, '/v1/systemone');\n      assert.equal(JSON.parse(options.body).state.current_task, 'Return the literal word ready.');\n      decisionSignal = options.signal;\n      return new Response(new ReadableStream({ cancel() { bodyCancelled = true; } }));\n    },\n  }), error => error.code === 'OLLAMA_TIMEOUT')",
+          "expression_sha256": "8e7eb757eea24f76a024221df839416f2157ad4d048cb57858261741a197b303",
+          "status": "covered",
+          "detail": "Native evidence linked on this definition proves the asserted observable value for every source loop scenario.",
+          "native_evidence_ref": "#/rows/1/native_evidence"
+        },
+        {
+          "id": "test/ollama-setup.test.mjs#10/assert-2",
+          "method": "equal",
+          "line": 239,
+          "end_line": 239,
+          "expression": "assert.equal(path, '/v1/systemone')",
+          "expression_sha256": "a00f5d7b8c9ea99650369e800f02847dea4b23fa66eb6dcf101072e2d2262ce4",
+          "status": "covered",
+          "detail": "Native evidence linked on this definition proves the asserted observable value for every source loop scenario.",
+          "native_evidence_ref": "#/rows/1/native_evidence"
+        },
+        {
+          "id": "test/ollama-setup.test.mjs#10/assert-3",
+          "method": "equal",
+          "line": 240,
+          "end_line": 240,
+          "expression": "assert.equal(JSON.parse(options.body).state.current_task, 'Return the literal word ready.')",
+          "expression_sha256": "c1efe8f9c30c9bf65767af8e947f89f09b8c84b7dcd1fcbe2f99cb0b6bc1f4b9",
+          "status": "covered",
+          "detail": "Native evidence linked on this definition proves the asserted observable value for every source loop scenario.",
+          "native_evidence_ref": "#/rows/1/native_evidence"
+        },
+        {
+          "id": "test/ollama-setup.test.mjs#10/assert-4",
+          "method": "equal",
+          "line": 245,
+          "end_line": 245,
+          "expression": "assert.equal(settings.ollamaTimeoutMs, 0)",
+          "expression_sha256": "2fde893d0ee4a8b3a229e247e9c8db2c687363d1a901a1bba6ee9f21879deaa4",
+          "status": "covered",
+          "detail": "Native evidence linked on this definition proves the asserted observable value for every source loop scenario.",
+          "native_evidence_ref": "#/rows/1/native_evidence"
+        },
+        {
+          "id": "test/ollama-setup.test.mjs#10/assert-5",
+          "method": "equal",
+          "line": 246,
+          "end_line": 246,
+          "expression": "assert.equal(decisionSignal.aborted, true)",
+          "expression_sha256": "2c1002c8ae681928a5e40a21dcf39433937077a0a2db93ca0d880c279bad6907",
+          "status": "partial_assertion_mapping",
+          "detail": "Native independent deadline and response Drop are proven, but the HttpTransport API has no injected JS decisionSignal.aborted property to observe.",
+          "native_evidence_ref": "#/rows/1/native_evidence"
+        },
+        {
+          "id": "test/ollama-setup.test.mjs#10/assert-6",
+          "method": "equal",
+          "line": 247,
+          "end_line": 247,
+          "expression": "assert.equal(bodyCancelled, true)",
+          "expression_sha256": "2428da9e87732d6a63511615b4ed3f58fad91c421de84a8f531e3965402fe6ff",
+          "status": "covered",
+          "detail": "Native evidence linked on this definition proves the asserted observable value for every source loop scenario.",
+          "native_evidence_ref": "#/rows/1/native_evidence"
+        },
+        {
+          "id": "test/ollama-setup.test.mjs#10/assert-7",
+          "method": "deepEqual",
+          "line": 248,
+          "end_line": 248,
+          "expression": "assert.deepEqual(paths, ['/api/version', '/api/tags', '/api/show', '/api/show', '/v1/systemone'])",
+          "expression_sha256": "d33b6e822d6e62b66944eb9f9548556818d3be60d24e64d6c02145fcf40890f6",
+          "status": "covered",
+          "detail": "Native evidence linked on this definition proves the asserted observable value for every source loop scenario.",
+          "native_evidence_ref": "#/rows/1/native_evidence"
+        }
+      ],
+      "status": "partial_assertion_mapping"
+    },
+    {
+      "id": "test/ollama-setup.test.mjs#12",
+      "name": "server, HTTP, malformed, and oversized responses produce safe errors without following redirects",
+      "previous_status": "pending_assertion_mapping",
+      "native_evidence": [
+        "rust/crates/autorouter-runtime/tests/local_setup_diagnostic_contracts.rs#frozen_inspection_and_residency_failure_transcripts_match_without_private_diagnostics",
+        "rust/crates/autorouter-runtime/src/http_client.rs#http_client::tests::local_http_reuses_connections_preserves_credentials_and_never_decodes_or_redirects"
+      ],
+      "assertion_mapping": [
+        {
+          "source_assertion": "network throw,HTTP500,malformed JSON,oversize,302 redirect all reject",
+          "native_evidence": "All five source-specified finite responses replay with exact captured safe code/message and complete request sequence; fixture ids setup-inspect-network/http/json/oversized/redirect."
+        },
+        {
+          "source_assertion": "error.message excludes PRIVATE_; error.cause undefined",
+          "native_evidence": "Explicit absence of PRIVATE_ and Error::source()==None, with full captured observation equality."
+        },
+        {
+          "source_assertion": "redirect:error and no following private Location",
+          "native_evidence": "Frozen capture asserts redirect:error; native injected302 rejects after sole GET/api/version; any next transport call panics and all expected responses consumed. Supplemental actual NativeHttpClient loopback regression returns307 unchanged, preserves its body, records exactly3requests on oneconnection and excludes /must-not-follow."
+        }
+      ],
+      "remaining_literal_assertions": [],
+      "explicit_adaptations_or_limits": [
+        "Rust transport exposes a sanitized HttpError::Network instead of arbitrary JS Error. The public error-chain absence is asserted through std::error::Error::source. This finite replay proves setup behavior, not a live HTTP redirect implementation.",
+        "Literal JS redirect:error is mapped to the native fixed no-follow transport policy with existing actual-loopback evidence; the captured setup302 rejection separately proves wrapper behavior. This does not claim the loopback regression ran again during this audit."
+      ],
+      "file": "test/ollama-setup.test.mjs",
+      "line": 266,
+      "baseline_file_sha256": "1558c1820c78228b849ab4a3a16549617509806af43356c38f6a0b5737d8de4a",
+      "definition": {
+        "start_line": 266,
+        "end_line": 280,
+        "statement": "test('server, HTTP, malformed, and oversized responses produce safe errors without following redirects', async () => {\n  for (const fetchImpl of [\n    async () => { throw new Error('PRIVATE_NETWORK_ERROR'); },\n    async () => Response.json({ error: 'PRIVATE_HTTP_ERROR' }, { status: 500 }),\n    async () => new Response('PRIVATE_INVALID_JSON'),\n    async () => new Response('PRIVATE_LARGE_BODY'.repeat(100000)),\n    async (_url, options) => { assert.equal(options.redirect, 'error'); return new Response(null, { status: 302, headers: { location: 'https://example.test/private' } }); },\n  ]) {\n    await assert.rejects(inspectOllama(config(), { fetchImpl }), error => {\n      assert.ok(!error.message.includes('PRIVATE_'));\n      assert.equal(error.cause, undefined);\n      return true;\n    });\n  }\n});",
+        "statement_sha256": "9a8f5f68a2d33a650b9ddd0deb1400397587565a45a304306ea67e1d9f5580ef",
+        "call_sha256": "f4ef23a944630cac920e1f341aaf02d3d5c1cc3f6f284621cc2edf67c0548a40",
+        "hash_boundary": "statement includes trailing semicolon; call excludes it; both exclude leading comments/whitespace"
+      },
+      "static_assertions": [
+        {
+          "id": "test/ollama-setup.test.mjs#12/assert-1",
+          "method": "equal",
+          "line": 272,
+          "end_line": 272,
+          "expression": "assert.equal(options.redirect, 'error')",
+          "expression_sha256": "8867547a8dffc17a3aa008e64a715fe5a4f24738ba0b79b5257a046a95a1b00a",
+          "status": "covered",
+          "detail": "Frozen injected fetch sees literal redirect:error. Native setup rejects captured302 without another request; actual NativeHttpClient loopback regression independently retains307 status/body and proves3requests, oneconnection and no /must-not-follow path. Native transport has no JS redirect option field; this is the explicit equivalent no-follow contract.",
+          "native_evidence_ref": "#/rows/2/native_evidence"
+        },
+        {
+          "id": "test/ollama-setup.test.mjs#12/assert-2",
+          "method": "rejects",
+          "line": 274,
+          "end_line": 278,
+          "expression": "assert.rejects(inspectOllama(config(), { fetchImpl }), error => {\n      assert.ok(!error.message.includes('PRIVATE_'));\n      assert.equal(error.cause, undefined);\n      return true;\n    })",
+          "expression_sha256": "04de7807c7a73b428065b1b4a86c63a392844844a35ea6e5997f03caa32ec422",
+          "status": "covered",
+          "detail": "Native evidence linked on this definition proves the asserted observable value for every source loop scenario.",
+          "native_evidence_ref": "#/rows/2/native_evidence"
+        },
+        {
+          "id": "test/ollama-setup.test.mjs#12/assert-3",
+          "method": "ok",
+          "line": 275,
+          "end_line": 275,
+          "expression": "assert.ok(!error.message.includes('PRIVATE_'))",
+          "expression_sha256": "8b8f5ba6a28c2525bf5c9f73386c1e1c16ffa458a65089f8e4b0f669c371e1bd",
+          "status": "covered",
+          "detail": "Native evidence linked on this definition proves the asserted observable value for every source loop scenario.",
+          "native_evidence_ref": "#/rows/2/native_evidence"
+        },
+        {
+          "id": "test/ollama-setup.test.mjs#12/assert-4",
+          "method": "equal",
+          "line": 276,
+          "end_line": 276,
+          "expression": "assert.equal(error.cause, undefined)",
+          "expression_sha256": "253954509690887da7c4e804d477aedecc4927041a455be7684abc91be7b4a6c",
+          "status": "covered",
+          "detail": "Native evidence linked on this definition proves the asserted observable value for every source loop scenario.",
+          "native_evidence_ref": "#/rows/2/native_evidence"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "test/ollama-setup.test.mjs#14",
+      "name": "pull timeout and user cancellation cancel stalled response bodies promptly",
+      "previous_status": "pending_assertion_mapping",
+      "native_evidence": [
+        "rust/crates/autorouter-runtime/tests/local_setup_diagnostic_contracts.rs#setup_warm_and_pull_deadlines_cancel_pending_bodies_without_leaking_reason_or_warming_after_pull"
+      ],
+      "assertion_mapping": [
+        {
+          "source_assertion": "pulltrue,warmfalse; stalled pull timeout20ms versus caller cancel10ms under1000ms bound",
+          "native_evidence": "Both exact option schedules, pending body-read barrier, typed code, exactly20/10ms virtual completion and wall time<500ms."
+        },
+        {
+          "source_assertion": "safe error and stalled response cancel",
+          "native_evidence": "PRIVATE_ absent, Error::source absent and pending body Drop observed; exact version/tags/pull calls with zero warm requests/progress."
+        }
+      ],
+      "remaining_literal_assertions": [
+        "The frozen custom PRIVATE_CANCEL_REASON Error cannot be passed through CancellationToken; keep the literal reason-injection boundary explicit."
+      ],
+      "explicit_adaptations_or_limits": [
+        "Paused virtual timers establish deadline behavior; wall bound is checked only as a synthetic regression guard. No local-model timing claim."
+      ],
+      "file": "test/ollama-setup.test.mjs",
+      "line": 302,
+      "baseline_file_sha256": "1558c1820c78228b849ab4a3a16549617509806af43356c38f6a0b5737d8de4a",
+      "definition": {
+        "start_line": 302,
+        "end_line": 322,
+        "statement": "test('pull timeout and user cancellation cancel stalled response bodies promptly', async () => {\n  for (const cancelled of [false, true]) {\n    const controller = new AbortController();\n    let bodyCancelled = false;\n    const started = performance.now();\n    const pending = setupOllama(config(), { pull: true, warm: false, write: () => {}, signal: controller.signal,\n      pullTimeoutMs: cancelled ? 1000 : 20, fetchImpl: async url => {\n        if (new URL(url).pathname === '/api/version') return currentVersion();\n        if (new URL(url).pathname === '/api/tags') return tags(false);\n        return new Response(new ReadableStream({ cancel() { bodyCancelled = true; } }));\n      } });\n    if (cancelled) setTimeout(() => controller.abort(new Error('PRIVATE_CANCEL_REASON')), 10);\n    await assert.rejects(pending, error => {\n      assert.equal(error.code, cancelled ? 'OLLAMA_CANCELLED' : 'OLLAMA_TIMEOUT');\n      assert.ok(!error.message.includes('PRIVATE_'));\n      return true;\n    });\n    assert.equal(bodyCancelled, true);\n    assert.ok(performance.now() - started < 500);\n  }\n});",
+        "statement_sha256": "33d2a10e04f63bf19e15274dece43aebf8aea5ed073181b2049c0798960e52eb",
+        "call_sha256": "441507821bc1392926e377634cd96dd08b5fc200dcce04254acfd3727cbcece1",
+        "hash_boundary": "statement includes trailing semicolon; call excludes it; both exclude leading comments/whitespace"
+      },
+      "static_assertions": [
+        {
+          "id": "test/ollama-setup.test.mjs#14/assert-1",
+          "method": "rejects",
+          "line": 314,
+          "end_line": 318,
+          "expression": "assert.rejects(pending, error => {\n      assert.equal(error.code, cancelled ? 'OLLAMA_CANCELLED' : 'OLLAMA_TIMEOUT');\n      assert.ok(!error.message.includes('PRIVATE_'));\n      return true;\n    })",
+          "expression_sha256": "bc1dc1ec564e2477d8cefd35bcf7e2e1dc000b58b9266624cbddee3251ed2d4b",
+          "status": "partial_assertion_mapping",
+          "detail": "Exact rejection code and safe error text pass; custom PRIVATE_CANCEL_REASON injection is not represented by CancellationToken.",
+          "native_evidence_ref": "#/rows/3/native_evidence"
+        },
+        {
+          "id": "test/ollama-setup.test.mjs#14/assert-2",
+          "method": "equal",
+          "line": 315,
+          "end_line": 315,
+          "expression": "assert.equal(error.code, cancelled ? 'OLLAMA_CANCELLED' : 'OLLAMA_TIMEOUT')",
+          "expression_sha256": "be9af1da8b179e4f391260a26ec1de8b9c8440e61cd21257b20a0ad2397b3c99",
+          "status": "covered",
+          "detail": "Native evidence linked on this definition proves the asserted observable value for every source loop scenario.",
+          "native_evidence_ref": "#/rows/3/native_evidence"
+        },
+        {
+          "id": "test/ollama-setup.test.mjs#14/assert-3",
+          "method": "ok",
+          "line": 316,
+          "end_line": 316,
+          "expression": "assert.ok(!error.message.includes('PRIVATE_'))",
+          "expression_sha256": "8b8f5ba6a28c2525bf5c9f73386c1e1c16ffa458a65089f8e4b0f669c371e1bd",
+          "status": "partial_assertion_mapping",
+          "detail": "Exact rejection code and safe error text pass; custom PRIVATE_CANCEL_REASON injection is not represented by CancellationToken.",
+          "native_evidence_ref": "#/rows/3/native_evidence"
+        },
+        {
+          "id": "test/ollama-setup.test.mjs#14/assert-4",
+          "method": "equal",
+          "line": 319,
+          "end_line": 319,
+          "expression": "assert.equal(bodyCancelled, true)",
+          "expression_sha256": "2428da9e87732d6a63511615b4ed3f58fad91c421de84a8f531e3965402fe6ff",
+          "status": "covered",
+          "detail": "Native evidence linked on this definition proves the asserted observable value for every source loop scenario.",
+          "native_evidence_ref": "#/rows/3/native_evidence"
+        },
+        {
+          "id": "test/ollama-setup.test.mjs#14/assert-5",
+          "method": "ok",
+          "line": 320,
+          "end_line": 320,
+          "expression": "assert.ok(performance.now() - started < 500)",
+          "expression_sha256": "275a9b517797f106ce323dc375b2ce4b311720c96f7484977830535aa2a3945c",
+          "status": "covered",
+          "detail": "Native evidence linked on this definition proves the asserted observable value for every source loop scenario.",
+          "native_evidence_ref": "#/rows/3/native_evidence"
+        }
+      ],
+      "status": "partial_assertion_mapping"
+    },
+    {
+      "id": "test/local-diagnostic.test.mjs#11",
+      "name": "invalid and oversized residency metadata is bounded and prevents evaluation",
+      "previous_status": "pending_assertion_mapping",
+      "native_evidence": [
+        "rust/crates/autorouter-runtime/tests/local_setup_diagnostic_contracts.rs#frozen_inspection_and_residency_failure_transcripts_match_without_private_diagnostics"
+      ],
+      "assertion_mapping": [
+        {
+          "source_assertion": "models:[null],malformed JSON,1MiB+1 residency body,HTTP500",
+          "native_evidence": "All four exact source responses replay: diagnostic-residency-models-null/json/oversized/http."
+        },
+        {
+          "source_assertion": "report.passedfalse,error.code residency_unavailable,zero/v1/systemone,noPRIVATE_",
+          "native_evidence": "Explicit checks plus complete captured report and exact version/tags/show/ps request equality; all response bodies released."
+        }
+      ],
+      "remaining_literal_assertions": [],
+      "explicit_adaptations_or_limits": [
+        "JS numeric wire equivalence canonicalizes Rust0.0 and0 to JSON.stringify-compatible0. No report field/time/error/request is deleted or normalized away. No inference timings exist in these preflight failures."
+      ],
+      "file": "test/local-diagnostic.test.mjs",
+      "line": 197,
+      "baseline_file_sha256": "b2f198cd7200a4bede5b6c038a96db989f778ce50ef710d2d0cf0fa2ebdf748e",
+      "definition": {
+        "start_line": 197,
+        "end_line": 212,
+        "statement": "test('invalid and oversized residency metadata is bounded and prevents evaluation', async () => {\n  const config = configFor();\n  for (const residentResponse of [\n    () => Response.json({ models: [null] }),\n    () => new Response('PRIVATE_BAD_JSON'),\n    () => new Response('x'.repeat(1024 * 1024 + 1)),\n    () => new Response('PRIVATE_ERROR', { status: 500 }),\n  ]) {\n    const local = fixture(config, { residentResponse });\n    const report = await runLocalDiagnostic(config, { fetchImpl: local.fetchImpl });\n    assert.equal(report.passed, false);\n    assert.equal(report.error.code, 'residency_unavailable');\n    assert.equal(local.calls.filter(call => call.path === '/v1/systemone').length, 0);\n    assert.ok(!JSON.stringify(report).includes('PRIVATE_'));\n  }\n});",
+        "statement_sha256": "618053ed1ed499bcf5940eb0f1d1928bcef83080f82c90c624a4885e228eb086",
+        "call_sha256": "ea52d3cd4f48493d8e0343d013b8c7860bbf67b74a77bef79478c1e1329397a4",
+        "hash_boundary": "statement includes trailing semicolon; call excludes it; both exclude leading comments/whitespace"
+      },
+      "static_assertions": [
+        {
+          "id": "test/local-diagnostic.test.mjs#11/assert-1",
+          "method": "equal",
+          "line": 207,
+          "end_line": 207,
+          "expression": "assert.equal(report.passed, false)",
+          "expression_sha256": "a5cd1a59c13df045b8c6b34d3205aa168ecac43f8534c32e3cf87970c04aa98f",
+          "status": "covered",
+          "detail": "Native evidence linked on this definition proves the asserted observable value for every source loop scenario.",
+          "native_evidence_ref": "#/rows/4/native_evidence"
+        },
+        {
+          "id": "test/local-diagnostic.test.mjs#11/assert-2",
+          "method": "equal",
+          "line": 208,
+          "end_line": 208,
+          "expression": "assert.equal(report.error.code, 'residency_unavailable')",
+          "expression_sha256": "eb4e82395c43b63dcc342ad4a7253c1c304c21c54acd615779adec99a58ff0ba",
+          "status": "covered",
+          "detail": "Native evidence linked on this definition proves the asserted observable value for every source loop scenario.",
+          "native_evidence_ref": "#/rows/4/native_evidence"
+        },
+        {
+          "id": "test/local-diagnostic.test.mjs#11/assert-3",
+          "method": "equal",
+          "line": 209,
+          "end_line": 209,
+          "expression": "assert.equal(local.calls.filter(call => call.path === '/v1/systemone').length, 0)",
+          "expression_sha256": "3c7d82dc40a08e895b62ced99818f4733d4bb65ac4a1fe3d2d945577d3e4300a",
+          "status": "covered",
+          "detail": "Native evidence linked on this definition proves the asserted observable value for every source loop scenario.",
+          "native_evidence_ref": "#/rows/4/native_evidence"
+        },
+        {
+          "id": "test/local-diagnostic.test.mjs#11/assert-4",
+          "method": "ok",
+          "line": 210,
+          "end_line": 210,
+          "expression": "assert.ok(!JSON.stringify(report).includes('PRIVATE_'))",
+          "expression_sha256": "a92ca30ef59a3420f4589fefc2b0b0e7419db3043e3f85af850c0ffb65464997",
+          "status": "covered",
+          "detail": "Native evidence linked on this definition proves the asserted observable value for every source loop scenario.",
+          "native_evidence_ref": "#/rows/4/native_evidence"
+        }
+      ],
+      "status": "covered"
+    },
+    {
+      "id": "test/local-diagnostic.test.mjs#13",
+      "name": "cancelling a stalled residency read releases its reader and sends no task text",
+      "previous_status": "pending_assertion_mapping",
+      "native_evidence": [
+        "rust/crates/autorouter-runtime/tests/local_setup_diagnostic_contracts.rs#cancellation_of_stalled_residency_releases_reader_before_any_synthetic_task"
+      ],
+      "assertion_mapping": [
+        {
+          "source_assertion": "cancel stalled residency read; reader cancelled; no task sent",
+          "native_evidence": "Cancellation occurs only after body poll; exact EvaluationError::Cancelled, observed response Drop, exact4preflight calls and zero inference; outer1s virtual watchdog."
+        }
+      ],
+      "remaining_literal_assertions": [
+        "Source rejection must match /cancelled-residency/, its caller-supplied Error reason. Native returns typed Cancelled and does not preserve arbitrary JS reason strings."
+      ],
+      "explicit_adaptations_or_limits": [
+        "Native reader release and no task transmission are proven separately; no claim that custom source reason propagation is reproduced."
+      ],
+      "file": "test/local-diagnostic.test.mjs",
+      "line": 230,
+      "baseline_file_sha256": "b2f198cd7200a4bede5b6c038a96db989f778ce50ef710d2d0cf0fa2ebdf748e",
+      "definition": {
+        "start_line": 230,
+        "end_line": 241,
+        "statement": "test('cancelling a stalled residency read releases its reader and sends no task text', async () => {\n  const config = configFor();\n  const controller = new AbortController();\n  let cancelled = false;\n  const local = fixture(config, { residentResponse: () => new Response(new ReadableStream({\n    start() { queueMicrotask(() => controller.abort(new Error('cancelled-residency'))); },\n    cancel() { cancelled = true; },\n  })) });\n  await assert.rejects(runLocalDiagnostic(config, { fetchImpl: local.fetchImpl, signal: controller.signal }), /cancelled-residency/);\n  assert.equal(cancelled, true);\n  assert.equal(local.calls.filter(call => call.path === '/v1/systemone').length, 0);\n});",
+        "statement_sha256": "7e529d8294027fe6f4a290ffd826080df1de034e31fdbd48ddbcc309c7d68ab5",
+        "call_sha256": "9344573037285150130d52eb72c36235ca63ae85d47cdcd8197d88a4c34f4c5a",
+        "hash_boundary": "statement includes trailing semicolon; call excludes it; both exclude leading comments/whitespace"
+      },
+      "static_assertions": [
+        {
+          "id": "test/local-diagnostic.test.mjs#13/assert-1",
+          "method": "rejects",
+          "line": 238,
+          "end_line": 238,
+          "expression": "assert.rejects(runLocalDiagnostic(config, { fetchImpl: local.fetchImpl, signal: controller.signal }), /cancelled-residency/)",
+          "expression_sha256": "c4bf8edba39ffb3b75d4ec90f2363641ae5c8adc0e4990f9039653f0852c1e5c",
+          "status": "partial_assertion_mapping",
+          "detail": "Native typed Cancelled and pending-body release are proven; custom cancelled-residency reason propagation is not implemented by CancellationToken.",
+          "native_evidence_ref": "#/rows/5/native_evidence"
+        },
+        {
+          "id": "test/local-diagnostic.test.mjs#13/assert-2",
+          "method": "equal",
+          "line": 239,
+          "end_line": 239,
+          "expression": "assert.equal(cancelled, true)",
+          "expression_sha256": "9d31057f08f6678980db9b13aafdf0e260b7d4325f227b62d44b8bd566f219e3",
+          "status": "covered",
+          "detail": "Native evidence linked on this definition proves the asserted observable value for every source loop scenario.",
+          "native_evidence_ref": "#/rows/5/native_evidence"
+        },
+        {
+          "id": "test/local-diagnostic.test.mjs#13/assert-3",
+          "method": "equal",
+          "line": 240,
+          "end_line": 240,
+          "expression": "assert.equal(local.calls.filter(call => call.path === '/v1/systemone').length, 0)",
+          "expression_sha256": "3c7d82dc40a08e895b62ced99818f4733d4bb65ac4a1fe3d2d945577d3e4300a",
+          "status": "covered",
+          "detail": "Native evidence linked on this definition proves the asserted observable value for every source loop scenario.",
+          "native_evidence_ref": "#/rows/5/native_evidence"
+        }
+      ],
+      "status": "partial_assertion_mapping"
+    }
+  ],
+  "not_claimed": [
+    "No model/server/process download or real evaluator/provider request.",
+    "No JavaScript custom abort reason or object identity compatibility claimed."
+  ],
+  "previous_proposal": {
+    "path": "artifacts/rust-rewrite/evidence/18ddb7df6b25313d8fb4f59fb28f9776fc52703ac2e86ccbf39eb374d377e701.json",
+    "sha256": "18ddb7df6b25313d8fb4f59fb28f9776fc52703ac2e86ccbf39eb374d377e701",
+    "original_path": "/private/tmp/autorouter-local-setup-diagnostic-coverage-delta.json"
+  },
+  "static_audit": {
+    "parser": "TypeScript",
+    "version": "6.0.3",
+    "source_files": [
+      {
+        "path": "test/ollama-setup.test.mjs",
+        "sha256": "1558c1820c78228b849ab4a3a16549617509806af43356c38f6a0b5737d8de4a",
+        "bytes": 16878
+      },
+      {
+        "path": "test/local-diagnostic.test.mjs",
+        "sha256": "b2f198cd7200a4bede5b6c038a96db989f778ce50ef710d2d0cf0fa2ebdf748e",
+        "bytes": 14316
+      }
+    ],
+    "definitions": 6,
+    "static_assertion_expressions": 29,
+    "method": "Parse verified frozen JS as ScriptKind.JS; enumerate top-level test call expression statements in source order; retain exact selected statement and call hashes/line spans; recursively enumerate every assert.method call including rejection predicates. No callbacks or tests executed during this read-only AST audit.",
+    "source_statements_preserved": true
+  },
+  "supplemental_redirect_evidence": {
+    "test": "rust/crates/autorouter-runtime/src/http_client.rs#http_client::tests::local_http_reuses_connections_preserves_credentials_and_never_decodes_or_redirects",
+    "execution_log": "artifacts/rust-rewrite/sixth-final-2-workspace.log",
+    "exact_success_line": "test http_client::tests::local_http_reuses_connections_preserves_credentials_and_never_decodes_or_redirects ... ok",
+    "log_line": 232,
+    "source_matches_executed_manifest": true,
+    "source_manifest": "artifacts/rust-rewrite/sixth-final-2-source-inputs.json",
+    "native_assertions": [
+      "response.status()==307",
+      "response body==synthetic redirect",
+      "accepted connections==1",
+      "recorded.len()==3",
+      "all recorded paths != /must-not-follow"
+    ],
+    "limits": "Local synthetic HTTP; no new loopback probes, providers, network or test execution in this review.",
+    "seventh_execution": {
+      "path": "artifacts/rust-rewrite/evidence/221c6873a93ff030ecb9191fce837e7009375bfd02197dddb0c37d166bc35c00.log",
+      "sha256": "221c6873a93ff030ecb9191fce837e7009375bfd02197dddb0c37d166bc35c00",
+      "original_path": "artifacts/rust-rewrite/seventh-final-1-workspace.log"
+    }
+  },
+  "counts": {
+    "covered": 2,
+    "partial_assertion_mapping": 4,
+    "other_pending_rows_unchanged": 22
+  },
+  "status": "Root reviewed2 covered/4 partial definitions;22 other setup/diagnostic definitions remain pending.",
+  "root_review": {
+    "proposal": {
+      "path": "artifacts/rust-rewrite/evidence/273b324e7b50bb795dfbe2f4d07c19b8916da792a9e4aa5fe17a031abc3ee6ef.json",
+      "sha256": "273b324e7b50bb795dfbe2f4d07c19b8916da792a9e4aa5fe17a031abc3ee6ef",
+      "original_path": "/private/tmp/autorouter-local-setup-diagnostic-coverage-delta-v2.json"
+    },
+    "ast_and_implementation_review": {
+      "path": "artifacts/rust-rewrite/evidence/3e60f75016e01ddd47cee4a09ed124ce72a54ed26580c0a5b2505d9c42006e74.json",
+      "sha256": "3e60f75016e01ddd47cee4a09ed124ce72a54ed26580c0a5b2505d9c42006e74",
+      "original_path": "/private/tmp/autorouter-local-setup-diagnostic-root-review.json"
+    },
+    "protocol_review": "Independent protocol reviewer checked all finite error tuples and bounded cleanup; requested explicit transport redirect evidence, now included."
+  },
+  "evidence": {
+    "local-setup-diagnostic-frozen-tests.log": {
+      "path": "artifacts/rust-rewrite/evidence/94230896557781db3f6855a29e552a00a1ba94a8302bffa3218b70ba3c003d93.log",
+      "sha256": "94230896557781db3f6855a29e552a00a1ba94a8302bffa3218b70ba3c003d93",
+      "original_path": "artifacts/rust-rewrite/local-setup-diagnostic-frozen-tests.log"
+    },
+    "local-setup-diagnostic-capture-2.log": {
+      "path": "artifacts/rust-rewrite/evidence/4c68158905240051b5517a5becc06346d574b4bef2357c4d65f22e02b7eca95a.log",
+      "sha256": "4c68158905240051b5517a5becc06346d574b4bef2357c4d65f22e02b7eca95a",
+      "original_path": "artifacts/rust-rewrite/local-setup-diagnostic-capture-2.log"
+    },
+    "local-setup-diagnostic-native-tests-4.log": {
+      "path": "artifacts/rust-rewrite/evidence/aef3ce306045e919ef605a2d715c4bc08b634a8f46ff4bcef38737cc719a4fa5.log",
+      "sha256": "aef3ce306045e919ef605a2d715c4bc08b634a8f46ff4bcef38737cc719a4fa5",
+      "original_path": "artifacts/rust-rewrite/local-setup-diagnostic-native-tests-4.log"
+    },
+    "local-setup-diagnostic-clippy-2.log": {
+      "path": "artifacts/rust-rewrite/evidence/775d455f642ed3fe6477acba5c898a48ac7e023415ccdad23800c9ff5440face.log",
+      "sha256": "775d455f642ed3fe6477acba5c898a48ac7e023415ccdad23800c9ff5440face",
+      "original_path": "artifacts/rust-rewrite/local-setup-diagnostic-clippy-2.log"
+    },
+    "sixth-final-2-workspace.log": {
+      "path": "artifacts/rust-rewrite/evidence/434638d314a2db611028c29ac3995a70a18c34c1d11f0b6a83a2ac61f70d84d0.log",
+      "sha256": "434638d314a2db611028c29ac3995a70a18c34c1d11f0b6a83a2ac61f70d84d0",
+      "original_path": "artifacts/rust-rewrite/sixth-final-2-workspace.log"
+    },
+    "sixth-final-2-source-inputs.json": {
+      "path": "artifacts/rust-rewrite/evidence/7d196463bf3cc1ccf93f0a0d0746b1ae8d349f5ce91756650373ebf51f9cc7c1.json",
+      "sha256": "7d196463bf3cc1ccf93f0a0d0746b1ae8d349f5ce91756650373ebf51f9cc7c1",
+      "original_path": "artifacts/rust-rewrite/sixth-final-2-source-inputs.json"
+    }
+  }
+}

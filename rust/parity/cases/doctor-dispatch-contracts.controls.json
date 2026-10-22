@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "kind": "declared_exact_doctor_original31_32_and_native_cli_scenarios_before_execution",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "source_file": "test/onboarding.test.mjs",
+  "source_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+  "original_definitions": [
+    {
+      "number": 31,
+      "static_predicates_including_fail_guards": 7,
+      "expanded_successful_assertions": 6,
+      "dormant_fail_guards": 1,
+      "required": [
+        "saved api-key mode without Anthropic/Jev credentials",
+        "custom tev1:0.8b forwarded to runner",
+        "no Claude run callback",
+        "startup and case_complete progress do not contaminate JSON",
+        "false return and one exact injected four-field JSON object"
+      ]
+    },
+    {
+      "number": 32,
+      "static_predicates_including_fail_guards": 5,
+      "expanded_successful_assertions": 3,
+      "dormant_fail_guards": 2,
+      "required": [
+        "cloud backend rejects with false and configuration_error",
+        "no Claude run or diagnostic runner calls in cloud branch",
+        "caller abort reason is the same Error object rejected by actual doctor"
+      ]
+    }
+  ],
+  "native_cli_scenarios": [
+    {
+      "kind": "local_json_without_claude",
+      "models": [
+        "tev1:0.8b",
+        "team/router:doctor-v2"
+      ],
+      "collapsed_labels": [
+        false,
+        true
+      ],
+      "cases": 4,
+      "required": [
+        "isolated saved API-key mode, no credentials, file secrets",
+        "PATH only isolated HOME, no Claude/security/node executables",
+        "actual all six packaged diagnostic cases plus startup",
+        "one newline-terminated full JSON report despite progress, exit tracks report.passed",
+        "complete provider requests/model/no auth headers, no download/unload/paid calls/config writes"
+      ]
+    },
+    {
+      "kind": "local_json_with_failure_sentinel",
+      "model": "tev1:0.8b",
+      "collapsed_labels": true,
+      "cases": 1,
+      "required": [
+        "fake Claude executable would record every invocation and fail",
+        "successful doctor diagnostic dispatch still performs zero Claude invocations"
+      ]
+    },
+    {
+      "kind": "cloud_rejection",
+      "claude": [
+        "absent",
+        "failure_sentinel"
+      ],
+      "cases": 2,
+      "required": [
+        "exact full configuration_error JSON and exit1, empty stderr",
+        "zero requests to either configured local/cloud endpoint, zero Claude marker, unchanged file bytes"
+      ]
+    },
+    {
+      "kind": "dispatcher_cancellation",
+      "signals": [
+        "SIGINT",
+        "SIGTERM"
+      ],
+      "json": [
+        false,
+        true
+      ],
+      "stalls": [
+        "before_response_headers",
+        "after_partial_response_body"
+      ],
+      "cases": 8,
+      "required": [
+        "signal only after complete actual startup request and selected response stall is observed",
+        "actual doctor dispatcher returns exit1 Evaluation cancelled stderr without configuration_error/final report",
+        "JSON stdout empty; text has only preflight/startup progress",
+        "connection EOF/reset witnessed, no later inference, requests stop at exact startup prefix",
+        "bounded owned process/group output and reap, unchanged config, no Claude executable"
+      ]
+    }
+  ],
+  "limits": {
+    "source_callbacks": 2,
+    "source_doctor_calls": 3,
+    "static_source_predicates": 12,
+    "successful_source_assertions": 9,
+    "source_fail_guards_expected_executions": 0,
+    "native_cli_children": 15,
+    "requests_per_diagnostic": 32,
+    "request_bytes": 65536,
+    "request_report_aggregate_bytes": 1048576,
+    "cancel_connection_close_seconds": 2,
+    "bounded_process_fixture": "Existing support::output/signalled_output with group cleanup and output/deadline ceilings."
+  },
+  "api_migrations": [
+    "JavaScript supports injected diagnosticRunner and preserves an arbitrary four-field report object. Native private CLI doctor dispatcher executes the actual diagnostic; full real report/exit/progress contract is tested, no fake four-field passthrough is invented. Root must review this explicit embedding boundary before marking original31 covered.",
+    "JavaScript cancellation rejection preserves identical caller Error object. Native CLI CancellationToken + OS signal dispatch exposes typed cancellation converted to stderr/exit; identity is not representable across this executable boundary. Preserve raw Source Error identity and Native result separately; never normalize cancellation to configuration_error."
+  ],
+  "forbidden": [
+    "No real provider/model/download/Keychain/user-config calls.",
+    "No central coverage/evidence/status-doc edits or root-owned edge_cases.rs edits.",
+    "No unbounded detached synthetic process/task."
+  ]
+}

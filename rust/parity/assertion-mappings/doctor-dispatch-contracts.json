@@ -1,0 +1,541 @@
+{
+  "schema_version": 1,
+  "kind": "exact_original_doctor_dispatch31_32_with_explicit_native_api_migrations",
+  "status": "reviewed_original_cli_doctor_obligations_and_explicit_api_migrations",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "source_reference_files_verified_before_after": 111,
+  "generator": {
+    "path": "rust/parity/capture-doctor-dispatch-contracts.mjs",
+    "bytes": 11469,
+    "sha256": "2fcca29002536ca54515720bcd432c4c4abff1aee661900cb53d8357ea739dd7"
+  },
+  "declared_controls": {
+    "path": "rust/parity/cases/doctor-dispatch-contracts.controls.json",
+    "bytes": 4866,
+    "sha256": "0ab22e6a64bdf8b871b254281760b97b092caa95c98a7782512d56111bfc77de"
+  },
+  "source_capture": {
+    "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/source-3/capture.json",
+    "bytes": 15740,
+    "sha256": "bc1d36634e890ec4ba1f8ac2ec08df1d2dfd05500da5c163bb307a5bff65e8f4"
+  },
+  "source_log": {
+    "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/source-3.log",
+    "bytes": 217,
+    "sha256": "6faf7bc16f4a8c50a6aa9b9e50a3a8709409c5ea7d03ea31c9f2df0de724f082"
+  },
+  "source_counts": {
+    "callbacks": 2,
+    "doctor_calls": 3,
+    "static_assertions": 12,
+    "expanded_assertions": 9,
+    "dormant_fail_guards": 3,
+    "subprocess_calls": 0,
+    "fetch_calls": 0
+  },
+  "source_helpers": [
+    {
+      "name": "doctor",
+      "text": "const doctor = (options = {}) => runDoctor({ platform: 'linux', ...options });",
+      "sha256": "6425da199ea3932c2b44cbd9ca0d8f26dfba6bcf08c60ccff67021dc1a6638c0"
+    },
+    {
+      "name": "fixture",
+      "text": "function fixture(t) {\n  const directory = mkdtempSync(join(tmpdir(), 'autorouter-onboarding-'));\n  t.after(() => rmSync(directory, { recursive: true, force: true }));\n  return { AUTOROUTER_CONFIG: join(directory, 'config.json') };\n}",
+      "sha256": "35f3e062cdf5a43f73835d0d0318471b477d68645117b84ba792cc790fb49b02"
+    }
+  ],
+  "assertion_calls": [
+    "test/onboarding.test.mjs#31:assert-1",
+    "test/onboarding.test.mjs#31:assert-3",
+    "test/onboarding.test.mjs#31:assert-4",
+    "test/onboarding.test.mjs#31:assert-5",
+    "test/onboarding.test.mjs#31:assert-6",
+    "test/onboarding.test.mjs#31:assert-7",
+    "test/onboarding.test.mjs#32:assert-1",
+    "test/onboarding.test.mjs#32:assert-4",
+    "test/onboarding.test.mjs#32:assert-5"
+  ],
+  "definitions": [
+    {
+      "baseline_test": "test/onboarding.test.mjs#31",
+      "name": "explicit local diagnosis bypasses cloud credentials and Claude authentication and keeps JSON output singular",
+      "source_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "source_line": 593,
+      "statement_sha256": "afad642935c6e022b613ff33de8a12ebdf0c838f257966816e41b05ded001fc5",
+      "call_sha256": "661081f78dfc2e5109f9d1fa94c00d6b4ad1f39fe666476ba39a43879ea5462d",
+      "statement": "test('explicit local diagnosis bypasses cloud credentials and Claude authentication and keeps JSON output singular', async t => {\n  const env = fixture(t), lines = [];\n  saveUserConfig({ AUTOROUTER_AUTH_MODE: 'api-key', AUTOROUTER_EVALUATOR: 'ollama', AUTOROUTER_OLLAMA_MODEL: 'tev1:0.8b' }, { env });\n  const expected = { schema_version: 1, type: 'local_evaluator_diagnostic', passed: false, gates: { accuracy: false } };\n  assert.equal(await doctor({ env, evaluateLocal: true, json: true, write: line => lines.push(line),\n    run: () => assert.fail('Local diagnostics must not inspect Claude login'),\n    diagnosticRunner: async (config, { onProgress }) => {\n      assert.equal(config.anthropicKey, undefined);\n      assert.equal(config.jevKey, undefined);\n      assert.equal(config.ollamaModel, 'tev1:0.8b');\n      onProgress({ event: 'startup' });\n      onProgress({ event: 'case_complete' });\n      return expected;\n    },\n  }), false);\n  assert.equal(lines.length, 1);\n  assert.deepEqual(JSON.parse(lines[0]), expected);\n});",
+      "static_assertions": 7,
+      "expanded_assertions": 6,
+      "status": "covered_with_reviewed_native_api_migration",
+      "assertions": [
+        {
+          "id": "test/onboarding.test.mjs#31:assert-1",
+          "expression": "assert.equal(await doctor({ env, evaluateLocal: true, json: true, write: line => lines.push(line),\n    run: () => assert.fail('Local diagnostics must not inspect Claude login'),\n    diagnosticRunner: async (config, { onProgress }) => {\n      assert.equal(config.anthropicKey, undefined);\n      assert.equal(config.jevKey, undefined);\n      assert.equal(config.ollamaModel, 'tev1:0.8b');\n      onProgress({ event: 'startup' });\n      onProgress({ event: 'case_complete' });\n      return expected;\n    },\n  }), false)",
+          "sha256": "5b15266387eac3a59f6d81b5786af0ffcf76f90e39d4dc6b6489f67828d8b7aa",
+          "line": 597,
+          "executions": 1,
+          "native_mapping_kind": "native_observable_equivalence",
+          "native_test": {
+            "path": "rust/crates/claude-autorouter/tests/support/doctor_dispatch_contracts.rs",
+            "bytes": 16444,
+            "sha256": "98b8202944575ff0a2cc39dd0215e1bd3e3ad2fc2d87c16009589651ca1841d6",
+            "line": 202,
+            "fragment": "fn original31_actual_cli_without_claude_and_json_progress_isolation()",
+            "fragment_sha256": "d45a7af2ffd68dc22ada791b4b8594c988c29992f659d4472671c26828025b04"
+          },
+          "meaningful_obligation_and_evidence": "Actual failed diagnostic has report.passed=false, exit1 and full JSON; successful supplemental variants exit0. Source false boolean and CLI exit derive from the same report contract."
+        },
+        {
+          "id": "test/onboarding.test.mjs#31:assert-2",
+          "expression": "assert.fail('Local diagnostics must not inspect Claude login')",
+          "sha256": "331ef30a3c98e56c1372b7d4d8c50ed221bd8d5184776ee35ce5a07d1102c7ef",
+          "line": 598,
+          "executions": 0,
+          "native_mapping_kind": "zero_work_guard",
+          "native_test": {
+            "path": "rust/crates/claude-autorouter/tests/support/doctor_dispatch_contracts.rs",
+            "bytes": 16444,
+            "sha256": "98b8202944575ff0a2cc39dd0215e1bd3e3ad2fc2d87c16009589651ca1841d6",
+            "line": 202,
+            "fragment": "fn original31_actual_cli_without_claude_and_json_progress_isolation()",
+            "fragment_sha256": "d45a7af2ffd68dc22ada791b4b8594c988c29992f659d4472671c26828025b04"
+          },
+          "meaningful_obligation_and_evidence": "Source run callback and guarded builtin subprocesses have zero calls. Native uses absent Claude executable/PATH-only HOME and a separate failure sentinel; no invocation marker and unchanged file set."
+        },
+        {
+          "id": "test/onboarding.test.mjs#31:assert-3",
+          "expression": "assert.equal(config.anthropicKey, undefined)",
+          "sha256": "f7c94b608b4766a0b66ba25a9d6e3251c1a49a3abf28321505d9f680ea9f22de",
+          "line": 600,
+          "executions": 1,
+          "native_mapping_kind": "typed_config_field_migration",
+          "native_test": {
+            "path": "rust/crates/claude-autorouter/tests/support/doctor_dispatch_contracts.rs",
+            "bytes": 16444,
+            "sha256": "98b8202944575ff0a2cc39dd0215e1bd3e3ad2fc2d87c16009589651ca1841d6",
+            "line": 202,
+            "fragment": "fn original31_actual_cli_without_claude_and_json_progress_isolation()",
+            "fragment_sha256": "d45a7af2ffd68dc22ada791b4b8594c988c29992f659d4472671c26828025b04"
+          },
+          "meaningful_obligation_and_evidence": "Source actual config.anthropicKey is tagged undefined. Native saved API mode has no credentials, env_clear supplies none, read_config verifies anthropic_key=None and actual local requests have no authorization/x-api-key headers."
+        },
+        {
+          "id": "test/onboarding.test.mjs#31:assert-4",
+          "expression": "assert.equal(config.jevKey, undefined)",
+          "sha256": "7f62ee400dabad41f54d208b3cfc7447c47237a631747eea15f6320d07a3b633",
+          "line": 601,
+          "executions": 1,
+          "native_mapping_kind": "typed_config_field_migration",
+          "native_test": {
+            "path": "rust/crates/claude-autorouter/tests/support/doctor_dispatch_contracts.rs",
+            "bytes": 16444,
+            "sha256": "98b8202944575ff0a2cc39dd0215e1bd3e3ad2fc2d87c16009589651ca1841d6",
+            "line": 202,
+            "fragment": "fn original31_actual_cli_without_claude_and_json_progress_isolation()",
+            "fragment_sha256": "d45a7af2ffd68dc22ada791b4b8594c988c29992f659d4472671c26828025b04"
+          },
+          "meaningful_obligation_and_evidence": "Source actual config.jevKey is tagged undefined; native Option key is None with no environment credentials and only allowlisted local evaluator requests."
+        },
+        {
+          "id": "test/onboarding.test.mjs#31:assert-5",
+          "expression": "assert.equal(config.ollamaModel, 'tev1:0.8b')",
+          "sha256": "85ce331a53d0f430593443a06caf8ce5781ceb2d0ce7c9b5f5814c83cf35aac7",
+          "line": 602,
+          "executions": 1,
+          "native_mapping_kind": "exact_model_obligation",
+          "native_test": {
+            "path": "rust/crates/claude-autorouter/tests/support/doctor_dispatch_contracts.rs",
+            "bytes": 16444,
+            "sha256": "98b8202944575ff0a2cc39dd0215e1bd3e3ad2fc2d87c16009589651ca1841d6",
+            "line": 202,
+            "fragment": "fn original31_actual_cli_without_claude_and_json_progress_isolation()",
+            "fragment_sha256": "d45a7af2ffd68dc22ada791b4b8594c988c29992f659d4472671c26828025b04"
+          },
+          "meaningful_obligation_and_evidence": "Native source-model variants use exact tev1:0.8b in saved settings, report.evaluator_model and every show/systemone request. Supplemental team/router:doctor-v2 variants prove custom model forwarding."
+        },
+        {
+          "id": "test/onboarding.test.mjs#31:assert-6",
+          "expression": "assert.equal(lines.length, 1)",
+          "sha256": "f1ef7af707333bb16339938816792b85f38d41e2174e7b10b81b35e20808080a",
+          "line": 608,
+          "executions": 1,
+          "native_mapping_kind": "native_observable_equivalence",
+          "native_test": {
+            "path": "rust/crates/claude-autorouter/tests/support/doctor_dispatch_contracts.rs",
+            "bytes": 16444,
+            "sha256": "98b8202944575ff0a2cc39dd0215e1bd3e3ad2fc2d87c16009589651ca1841d6",
+            "line": 202,
+            "fragment": "fn original31_actual_cli_without_claude_and_json_progress_isolation()",
+            "fragment_sha256": "d45a7af2ffd68dc22ada791b4b8594c988c29992f659d4472671c26828025b04"
+          },
+          "meaningful_obligation_and_evidence": "Source startup/case_complete callback progress is suppressed and lines.length=1. Native actual startup and all six packaged cases complete; stdout is one newline-terminated JSON despite internal progress, with empty stderr."
+        },
+        {
+          "id": "test/onboarding.test.mjs#31:assert-7",
+          "expression": "assert.deepEqual(JSON.parse(lines[0]), expected)",
+          "sha256": "e96bb5657c11af1afd98810f2a873974569abcde9829e742fc2e3529d53a1f85",
+          "line": 609,
+          "executions": 1,
+          "native_mapping_kind": "reviewed_native_api_migration",
+          "native_test": {
+            "path": "rust/crates/claude-autorouter/tests/support/doctor_dispatch_contracts.rs",
+            "bytes": 16444,
+            "sha256": "98b8202944575ff0a2cc39dd0215e1bd3e3ad2fc2d87c16009589651ca1841d6",
+            "line": 202,
+            "fragment": "fn original31_actual_cli_without_claude_and_json_progress_isolation()",
+            "fragment_sha256": "d45a7af2ffd68dc22ada791b4b8594c988c29992f659d4472671c26828025b04"
+          },
+          "meaningful_obligation_and_evidence": "Original source asserts exact passthrough of injected four-field report {schema_version,type,passed,gates:{accuracy:false}}. Native private executable doctor has no injected diagnosticRunner parameter and executes real bounded mock diagnosis. It emits the whole actual report, retained raw; no fields/times removed to fabricate literal equality. Root per-assertion migration review is recorded separately.",
+          "migration_review": "Root accepts the executable/library-surface migration for this exact predicate. Source doctor(options) permits an arbitrary injected diagnosticRunner result; native private CLI has no such injection interface and emits the complete actual diagnostic report. Original injected four-field bytes remain recorded as Source behavior, not fabricated native equality. Actual native CLI tests prove singular full JSON despite progress, exact model/credential absence and exit derived from passed. Rust embedders use the public diagnostic operation and injected HttpTransport."
+        }
+      ],
+      "remaining_native_api_migration": [],
+      "migration_review": {
+        "status": "accepted_per_assertion_by_root",
+        "source_contract_preserved_in_evidence": true,
+        "literal_native_object_equality_claimed": false,
+        "decision": "Root accepts the executable/library-surface migration for this exact predicate. Source doctor(options) permits an arbitrary injected diagnosticRunner result; native private CLI has no such injection interface and emits the complete actual diagnostic report. Original injected four-field bytes remain recorded as Source behavior, not fabricated native equality. Actual native CLI tests prove singular full JSON despite progress, exact model/credential absence and exit derived from passed. Rust embedders use the public diagnostic operation and injected HttpTransport."
+      }
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#32",
+      "name": "local diagnosis rejects the cloud backend without requests and caller cancellation propagates",
+      "source_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "source_line": 612,
+      "statement_sha256": "4c5a4179534d6c7c7828beee2517f8cca9818eae07f169c81c9a9b96cac7e417",
+      "call_sha256": "b8adc73cf7bf1c031b72206ea6c9e5db66cf0005b5e5201352bc656cc66498d7",
+      "statement": "test('local diagnosis rejects the cloud backend without requests and caller cancellation propagates', async t => {\n  const env = fixture(t), lines = [];\n  saveUserConfig({ AUTOROUTER_EVALUATOR: 'jev' }, { env });\n  assert.equal(await doctor({ env, evaluateLocal: true, json: true, write: line => lines.push(line),\n    run: () => assert.fail('No Claude subprocess'), diagnosticRunner: () => assert.fail('No inference') }), false);\n  assert.equal(JSON.parse(lines[0]).error.code, 'configuration_error');\n  const controller = new AbortController();\n  const reason = new Error('Diagnostic cancelled');\n  saveUserConfig({ AUTOROUTER_EVALUATOR: 'ollama' }, { env, overwrite: true });\n  await assert.rejects(doctor({ env, evaluateLocal: true, write: () => {}, signal: controller.signal,\n    diagnosticRunner: async () => { controller.abort(reason); throw reason; } }), error => error === reason);\n});",
+      "static_assertions": 5,
+      "expanded_assertions": 3,
+      "status": "covered_with_reviewed_native_api_migration",
+      "assertions": [
+        {
+          "id": "test/onboarding.test.mjs#32:assert-1",
+          "expression": "assert.equal(await doctor({ env, evaluateLocal: true, json: true, write: line => lines.push(line),\n    run: () => assert.fail('No Claude subprocess'), diagnosticRunner: () => assert.fail('No inference') }), false)",
+          "sha256": "62ceb7fff97d75c526c41bc66e46c05066eccb102de7ddd5f32182e78d3b659b",
+          "line": 615,
+          "executions": 1,
+          "native_mapping_kind": "native_observable_equivalence",
+          "native_test": {
+            "path": "rust/crates/claude-autorouter/tests/support/doctor_dispatch_contracts.rs",
+            "bytes": 16444,
+            "sha256": "98b8202944575ff0a2cc39dd0215e1bd3e3ad2fc2d87c16009589651ca1841d6",
+            "line": 222,
+            "fragment": "fn original32_cloud_backend_rejection_performs_zero_requests_and_claude_work()",
+            "fragment_sha256": "4df040a22fb95232cd47b2b8780674ed02340cbb6f2ffe918768851d7e671f23"
+          },
+          "meaningful_obligation_and_evidence": "Source cloud-local branch returns false. Native both no-Claude and sentinel cloud variants return exit1 and a single complete failure JSON object with empty stderr."
+        },
+        {
+          "id": "test/onboarding.test.mjs#32:assert-2",
+          "expression": "assert.fail('No Claude subprocess')",
+          "sha256": "49fa03d1d7ce7c491fb4b2d74a50513923d13bf73788347578ea16758cc23edb",
+          "line": 616,
+          "executions": 0,
+          "native_mapping_kind": "zero_work_guard",
+          "native_test": {
+            "path": "rust/crates/claude-autorouter/tests/support/doctor_dispatch_contracts.rs",
+            "bytes": 16444,
+            "sha256": "98b8202944575ff0a2cc39dd0215e1bd3e3ad2fc2d87c16009589651ca1841d6",
+            "line": 222,
+            "fragment": "fn original32_cloud_backend_rejection_performs_zero_requests_and_claude_work()",
+            "fragment_sha256": "4df040a22fb95232cd47b2b8780674ed02340cbb6f2ffe918768851d7e671f23"
+          },
+          "meaningful_obligation_and_evidence": "Original run fail guard never executes; captured builtin execFile/spawnSync zero. Both native cloud variants have zero HTTP requests, no Claude marker and unchanged isolated saved file set."
+        },
+        {
+          "id": "test/onboarding.test.mjs#32:assert-3",
+          "expression": "assert.fail('No inference')",
+          "sha256": "77d9de3b20f23f0bf4f5553444d2734f43294c19149d2bd3a6c0125f840657dd",
+          "line": 616,
+          "executions": 0,
+          "native_mapping_kind": "zero_work_guard",
+          "native_test": {
+            "path": "rust/crates/claude-autorouter/tests/support/doctor_dispatch_contracts.rs",
+            "bytes": 16444,
+            "sha256": "98b8202944575ff0a2cc39dd0215e1bd3e3ad2fc2d87c16009589651ca1841d6",
+            "line": 222,
+            "fragment": "fn original32_cloud_backend_rejection_performs_zero_requests_and_claude_work()",
+            "fragment_sha256": "4df040a22fb95232cd47b2b8780674ed02340cbb6f2ffe918768851d7e671f23"
+          },
+          "meaningful_obligation_and_evidence": "Source injected diagnostic runner fail guard has zero calls; native cloud rejection occurs before NativeHttpClient creation or diagnosis and both configured evaluator URLs see zero requests."
+        },
+        {
+          "id": "test/onboarding.test.mjs#32:assert-4",
+          "expression": "assert.equal(JSON.parse(lines[0]).error.code, 'configuration_error')",
+          "sha256": "737466709f180135e678313ba4d689140d6123225609f7f50a06e843d738b22d",
+          "line": 617,
+          "executions": 1,
+          "native_mapping_kind": "exact_complete_error_obligation",
+          "native_test": {
+            "path": "rust/crates/claude-autorouter/tests/support/doctor_dispatch_contracts.rs",
+            "bytes": 16444,
+            "sha256": "98b8202944575ff0a2cc39dd0215e1bd3e3ad2fc2d87c16009589651ca1841d6",
+            "line": 222,
+            "fragment": "fn original32_cloud_backend_rejection_performs_zero_requests_and_claude_work()",
+            "fragment_sha256": "4df040a22fb95232cd47b2b8780674ed02340cbb6f2ffe918768851d7e671f23"
+          },
+          "meaningful_obligation_and_evidence": "Both native cloud stdout JSON bytes equal the complete captured Source JSON string plus the explicit CLI newline. configuration_error code/message/schema/type/false result all match; no object fields normalized."
+        },
+        {
+          "id": "test/onboarding.test.mjs#32:assert-5",
+          "expression": "assert.rejects(doctor({ env, evaluateLocal: true, write: () => {}, signal: controller.signal,\n    diagnosticRunner: async () => { controller.abort(reason); throw reason; } }), error => error === reason)",
+          "sha256": "3099668c971ecb3172948b418eae0a8a30f968f7dbeb0de66f01da9ea4966380",
+          "line": 621,
+          "executions": 1,
+          "native_mapping_kind": "reviewed_native_api_migration",
+          "native_test": {
+            "path": "rust/crates/claude-autorouter/tests/support/doctor_dispatch_contracts.rs",
+            "bytes": 16444,
+            "sha256": "98b8202944575ff0a2cc39dd0215e1bd3e3ad2fc2d87c16009589651ca1841d6",
+            "line": 264,
+            "fragment": "fn original32_actual_dispatch_cancels_stalled_headers_and_response_body()",
+            "fragment_sha256": "9f13a84f6c573febc517372a46b66655e1c0247eb35788bec1f7b55a13ff7a17"
+          },
+          "meaningful_obligation_and_evidence": "Original caller Error(Diagnostic cancelled) is observed identical through runner, AbortSignal.reason and actual doctor rejection, and original identity predicate passes. Native OS signal/CancellationToken has no reason-object payload and surfaces Evaluation cancelled through exit1/stderr. Eight actual dispatcher stalls prove cancellation is an error with no final configuration_error/report, connection closes and no later request. Literal Error identity/message equality remains an explicit language/executable migration with root per-assertion migration review recorded separately.",
+          "migration_review": "Root accepts the cancellation-interface migration for this exact predicate. Source preserves the caller Error object through AbortSignal.reason and rejection; native CancellationToken/OS signal carries cancellation state without a caller Error object. Actual native CLI tests prove error propagation, exit1 and safe cancellation diagnostic, no final configuration_error/report, observed connection release and no subsequent work. Source identity/message remain recorded distinctly; hosts retain their own reason alongside the token."
+        }
+      ],
+      "remaining_native_api_migration": [],
+      "migration_review": {
+        "status": "accepted_per_assertion_by_root",
+        "source_contract_preserved_in_evidence": true,
+        "literal_native_object_equality_claimed": false,
+        "decision": "Root accepts the cancellation-interface migration for this exact predicate. Source preserves the caller Error object through AbortSignal.reason and rejection; native CancellationToken/OS signal carries cancellation state without a caller Error object. Actual native CLI tests prove error propagation, exit1 and safe cancellation diagnostic, no final configuration_error/report, observed connection release and no subsequent work. Source identity/message remain recorded distinctly; hosts retain their own reason alongside the token."
+      }
+    }
+  ],
+  "native_new_test_module": {
+    "path": "rust/crates/claude-autorouter/tests/support/doctor_dispatch_contracts.rs",
+    "bytes": 16444,
+    "sha256": "98b8202944575ff0a2cc39dd0215e1bd3e3ad2fc2d87c16009589651ca1841d6"
+  },
+  "native_target_include": {
+    "path": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+    "bytes": 54715,
+    "sha256": "7caf43dec86ac9c303610af7c03aed9f55354eafafb82b988ea91d1fac8f4d21",
+    "line": 2,
+    "fragment": "#[path = \"support/doctor_dispatch_contracts.rs\"]\nmod doctor_dispatch_contracts;",
+    "fragment_sha256": "834e27c918dc6c1327d840c0c9d02097b4a4e0880aa2c3627471de7c5c0d1635"
+  },
+  "native_scenarios": {
+    "owned_cli_children": 15,
+    "local_json_diagnostics": 5,
+    "cloud_zero_work": 2,
+    "cancel_dispatch_stalls": 8,
+    "complete_local_http_requests": 168,
+    "accepted_stalled_systemone_connections": 8,
+    "models": [
+      "tev1:0.8b",
+      "team/router:doctor-v2"
+    ],
+    "progress_suppression": "Five actual complete diagnostic reports emit exactly one JSON line; four canceled JSON variants emit none and text emits only the exact two progress lines.",
+    "provider_wire_bytes": "All actual allowlisted synthetic request body/header/method/path and response planned/actual bytes are retained privately. The original Source injected runner makes no HTTP request; do not claim native168 calls equal the original Source0."
+  },
+  "checks": [
+    {
+      "log": {
+        "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/native-1/test.log",
+        "bytes": 1177,
+        "sha256": "327d8e3a5f6d538669196abbe1834fa7a728395e5de802e93963fad952494c0f"
+      },
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "log": {
+        "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/native-1/onboarding-full.log",
+        "bytes": 3281,
+        "sha256": "cf656c9846ee8f6fd6379c194316ce246826908557ea936ed6b5ce7f2a87f974"
+      },
+      "passed": 27,
+      "failed": 0
+    },
+    {
+      "log": {
+        "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/native-1/clippy.log",
+        "bytes": 668,
+        "sha256": "bb973a5b3aeac4b7c36539eaf7eb72982200e177ca5cd60e365cfc3cb00a891c"
+      },
+      "status": "passed"
+    },
+    {
+      "log": {
+        "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/native-1/fmt.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "status": "passed"
+    }
+  ],
+  "private_execution_report": {
+    "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/execution-report.json",
+    "bytes": 21319,
+    "sha256": "50f39a6806fead6a4366cd39bbcec32d1dde265d4c8f42e703cdcf4cd323d972"
+  },
+  "records": [
+    {
+      "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/native-1/native-original31-claude-trap.json",
+      "bytes": 39773,
+      "sha256": "f415a740a709629168fc4a2537725cb767e1d07d4d1040737e838ae19210cfd6"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/native-1/native-original31-custom-model-failed.json",
+      "bytes": 40174,
+      "sha256": "9864c18c80843a45fae05aca03cb9ac7e77aa910f4a2eebbe0025ca96c56cea8"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/native-1/native-original31-custom-model-passed.json",
+      "bytes": 40065,
+      "sha256": "d0862c0878dbeb1602e5d41941da56419eca77d3cc96b437c6811469a0ec1bb9"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/native-1/native-original31-source-model-failed.json",
+      "bytes": 39753,
+      "sha256": "c2821ec9f8e4c7e2f967081bf8244c9a0a7c52ea65135d67ea46e2d1262aadd1"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/native-1/native-original31-source-model-passed.json",
+      "bytes": 39642,
+      "sha256": "f3f63e95a0f1e324ab84da758bbe57b6b87988acc52d2da48f5f75a7d5c38429"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/native-1/native-original32-cancel-sigint-json-body.json",
+      "bytes": 6204,
+      "sha256": "0682c0b86c787865df75e9e6de7ed25abcdaa4b299901bbcb79e964f3c18c7d7"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/native-1/native-original32-cancel-sigint-json-headers.json",
+      "bytes": 6107,
+      "sha256": "f3494872af0887f7b5ba9a897eaf1bd4ca25e6bee29ee36d82dd11a557e38d38"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/native-1/native-original32-cancel-sigint-text-body.json",
+      "bytes": 6362,
+      "sha256": "83aad2ef4a348f765f484550c80940c17b268340c2b925fd431c28a420b5d6ad"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/native-1/native-original32-cancel-sigint-text-headers.json",
+      "bytes": 6265,
+      "sha256": "edcce973c9b2c73105c080766dc39ecc37f49f19cf274a511e8b2da64da12f09"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/native-1/native-original32-cancel-sigterm-json-body.json",
+      "bytes": 6206,
+      "sha256": "29fdb1f53d414d087e0d2e21716486414d456fec6e2ce660eeb64b0d73f24092"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/native-1/native-original32-cancel-sigterm-json-headers.json",
+      "bytes": 6109,
+      "sha256": "a4e4b0da2f59c57a1e7bd5db14223276cbb44695ad898e640b28abac1e362659"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/native-1/native-original32-cancel-sigterm-text-body.json",
+      "bytes": 6364,
+      "sha256": "9f71a2ac12e962fdc51b11bf02d7bfac7c2166043cdea47e6423152d9903b568"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/native-1/native-original32-cancel-sigterm-text-headers.json",
+      "bytes": 6267,
+      "sha256": "c82c33eb3b0b51bf051ee46a6d4c28714d9b2e2838da54b2b63d463f0f1234c5"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/native-1/native-original32-cloud-claude-trap.json",
+      "bytes": 1195,
+      "sha256": "a21efd3d86713054cd567351e91dc998bb0f307141db647b8bb7de3ac1e8eee1"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/native-1/native-original32-cloud-no-claude.json",
+      "bytes": 1166,
+      "sha256": "145a34dd9ae96e0ff7ea06b891cd9b1e007bfc55e0f54e9157d8b2c47b2ce2a1"
+    }
+  ],
+  "dispatcher_source_anchors": [
+    {
+      "path": "artifacts/rust-rewrite/reference/src/onboarding.mjs",
+      "bytes": 19921,
+      "sha256": "ef3106f4c4b3a0efe6fbc9b4721e138c4637f7a1f4404d916c998eee74caf8ec",
+      "line": 208,
+      "fragment": "      const result = await (diagnosticRunner ?? diagnostic.runLocalDiagnostic)(config, { fetchImpl, signal, onProgress });\n      if (json) write(JSON.stringify(result));\n      else for (const line of diagnostic.formatLocalDiagnostic(result)) write(line);\n      return result.passed;",
+      "fragment_sha256": "6d9471e6b3e98b2dbf9846e142193a8afbcc6759a52c2d655e18d10ed8730c86"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/src/onboarding.mjs",
+      "bytes": 19921,
+      "sha256": "ef3106f4c4b3a0efe6fbc9b4721e138c4637f7a1f4404d916c998eee74caf8ec",
+      "line": 213,
+      "fragment": "      if (signal?.aborted) throw error;",
+      "fragment_sha256": "8206b0408f7c08bb7bfe324a5f19e07f9017dd52684dcbed59d0aa0a207312b5"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/doctor.rs",
+      "bytes": 14273,
+      "sha256": "c2464ea5130ebadcb4cafb312255c9285e7b6bdcac7079c7d624422aa75e2fde",
+      "line": 19,
+      "fragment": "pub async fn evaluate_local(\n    context: &ConfigContext<'_>,\n    keychain: &mut impl Keychain,\n    cancellation: &CancellationToken,\n    json_output: bool,\n    write: &mut impl FnMut(String),\n) -> Result<bool, String>",
+      "fragment_sha256": "6ff6c58850e151d415b75a4c32617965eec071528ac8df25aa6007dd22ece6a5"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/doctor.rs",
+      "bytes": 14273,
+      "sha256": "c2464ea5130ebadcb4cafb312255c9285e7b6bdcac7079c7d624422aa75e2fde",
+      "line": 32,
+      "fragment": "        if config.evaluator!=Evaluator::Ollama{return Err(\"Local evaluation requires AUTOROUTER_EVALUATOR=ollama. It does not call Jev or Anthropic.\".into());}",
+      "fragment_sha256": "cf91f015ae46bbe074ea8c9fe59992b825c8e55c51d947f0b71450dd5735ab0f"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/doctor.rs",
+      "bytes": 14273,
+      "sha256": "c2464ea5130ebadcb4cafb312255c9285e7b6bdcac7079c7d624422aa75e2fde",
+      "line": 59,
+      "fragment": "            if cancellation.is_cancelled() {\n                return Err(error);\n            }",
+      "fragment_sha256": "381621c40dfc610e08cf999d3069e5beeeff238417403c4198a38708c01bcd7c"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/main.rs",
+      "bytes": 10610,
+      "sha256": "826051934b4c1a1763a4b26f40c10e79c01e424ba7cd36c35936da861d3b43ae",
+      "line": 157,
+      "fragment": "                    let result = if evaluate_local {\n                        doctor::evaluate_local(",
+      "fragment_sha256": "5108484218c89cf3c27ce3f67cdba21907c3c754f022e30533079dc3b61ede9e"
+    }
+  ],
+  "installed_archive_seam": {
+    "runner_edited": false,
+    "original_target": "onboarding_local",
+    "module": "tests/support/doctor_dispatch_contracts.rs",
+    "include_anchor": "#[path = \"support/doctor_dispatch_contracts.rs\"]\nmod doctor_dispatch_contracts;",
+    "override": "Existing support::Home::command resolves AUTOROUTER_TEST_EXECUTABLE before compiled CARGO_BIN_EXE, and the raw record hashes that actual executable. Root final archive lifecycle run will discover all three additional tests under the existing target.",
+    "current_evidence_limit": "This report ran Cargo-built native CLI only; new installed archive execution remains pending root. Do not relabel older74-test archive runs as covering these new scenarios."
+  },
+  "api_migrations": [
+    "Native CLI doctor is a private executable module, calls actual diagnostic and returns Result<bool,String>; it does not publish a JavaScript options object/diagnosticRunner API. Arbitrary injected report passthrough remains preserved in the Source evidence with no invented native equal-object substitute.",
+    "Source undefined credentials map to actual native Option::None and absence of outgoing auth headers. JSON output itself remains complete and raw; Source cloud output byte equality includes only an explicitly added CLI newline.",
+    "Source AbortSignal.reason preserves Error identity; native CancellationToken/OS signals carry cancellation state and actual stderr/exit. Both preserve cancellation as an error rather than a configuration_error report. Source Error name/message/identity and native error text remain distinct."
+  ],
+  "scope": [
+    "All current runs are synthetic local macOS CLI tests; no real providers, models, downloads, Keychain or user configuration. Fifteen cases use existing bounded Home/Server/output/signalled_output fixtures.",
+    "New module is included in the existing onboarding_local archive lifecycle target; original explicit runner target list and shipping code/configuration remain unchanged. Current debug CLI execution is hash-bound; final installed archive execution remains pending root and older74-test archives are not relabeled.",
+    "No central ledger/status/evidence changes or covered claims before per-predicate/root API migration review. No hardware/model/performance or other-OS qualification.",
+    "Cargo is released; subsequent user-requested debug cache cleanup is compatible with retained private outputs/manifests and source snapshots."
+  ],
+  "independent_review": {
+    "reviewer": "rust_distribution_audit",
+    "retained_hash_size_bindings": 44,
+    "fragment_bindings": 19,
+    "material_cli_defects_found": 0,
+    "source_injected_report_and_error_identity_verified": true,
+    "review_scope": "Read-only source/retained executed reports and logs; no rerun, binary reconstruction or installed/current-platform qualification."
+  },
+  "debug_cache_cleanup": {
+    "report": {
+      "path": "artifacts/rust-rewrite/compiler-cache-cleanup-20261014/cleanup-report.json",
+      "bytes": 1431,
+      "sha256": "9a925458ff317419ef80032c0e59ef8c0850cbf05e0a857b2bee1ce8a38323a5"
+    },
+    "cache_removed_at_user_request": true,
+    "previous_executed_debug_binary_is_now_unavailable": true,
+    "logs_reports_source_preserved": true
+  }
+}

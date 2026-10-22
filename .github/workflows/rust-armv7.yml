@@ -1,0 +1,126 @@
+name: Rust ARMv7 cross-tool observations
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cross-tools:
+    name: ARMv7 cross tools / native-owned observations
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+        working-directory: rust
+    env:
+      RUSTFLAGS: ''
+      LC_ALL: C
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22.14.0'
+          package-manager-cache: false
+      - name: Declare clean source and reject compiler overrides before setup
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$(uname -m)" = x86_64
+          test -z "$(git status --porcelain)"
+          mkdir -p ../artifacts/rust-rewrite
+          out=../artifacts/rust-rewrite/armv7-preflight
+          mkdir "$out"
+          git rev-parse HEAD > "$out/source-commit.txt"
+          git status --porcelain > "$out/source-status.txt"
+          node --input-type=module <<'NODE'
+          import { appendFileSync, readFileSync, realpathSync } from 'node:fs';
+          import { join } from 'node:path';
+          import { selectEnvironment, TOOLCHAIN } from './distribution/ci/armv7-preflight.mjs';
+          const raw = process.env;
+          if (raw.RUSTUP_TOOLCHAIN && raw.RUSTUP_TOOLCHAIN !== TOOLCHAIN) throw new Error('Unexpected Rust toolchain override');
+          const home = realpathSync(raw.HOME);
+          const cargo = realpathSync(raw.CARGO_HOME || join(home, '.cargo'));
+          const rustup = realpathSync(raw.RUSTUP_HOME || join(home, '.rustup'));
+          selectEnvironment({ ...raw, HOME: home, CARGO_HOME: cargo, RUSTUP_HOME: rustup, RUSTUP_TOOLCHAIN: TOOLCHAIN });
+          if (!/^channel = "1\.99\.0"$/m.test(readFileSync('rust-toolchain.toml', 'utf8'))) throw new Error('Workspace Rust version changed');
+          appendFileSync(raw.GITHUB_ENV, `HOME=${home}\nCARGO_HOME=${cargo}\nRUSTUP_HOME=${rustup}\nRUSTUP_TOOLCHAIN=${TOOLCHAIN}\nRUSTUP_AUTO_INSTALL=0\n`);
+          NODE
+      - name: Install exact selected cross-tool roots from signed APT indexes
+        run: |
+          set -euo pipefail
+          umask 077
+          out=../artifacts/rust-rewrite/armv7-preflight
+          roots=(gcc-arm-linux-gnueabihf binutils-arm-linux-gnueabihf libc6-dev-armhf-cross make perl)
+          timeout --signal=TERM --kill-after=5s 300s sudo apt-get update --error-on=any \
+            -o Acquire::Retries=0 -o Acquire::http::Timeout=60 -o Acquire::https::Timeout=60 > "$out/apt-update.log" 2>&1
+          apt-cache policy "${roots[@]}" > "$out/apt-policy.txt"
+          packages=()
+          test ! -e "$out/requested-root-versions.tsv"
+          : > "$out/requested-root-versions.tsv"
+          for package in "${roots[@]}"; do
+            version=$(apt-cache policy "$package" | awk '/Candidate:/ {print $2; exit}')
+            [[ "$version" =~ ^[0-9A-Za-z.+:~_-]+$ ]] && test "$version" != '(none)'
+            packages+=("$package=$version")
+            printf '%s\t%s\n' "$package" "$version" >> "$out/requested-root-versions.tsv"
+          done
+          timeout --signal=TERM --kill-after=5s 300s sudo apt-get install --yes --no-install-recommends --no-remove \
+            -o Acquire::Retries=0 -o Acquire::http::Timeout=60 -o Acquire::https::Timeout=60 "${packages[@]}" > "$out/apt-install.log" 2>&1
+          for package in "${roots[@]}"; do
+            version=$(awk -F '\t' -v name="$package" '$1 == name {print $2}' "$out/requested-root-versions.tsv")
+            test "$(dpkg-query -W -f='${Version}' "$package")" = "$version"
+          done
+          dpkg-query -W -f='${Package}\t${Version}\t${Architecture}\n' > "$out/installed-packages.tsv"
+          apt-get indextargets > "$out/apt-index-targets.txt"
+          cp /etc/os-release "$out/os-release.txt"
+          uname -srmo > "$out/kernel.txt"
+      - name: Install pinned host compiler and official ARMv7 standard library
+        run: |
+          set -euo pipefail
+          umask 077
+          timeout --signal=TERM --kill-after=5s 300s rustup toolchain install "$RUSTUP_TOOLCHAIN" --profile minimal
+          timeout --signal=TERM --kill-after=5s 300s rustup target add --toolchain "$RUSTUP_TOOLCHAIN" armv7-unknown-linux-gnueabihf
+      - name: Bootstrap independent host auditor for process ownership
+        run: |
+          set -euo pipefail
+          umask 077
+          out=../artifacts/rust-rewrite/armv7-preflight
+          host_target="$GITHUB_WORKSPACE/artifacts/rust-rewrite/armv7-preflight-host-target"
+          mkdir "$host_target"
+          timeout --signal=TERM --kill-after=5s 240s env CARGO_NET_RETRY=0 CARGO_HTTP_TIMEOUT=30 \
+            cargo fetch --locked --target x86_64-unknown-linux-gnu > "$out/host-fetch.log" 2>&1
+          timeout --signal=TERM --kill-after=5s 300s env CARGO_TARGET_DIR="$host_target" \
+            cargo build --target x86_64-unknown-linux-gnu --package xtask --no-default-features \
+            --bin autorouter-audit --offline --locked --message-format=json > "$out/auditor-build.jsonl"
+          cp "$host_target/x86_64-unknown-linux-gnu/debug/autorouter-audit" "$out/autorouter-audit-bootstrap"
+          "$out/autorouter-audit-bootstrap" bootstrap --build-report "$out/auditor-build.jsonl" > "$out/auditor-bootstrap-proof.json"
+          timeout --signal=TERM --kill-after=5s 120s env CARGO_TARGET_DIR="$host_target" \
+            cargo test --target x86_64-unknown-linux-gnu --package xtask --no-default-features \
+            --bin autorouter-audit --offline --locked armv7_preflight::tests::real_node_collector_group_cleanup \
+            -- --ignored --exact --nocapture > "$out/native-owner-control.log" 2>&1
+      - name: Observe bounded compiler metadata and empty-stdin C preprocessing
+        run: |
+          set -euo pipefail
+          umask 077
+          # The native owner enforces 190s and cleans its reserved process group
+          # before reaping. No equal-deadline shell wrapper can preempt cleanup.
+          ../artifacts/rust-rewrite/armv7-preflight/autorouter-audit-bootstrap armv7-preflight
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: rust-armv7-cross-tool-preflight
+          path: |
+            artifacts/rust-rewrite/armv7-preflight/*.json
+            artifacts/rust-rewrite/armv7-preflight/auditor-build.jsonl
+            artifacts/rust-rewrite/armv7-preflight/*.txt
+            artifacts/rust-rewrite/armv7-preflight/*.tsv
+            artifacts/rust-rewrite/armv7-preflight/*.log
+          if-no-files-found: warn

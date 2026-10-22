@@ -1,0 +1,198 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-10-22",
+  "status": "mac_rustup_invocation_corrected_local_checks_pass_hosted_validation_pending",
+  "source_base_commit": "b63350706f14dfac2de269fec8b1b8c56193840c",
+  "implementation": {
+    "path": "rust/xtask/src/native_provenance_macos.rs",
+    "bytes": 45249,
+    "sha256": "b77892ef0af05c7819a8d0f800e28f2ab8cdee877cfb0a49d336158c2fb533a2"
+  },
+  "observed_ci": {
+    "head": "b63350706f14dfac2de269fec8b1b8c56193840c",
+    "run": 39753908736,
+    "job": 119740982415,
+    "attempt": 1,
+    "last_metadata_utc": "2026-10-22T09:22:14+00:00",
+    "current_checks": {
+      "success": 5,
+      "failure": 1,
+      "in_progress": 8
+    },
+    "snapshot": {
+      "path": "artifacts/rust-rewrite/ci-b633507-readonly-audit-20261022-1/final-metadata-review.json",
+      "bytes": 113683,
+      "sha256": "cc30dfffeea1cc538dfa8df5d069350ad30e0a668ad4561654876f3a0bc4b226"
+    },
+    "bounded_original_log_owner": {
+      "path": "artifacts/rust-rewrite/ci-b633507-failed-job-logs-20261022-1/mac.json",
+      "bytes": 1180,
+      "sha256": "378ad3cc8b904d47dea82dd44971835bd3570ef912d69b61909b92d7d4fbb04d"
+    },
+    "failed_command": "which --toolchain 1.99.0 rustc through the canonical Rustup executable path",
+    "diagnostic": "Mac provenance metadata metadata-tool which --toolchain 1.99.0 rustc: Fixture executable failed (exit status: 1)",
+    "limits": "The closed diagnostic proves the canonical invoked basename is outside the reviewed tool-name allowlist; the exact hosted filename and successful collector remain unobserved. Other eight current jobs were still in progress in this finite snapshot. Both musl jobs had passed SDK freezing by the observed sample, not final qualification."
+  },
+  "local_same_binary_reproduction": {
+    "path": "artifacts/rust-rewrite/rustup-invocation-mode-reproduction-20261022-1/result-v1.json",
+    "bytes": 1969,
+    "sha256": "6b814bdc44ff8177602ff7ddfef642a927b7e41f39afccb703468a99aa2cae75"
+  },
+  "background_source": {
+    "url": "https://github.com/rust-lang/rustup/blob/main/src/bin/rustup-init.rs",
+    "reviewed": "2026-10-22",
+    "scope": "Rustup upstream documents basename dispatch. This is background, not a versioned source closure of the hosted installed manager."
+  },
+  "fix": [
+    "After the existing first-PATH/canonical Cargo-home identity guard, retain both the lexical Cargo-home bin/rustup invocation and its resolved canonical file.",
+    "Execute the admitted alias to preserve argv[0]; hash/validate the canonical descriptor and separately record invocation_path.",
+    "Keep actual selected toolchain paths, versions, sysroot, SDK, cold-build lifecycle, limits and privacy unchanged. GNU/shared resolver and product code are byte-identical."
+  ],
+  "regression": "Owned fake rustup alias resolves to rustup-init; canonical invocation fails1 while admitted alias selects exact synthetic toolchain. Canonical descriptor passes while symlink descriptor still refuses. Different Cargo-home and shadowing first-PATH tools refuse.",
+  "retained_failed_first_attempt": {
+    "source": {
+      "path": "artifacts/rust-rewrite/macos-rustup-invocation-validation-20261022-1/source-candidate-v1.json",
+      "bytes": 125482,
+      "sha256": "a9802d04ab31fd0bd36b58f3f78126bfe64a50e12790db33f75ddaeb6e03f40f"
+    },
+    "owner": {
+      "path": "artifacts/rust-rewrite/macos-rustup-invocation-validation-20261022-1/auditor-tests.json",
+      "bytes": 1869,
+      "sha256": "dd4acaaa745726400798086a23c7efc7abea80af62366f7459aed30a603fd2e6"
+    },
+    "outcome": "86 passed,1 failed: new regression caught strict descriptor rejection of a symlink. Successor returns invocation/canonical separately; no filesystem guard was relaxed."
+  },
+  "local_validation": {
+    "source": {
+      "path": "artifacts/rust-rewrite/macos-rustup-invocation-validation-20261022-2/source-candidate-v1.json",
+      "bytes": 125482,
+      "sha256": "2a19e983f9dfed18ec4405ff422f7b6be2e30c5fbaf366cb6c4c6072c034605c"
+    },
+    "raw_inputs": 739,
+    "frozen_reference_files": 111,
+    "workspace": {
+      "groups": 66,
+      "passed": 1731,
+      "failed": 0,
+      "ignored": 11
+    },
+    "auditor_tests": 87,
+    "sdk_tests": 50,
+    "node_tests": 673,
+    "node_syntax_files": 99,
+    "package_files": 58,
+    "package_mock_lifecycle_scenarios": 17,
+    "optimized_same_artifact_bundle_tests": 3,
+    "lint_format": "passed",
+    "terminal_owners": {
+      "auditor-tests": {
+        "path": "artifacts/rust-rewrite/macos-rustup-invocation-validation-20261022-2/auditor-tests.json",
+        "bytes": 1868,
+        "sha256": "835e0007c5db62c664c356a3faf79ceda5991327f7cb29c5f2e9d8877c62df83"
+      },
+      "audit-clippy": {
+        "path": "artifacts/rust-rewrite/macos-rustup-invocation-validation-20261022-2/audit-clippy.json",
+        "bytes": 1886,
+        "sha256": "976b24c6bb6322a2496ab1b442cfc6bb398b42987b41ae4760cfccc79ae88869"
+      },
+      "fmt": {
+        "path": "artifacts/rust-rewrite/macos-rustup-invocation-validation-20261022-2/fmt.json",
+        "bytes": 1740,
+        "sha256": "e5f883476746cf15cbd1e8d4ee365bd3f263d7e86017a58a945fcf32e6281c76"
+      },
+      "workspace-clippy": {
+        "path": "artifacts/rust-rewrite/macos-rustup-invocation-validation-20261022-2/workspace-clippy.json",
+        "bytes": 1850,
+        "sha256": "0a3c5a9203a4adc9cf370f47e68604d3714d177c5c25147238eeef05cfee25be"
+      },
+      "workspace": {
+        "path": "artifacts/rust-rewrite/macos-rustup-invocation-validation-20261022-2/workspace.json",
+        "bytes": 1810,
+        "sha256": "ffce1630da1f761beb1432e0d68bd5b01e0a7a323ae52d526ddcb814e7014b2f"
+      },
+      "sdk-tests": {
+        "path": "artifacts/rust-rewrite/macos-rustup-invocation-validation-20261022-2/sdk-tests.json",
+        "bytes": 1753,
+        "sha256": "f3a8e0a8db3bc61fbeef63146732a72401f368430b43295da9817192119a2729"
+      },
+      "node-check": {
+        "path": "artifacts/rust-rewrite/macos-rustup-invocation-validation-20261022-2/node-check.json",
+        "bytes": 1732,
+        "sha256": "e9e5a1678c0e44b3e6b4c132f8924c74626de348f808cf484396b1dcdc919766"
+      },
+      "node-tests": {
+        "path": "artifacts/rust-rewrite/macos-rustup-invocation-validation-20261022-2/node-tests.json",
+        "bytes": 1722,
+        "sha256": "4e4eb4c38447bfe48e1235045fd8073b0a60a89d96a6c038c5f0467af4aa717e"
+      },
+      "node-package": {
+        "path": "artifacts/rust-rewrite/macos-rustup-invocation-validation-20261022-2/node-package.json",
+        "bytes": 1740,
+        "sha256": "164d23fa8c0014757e3f797648aa0accf88645996549288535fe5787935bc688"
+      },
+      "bootstrap-build": {
+        "path": "artifacts/rust-rewrite/macos-rustup-invocation-validation-20261022-2/bootstrap-build.json",
+        "bytes": 1901,
+        "sha256": "b4c3eb2d01425fb92056bab5343e387249a2f85644e6b711a0d18b026c4a79f3"
+      },
+      "required-bundles": {
+        "path": "artifacts/rust-rewrite/macos-rustup-invocation-validation-20261022-2/required-bundles.json",
+        "bytes": 1940,
+        "sha256": "08c7ff0a0eabe5f56a90c7055c459a815943dc55977adc9dde2157026d01240b"
+      },
+      "bootstrap-proof": {
+        "path": "artifacts/rust-rewrite/macos-rustup-invocation-validation-20261022-2/bootstrap-proof.json",
+        "bytes": 2071,
+        "sha256": "95735e2aacd0f13e740b0dc505f776a77507f4396c15930a9325ea900b0d38e3"
+      },
+      "vendor": {
+        "path": "artifacts/rust-rewrite/macos-rustup-invocation-validation-20261022-2/vendor.json",
+        "bytes": 1899,
+        "sha256": "5babcee0bccb3cd97717b835a06a961443f61c3aad001bb66dc620abe0357e11"
+      },
+      "help": {
+        "path": "artifacts/rust-rewrite/macos-rustup-invocation-validation-20261022-2/help.json",
+        "bytes": 1925,
+        "sha256": "8e0b77bb13bdf5907472d78bd9feb17bd7e829866ca64d076be284bf04103166"
+      }
+    },
+    "bootstrap_proof": {
+      "path": "artifacts/rust-rewrite/macos-rustup-invocation-validation-20261022-2/bootstrap-proof.stdout",
+      "bytes": 965,
+      "sha256": "0eb310c789e04a3e3135a646abc7580e6a56b117192c775f1a975c2d003b1391"
+    },
+    "retained_auditor": {
+      "path": "artifacts/rust-rewrite/macos-rustup-invocation-validation-20261022-2/retained/identity.json",
+      "bytes": 1677,
+      "sha256": "2513b9ab77fdc31f43572bc7952672aa8679d520a7c8091a7be0265a1c2339ca"
+    },
+    "static_review": {
+      "path": "artifacts/rust-rewrite/macos-rustup-invocation-validation-20261022-2/independent-static-review-v1.json",
+      "bytes": 6146,
+      "sha256": "e3eb0aa39a6b21a9aad0476316615544ea97c70f541ec96cf48f754bae4ccf96"
+    },
+    "conditions": "Pinned Rust1.99.0/Node22.14.0, reused offline Ocache, twojobs/debug0/incremental0, normal-use16GiB Mac. No provider/model/download/user-config changes; no hosted/cold source-to-product qualification from these checks."
+  },
+  "separate_archive_size_feasibility": {
+    "result": {
+      "path": "artifacts/rust-rewrite/native-symbol-strip-feasibility-20261022-2/result-v1.json",
+      "bytes": 4129,
+      "sha256": "8b21d06b892c7ac0589c4fbc6ba733195215269db2c5c64d0e2f357f62d20621"
+    },
+    "review": {
+      "path": "artifacts/rust-rewrite/native-symbol-strip-feasibility-20261022-2/independent-helper-and-outcome-review-v1.json",
+      "bytes": 18649,
+      "sha256": "2d2f261c7b1385d23466fac49199e5ceb955b74b85fb9f873ec444981697d268"
+    },
+    "original_bytes": 13152976,
+    "stripped_bytes": 11394480,
+    "saved_bytes": 1758496,
+    "scope": "Historical cached Mac ARM binary, separate owned copy. Strict code/unwind/relocation/dyld/layout comparisons pass. LLVM regenerated ad-hoc signature; both files verify locally. No product execution, compiler/profile adoption, symbol-binding equivalence or full12target aggregate fit. All shipping caps and targets unchanged."
+  },
+  "remaining": [
+    "Fresh hosted Mac begin/finish and original uploaded provenance verification.",
+    "Other target profiles, complete platform/TLS/performance/task qualification, production release integration and final immutable archives.",
+    "Full-matrix archive fit and default cutover remain open."
+  ],
+  "release_approved": false
+}

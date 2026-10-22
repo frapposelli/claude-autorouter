@@ -33,3 +33,251 @@ jobs:
       - run: npm run check
       - run: npm test
       - run: npm run test:package
+
+  rust:
+    name: Rust / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    # Intel macOS reached config parity before the observed 45-minute job cap.
+    # Allow its uncached debug/release OpenSSL and bundle checks to finish.
+    # Individual process/test deadlines remain enforced by their harnesses.
+    timeout-minutes: ${{ matrix.os == 'macos-15-intel' && 60 || 45 }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-15, macos-15-intel]
+    defaults:
+      run:
+        working-directory: rust
+    env:
+      MACOSX_DEPLOYMENT_TARGET: '11.0'
+      # openssl-sys otherwise permits a host-library override of `vendored`.
+      # TLS provenance tests also check the exact compiled backend version.
+      OPENSSL_NO_VENDOR: '0'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          # Keep parser/Intl/reference experiments tied to the measured runtime.
+          # The four shipping checks above still cover current Node 22 and 24.
+          node-version: '22.14.0'
+          package-manager-cache: false
+      # rust-toolchain.toml pins this checkout without changing runner defaults.
+      - run: rustup show active-toolchain
+      # License inventory covers the complete lockfile, including other targets.
+      - run: cargo fetch --locked
+      - run: cargo metadata --format-version 1 --locked --offline > /dev/null
+      - name: Build independent native auditor before inspected dependencies
+        id: native_bootstrap
+        run: |
+          mkdir -p ../artifacts/rust-rewrite
+          cargo build --package xtask --no-default-features --bin autorouter-audit --offline --locked --message-format=json > ../artifacts/rust-rewrite/auditor-bootstrap-build.jsonl
+          cp target/debug/autorouter-audit ../artifacts/rust-rewrite/autorouter-audit-bootstrap
+          ../artifacts/rust-rewrite/autorouter-audit-bootstrap bootstrap --build-report ../artifacts/rust-rewrite/auditor-bootstrap-build.jsonl > ../artifacts/rust-rewrite/auditor-bootstrap-proof.json
+          ../artifacts/rust-rewrite/autorouter-audit-bootstrap vendor > ../artifacts/rust-rewrite/vendor-audit.json
+          ../artifacts/rust-rewrite/autorouter-audit-bootstrap production-features --self-test
+      # Original vendor manifest/standalone lock remain untouched. This explicit
+      # native-only developer graph adds only hex to the runtime supplier closure.
+      - name: Admit exact supplier harness before developer dependency fetch
+        timeout-minutes: 3
+        run: ../artifacts/rust-rewrite/autorouter-audit-bootstrap supplier-units --check-harness > ../artifacts/rust-rewrite/supplier-unit-harness-admission.json
+      - name: Fetch locked native supplier developer graph
+        timeout-minutes: 5
+        run: cargo fetch --manifest-path supplier-tests/openssl-native/Cargo.toml --locked
+      - name: Run audited native supplier guards (context8 plus fresh2, decoder3, BIO3)
+        timeout-minutes: 30
+        env:
+          CARGO_NET_OFFLINE: 'true'
+        run: |
+          ../artifacts/rust-rewrite/autorouter-audit-bootstrap supplier-units \
+            --out artifacts/rust-rewrite/supplier-unit-ci
+      - run: cargo clippy --package xtask --no-default-features --all-targets --offline --locked -- -D warnings
+        id: audit_clippy
+      - run: cargo test --package xtask --no-default-features --bin autorouter-audit --offline --locked
+        id: audit_tests
+      # Before workspace tests/bundle consumers can populate target/release.
+      # The Mac collector requires a cold tree; it never removes cached outputs.
+      - name: Build release and verify experimental features are absent
+        id: native_release
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' }}
+        env:
+          AUTOROUTER_BUILD_RUNNER: ${{ matrix.os }}
+        run: |
+          set -euo pipefail
+          set -o noclobber
+          autorouter_evidence_dir="$GITHUB_WORKSPACE/artifacts/rust-rewrite"
+          mkdir -p "$autorouter_evidence_dir"
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            export CARGO_INCREMENTAL=0 RUSTUP_TOOLCHAIN=1.99.0
+            export OPENSSL_STATIC=1 OPENSSL_SRC_PERL=/usr/bin/perl
+            export CFLAGS=-O2 CXXFLAGS=-O2
+            SOURCE_DATE_EPOCH="$(git show -s --format=%ct HEAD)"
+            CARGO_HOME="$(python3 -c 'import os; print(os.path.realpath(os.environ.get("CARGO_HOME", os.path.expanduser("~/.cargo"))))')"
+            RUSTUP_HOME="$(python3 -c 'import os; print(os.path.realpath(os.environ.get("RUSTUP_HOME", os.path.expanduser("~/.rustup"))))')"
+            DEVELOPER_DIR="$(python3 -c 'import os,subprocess; print(os.path.realpath(subprocess.check_output(["/usr/bin/xcode-select", "-p"], text=True).strip()))')"
+            export DEVELOPER_DIR
+            SDKROOT="$(python3 -c 'import os,subprocess; print(os.path.realpath(subprocess.check_output(["/usr/bin/xcrun", "--sdk", "macosx", "--show-sdk-path"], text=True).strip()))')"
+            export SDKROOT
+            # Keep driver names: clang++ may resolve to clang but its argv[0]
+            # still selects C++ mode. The collector witnesses both paths.
+            CC="$(/usr/bin/xcrun --sdk macosx --find clang)"
+            CXX="$(/usr/bin/xcrun --sdk macosx --find clang++)"
+            export SOURCE_DATE_EPOCH CARGO_HOME RUSTUP_HOME CC CXX
+            case "$AUTOROUTER_BUILD_RUNNER" in
+              macos-15)
+                export AUTOROUTER_BUILD_TARGET=aarch64-apple-darwin AUTOROUTER_BUILD_MACHINE=arm64
+                export RUSTFLAGS='-C target-cpu=apple-m1 -C linker=/usr/bin/clang'
+                ;;
+              macos-15-intel)
+                export AUTOROUTER_BUILD_TARGET=x86_64-apple-darwin AUTOROUTER_BUILD_MACHINE=x86_64
+                export RUSTFLAGS='-C target-cpu=x86-64 -C linker=/usr/bin/clang'
+                ;;
+              *) exit 2 ;;
+            esac
+            "$autorouter_evidence_dir/autorouter-audit-bootstrap" binary-provenance begin \
+              --target "$AUTOROUTER_BUILD_TARGET" \
+              --build-report "$autorouter_evidence_dir/production-build.jsonl" \
+              --feature-report "$autorouter_evidence_dir/production-features.json" \
+              --out "$autorouter_evidence_dir/production-inputs.json"
+            cargo build --release --offline --locked --package claude-autorouter --message-format=json > "$autorouter_evidence_dir/production-build.jsonl"
+          else
+            cargo build --release --locked --package claude-autorouter --message-format=json > "$autorouter_evidence_dir/production-build.jsonl"
+          fi
+          "$autorouter_evidence_dir/autorouter-audit-bootstrap" production-features --build-report "$autorouter_evidence_dir/production-build.jsonl" > "$autorouter_evidence_dir/production-features.json"
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            "$autorouter_evidence_dir/autorouter-audit-bootstrap" binary-provenance finish \
+              --inputs "$autorouter_evidence_dir/production-inputs.json" \
+              --build-report "$autorouter_evidence_dir/production-build.jsonl" \
+              --feature-report "$autorouter_evidence_dir/production-features.json" \
+              --out "$autorouter_evidence_dir/production-native"
+          fi
+      - run: cargo fmt --check
+      - run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - name: Test Rust workspace
+        run: |
+          set -euo pipefail
+          autorouter_evidence_dir=../artifacts/rust-rewrite
+          mkdir -p "$autorouter_evidence_dir"
+          # Called only as a top-level command: do not put this function in an
+          # if/&&/|| condition, which would disable Bash errexit in its body.
+          autorouter_record_workspace() {
+            local autorouter_phase=$1
+            shift
+            local -a autorouter_pipeline_status
+            set +e
+            "$@" 2>&1 | tee "$autorouter_evidence_dir/workspace-$autorouter_phase.log"
+            autorouter_pipeline_status=("${PIPESTATUS[@]}")
+            set -e
+            local autorouter_metadata_status=0
+            printf '{"command_exit_code":%s,"log_exit_code":%s}\n' \
+              "${autorouter_pipeline_status[0]}" "${autorouter_pipeline_status[1]}" \
+              > "$autorouter_evidence_dir/workspace-$autorouter_phase-status.json" \
+              || autorouter_metadata_status=$?
+            if (( autorouter_pipeline_status[0] != 0 )); then
+              python3 distribution/ci/annotate-cargo-tests.py "$autorouter_evidence_dir/workspace-$autorouter_phase.log" || true
+              return "${autorouter_pipeline_status[0]}"
+            fi
+            if (( autorouter_pipeline_status[1] != 0 )); then
+              return "${autorouter_pipeline_status[1]}"
+            fi
+            return "$autorouter_metadata_status"
+          }
+          autorouter_record_workspace tests cargo test --workspace --locked --no-fail-fast
+      - name: Freeze and verify the complete immutable reference
+        id: freeze_reference
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' }}
+        run: cargo xtask freeze-reference > ../artifacts/rust-rewrite/freeze-reference.json
+      - run: cargo xtask parity --all --output artifacts/rust-rewrite/parity-ci
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
+      - run: node parity/capture-auto-routing-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/auto-routing-contracts
+        id: capture_auto_routing
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
+      - run: cargo xtask parity --cases artifacts/rust-rewrite/auto-routing-contracts/cases.jsonl --report artifacts/rust-rewrite/parity-auto-routing-contracts.json
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' && steps.capture_auto_routing.outcome == 'success' }}
+      - run: ./target/release/claude-autorouter --version
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' }}
+      - name: Verify extracted executable benchmark bundle without receiver tooling
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' }}
+        run: |
+          cargo clippy --release --package xtask --locked --features executable-bundle-tests --test benchmark_bundle -- -D warnings
+          cargo test --release --package xtask --locked --features executable-bundle-tests --test benchmark_bundle required_executable_bundle
+      - run: node parity/check-config-commands.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
+      - run: node parity/check-node-options-startup.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
+      - run: node parity/check-gateway.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
+      - run: node parity/check-gateway.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter --unicode
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
+      - run: node parity/check-gateway-resources.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
+      - run: node parity/check-http-parser.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
+      - run: node parity/check-upstream-transport.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
+      - run: node parity/check-upstream-security.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
+      - run: node parity/check-tls-options.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
+      - name: Verify exact native npm archive and installed lifecycle
+        id: native_npm
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' }}
+        run: |
+          autorouter_host_target=$(rustc -vV | awk '/^host:/ { print $2 }')
+          cargo xtask package --binary "$autorouter_host_target=rust/target/release/claude-autorouter" --output artifacts/rust-rewrite/native-package-ci --smoke
+      - name: Verify exact direct archive and installed lifecycle
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.native_npm.outcome == 'success' }}
+        run: |
+          autorouter_host_target=$(rustc -vV | awk '/^host:/ { print $2 }')
+          autorouter_native_version=$(./target/release/claude-autorouter --version)
+          cargo xtask package --direct-from "artifacts/rust-rewrite/native-package-ci/claude-autorouter-$autorouter_native_version.tgz" \
+            --target "$autorouter_host_target" --output artifacts/rust-rewrite/native-direct-ci --smoke
+      - name: Rehearse offline upgrade, rollback and re-upgrade with the exact native archive
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.native_npm.outcome == 'success' }}
+        run: |
+          set -euo pipefail
+          autorouter_native_version=$(./target/release/claude-autorouter --version)
+          cargo xtask upgrade-rollback \
+            --native "artifacts/rust-rewrite/native-package-ci/claude-autorouter-$autorouter_native_version.tgz" \
+            --output artifacts/rust-rewrite/upgrade-rollback-ci
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFileSync } from 'node:fs';
+          const packed = JSON.parse(readFileSync('../artifacts/rust-rewrite/native-package-ci/package-report.json'));
+          const rehearsal = JSON.parse(readFileSync('../artifacts/rust-rewrite/upgrade-rollback-ci/report.json'));
+          assert.equal(rehearsal.passed, true);
+          assert.equal(rehearsal.native_archive_sha256, packed.sha256);
+          NODE
+          node distribution/ci/upgrade-rollback-proof.mjs --self-test
+          node distribution/ci/upgrade-rollback-proof.mjs ../artifacts/rust-rewrite/upgrade-rollback-ci/report.json ../artifacts/rust-rewrite/native-package-ci/package-report.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: rust-parity-${{ matrix.os }}
+          path: |
+            artifacts/rust-rewrite/freeze-reference.json
+            artifacts/rust-rewrite/workspace-*.log
+            artifacts/rust-rewrite/workspace-*-status.json
+            artifacts/rust-rewrite/parity*.json
+            artifacts/rust-rewrite/tls-*.json
+            artifacts/rust-rewrite/parity-ci/*.json
+            artifacts/rust-rewrite/auto-routing-contracts/*
+            artifacts/rust-rewrite/evidence/*.json
+            artifacts/rust-rewrite/native-package-ci/*
+            artifacts/rust-rewrite/native-direct-ci/*
+            artifacts/rust-rewrite/upgrade-rollback-ci/report.json
+            artifacts/rust-rewrite/upgrade-rollback-ci/candidate.tgz
+            artifacts/rust-rewrite/upgrade-rollback-ci/baseline/*.tgz
+            artifacts/rust-rewrite/upgrade-rollback-ci/baseline/*.sha256
+            artifacts/rust-rewrite/production-build.jsonl
+            artifacts/rust-rewrite/production-features.json
+            artifacts/rust-rewrite/production-inputs.json
+            artifacts/rust-rewrite/production-native/*
+            artifacts/rust-rewrite/auditor-bootstrap-build.jsonl
+            artifacts/rust-rewrite/auditor-bootstrap-proof.json
+            artifacts/rust-rewrite/vendor-audit.json
+            artifacts/rust-rewrite/supplier-unit-ci/*
+            artifacts/rust-rewrite/supplier-unit-harness-admission.json
+          if-no-files-found: ignore

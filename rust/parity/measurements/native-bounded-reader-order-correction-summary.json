@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "kind": "native_bounded_reader_admission_order_correction",
+  "date": "2026-10-14",
+  "source_commit_parent": "1fec5492e9ca06837ed502ba739f9368e79ecd82",
+  "source_uncommitted_at_validation": true,
+  "passed": true,
+  "change": "Reject a zero or unsafe public byte limit before observing cancellation; keep valid cancellation before oversized Content-Length rejection. No valid limit, deadline, typed error, or body cleanup contract changes.",
+  "source_inputs": [
+    {
+      "path": "rust/crates/autorouter-runtime/src/bounded_json.rs",
+      "bytes": 23276,
+      "sha256": "f3a520f050e3415ede4b89091e6b3b21394bdb2013d34cd43cc9f66366a250b1"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/bounded_json_contracts.rs",
+      "bytes": 9629,
+      "sha256": "f69e9b66608c67c6d5a6d2ba2bb5b669273d20f83bf00972e6f548679cda7759"
+    }
+  ],
+  "private_handoff": {
+    "path": "artifacts/rust-rewrite/bounded-json-migration-audit-20261014/correction-handoff.json",
+    "bytes": 26094,
+    "sha256": "c3b756b8f7d36b6e0843780fb475816885cb5b93b653e5f64e4446406da0a0a3"
+  },
+  "private_raw_comparison": {
+    "path": "artifacts/rust-rewrite/bounded-json-migration-audit-20261014/postfix-order-comparison.json",
+    "bytes": 133431,
+    "sha256": "781cebb589cda20de6eaf9202d40bf352af245799a005f20ba5185d7fca970e7"
+  },
+  "root_independent_review": {
+    "path": "artifacts/rust-rewrite/bounded-json-migration-audit-20261014/root-independent-correction-review.json",
+    "bytes": 726,
+    "sha256": "500bb9cf3e4f0b170326923577128d95305585211afb40ceef3d34e108129a4a"
+  },
+  "counts": {
+    "source": 24,
+    "native_before": 72,
+    "native_after": 72,
+    "corrected_error_order_cases": 18,
+    "remaining_error_order_differences": 0,
+    "after_raw_outcomes": {
+      "InvalidResponse": 36,
+      "returned": 9,
+      "Oversized": 9,
+      "Cancelled": 18
+    },
+    "all_body_drops_once": true,
+    "all_remaining_test_handles_one": true,
+    "all_rejections_zero_polls": true,
+    "normal_polls_two": true
+  },
+  "focused_checks": {
+    "public_reader_integration_tests_passed": 6,
+    "bounded_reader_runtime_units_passed": 9,
+    "strict_runtime_all_targets_clippy_passed": true,
+    "focused_source_inputs_unchanged": true,
+    "standalone_source_libraries_inputs_unchanged": true,
+    "guard_and_test_rustfmt_passed": true,
+    "cargo_locked_offline_jobs": 4,
+    "cargo_incremental_dev_debug_test_debug": "0",
+    "default_target": "rust/target"
+  },
+  "executed_library": {
+    "executed_target": "bounded_json_contracts-7a71a81a3787f264",
+    "runtime_dependency_value": 9702679741114175307,
+    "runtime_features": "[\"default\"]",
+    "selection": "Exact actually executed focused Cargo target dependency fingerprints; no mtime/newest assumptions."
+  },
+  "raw_observations": [
+    {
+      "path": "artifacts/rust-rewrite/bounded-json-migration-audit-20261014/source-order-observations.json",
+      "bytes": 19368,
+      "sha256": "81aca31787515f1e03a3654a9c8b734a8b2b4473154ffc322f3e5a8dcb37326f"
+    },
+    {
+      "path": "artifacts/rust-rewrite/bounded-json-migration-audit-20261014/native-order-prefixed-2/observations.json",
+      "bytes": 26622,
+      "sha256": "99c1adc873487f039ec040b0c2f9966ad3a4bb19203bc8d1b39e0e03afa22fe3"
+    },
+    {
+      "path": "artifacts/rust-rewrite/bounded-json-migration-audit-20261014/native-order-postfix-1/observations.json",
+      "bytes": 26730,
+      "sha256": "fd23f7f91ed34ff29eb971fef7b9e1599fd01e1616c2f7428e3fb9ee08888c00"
+    }
+  ],
+  "initial_failed_control": "First pre-fix helper asserted serialization string0 where metadata facade yields0.0; execute101/raw430Bstderr/binary/declaration retained. No admission/parity result claimed from that failed attempt.",
+  "original_definitions_promoted": 0,
+  "scope_limits": [
+    "Root review verifies all 18 retained file bindings, seven exact source fragments and the raw 24 source / 72 before / 72 after rows independently. Eighteen invalid-limit/pre-cancelled cases changed from Cancelled to InvalidResponse; zero error-order differences remain.",
+    "The native concrete synthetic Body is dropped once with no remaining owned body handle and no rejected body polls. This is not proof of custom Body network/task cleanup or equality with Web ReadableStream locks and asynchronous cancellation.",
+    "JavaScript Error message/reason identity and native typed errors are different public embedding contracts. Original bounded-reader definitions 2\u20135 remain partial until their separate per-assertion migrations and compiler controls are reviewed.",
+    "The raw serde scalar 0.0 and document scalar 0 are retained separately; successful positive-zero floating point bits are checked without relabeling serialization.",
+    "Focused synthetic validation does not qualify real evaluator calls, controlled performance, installed artifacts, full platforms, final release or default cutover."
+  ],
+  "provider_calls": 0,
+  "model_downloads": 0,
+  "release_approved": false,
+  "default_cutover_approved": false
+}

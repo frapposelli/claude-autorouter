@@ -1,0 +1,2207 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_savings_finite_contracts_assertion_mapping",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "scope": "Fifteen complete finite definitions:47 trackers,421updates,104original snapshots and21outcomes;61static/130executed assertions. Exact complete native values with reviewed JSON Number/undefined/native-map adapters; frozen pricing unchanged.",
+  "counts": {
+    "definitions": 15,
+    "static_assertions": 61,
+    "expanded_original_assertions": 130,
+    "trackers": 47,
+    "outcomes": 21,
+    "tracker_updates": 421,
+    "source_snapshot_calls": 104,
+    "post_update_snapshot_comparisons": 421,
+    "cases": 68,
+    "covered": 15,
+    "partial": 0
+  },
+  "capture_method": {
+    "source": {
+      "path": "rust/parity/capture-savings-finite-contracts.mjs",
+      "sha256": "fee5ba81a2e460e9d30b77a22f28fe35fd1dc61b8427ffe819e4a24cbc8a81d0",
+      "bytes": 11426
+    },
+    "capture": {
+      "path": "rust/parity/cases/savings-finite-contracts.capture.json",
+      "sha256": "c2dbd0b1bdd14a06362b8fd3d429e7f9bad538c70861cabb46c283c7f002823b",
+      "bytes": 30151
+    },
+    "cases": {
+      "path": "rust/parity/cases/savings-finite-contracts.jsonl",
+      "sha256": "a21e7d67a339695afaa9ed792e4888d750964f53f524f9c509596236d3357789",
+      "bytes": 293769
+    },
+    "repeat": {
+      "path": "artifacts/rust-rewrite/savings-finite-3/capture-checks.json",
+      "sha256": "2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25",
+      "bytes": 702
+    },
+    "frozen_manifest_checked_files": 111,
+    "transformations": "Static imports are replaced with frozen exports/observing facades; all source helper definitions, test callback bodies and original assertion expressions remain unchanged apart from assertion counting wrappers. Full update/outcome inputs and every source snapshot are retained; additional pure snapshots after updates expose intermediate state.",
+    "limits": {
+      "trackers": 128,
+      "outcomes": 32,
+      "steps_per_tracker": 256,
+      "total_steps": 4096,
+      "value_bytes": 65536,
+      "corpus_bytes": 1048576,
+      "depth": 32,
+      "value_nodes": 4096
+    },
+    "adaptations": [
+      "JavaScript Number values compare to native JSON numbers by exact f64 value, accepting 6 and 6.0 but no tolerance, rounding, missing keys, or array reordering.",
+      "Only own object fields whose original value is undefined are omitted for native JSON; every path is retained. No selected assertion checks own-property identity.",
+      "Plain JavaScript object prototype isolation maps to independent native JSON maps; no JavaScript prototype or ESM embedding compatibility is claimed.",
+      "Native snapshots are owned detached Values; explicit native mutation checks supplement the unchanged source callback mutations.",
+      "Snapshot reads after each update additionally expose complete intermediate state. They do not replace or remove any original source snapshot/assertion."
+    ],
+    "undefined_fields": {
+      "update_paths": 46,
+      "outcome_paths": 5,
+      "rule": "Own undefined object fields omitted at native JSON boundary and each exact path retained; no selected own-property assertion."
+    }
+  },
+  "native_method": {
+    "source": {
+      "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+      "sha256": "eee837a994bff7748a78988068abd19c02734151e095e0806d1c6b0cfabe8385",
+      "bytes": 13539
+    },
+    "operations": [
+      "SavingsTracker::default/new",
+      "SavingsTracker::update",
+      "SavingsTracker::snapshot",
+      "estimate_outcome_savings"
+    ],
+    "comparison": "All original values and complete intermediate snapshots; exact f64 number equality accepts integral/floating representations with identical JavaScript Number value only. No numeric tolerance, rounding, omitted keys or reordered arrays.",
+    "inventory": "Pinned SHA plus exact68cases/47trackers/21outcomes/525steps, unique IDs, per-definition counts and ordered capture-to-corpus links.",
+    "negative_control": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#replay_rejects_forged_costs_incomplete_schedules_and_recomputed_corpus_hashes",
+    "negative_cases": [
+      "wrong expected actual cost",
+      "missing request_complete replaced by ignored event",
+      "guessed priced saved outcome",
+      "missing schedule",
+      "duplicate ID",
+      "self-consistent changed input with recomputed corpus hash",
+      "corpus above1MiB",
+      "near-zero nonzero difference",
+      "extra key",
+      "array reordering",
+      "string-number mismatch"
+    ],
+    "production_changes": false,
+    "native_macro": "source_test expands each explicitly named numbered definition into an independent test; all15 names occur in retained native output."
+  },
+  "evidence": {
+    "native": {
+      "path": "artifacts/rust-rewrite/evidence/7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107.log",
+      "sha256": "7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107",
+      "bytes": 1685,
+      "original_path": "artifacts/rust-rewrite/savings-finite-3/native.log"
+    },
+    "frozen_controls": {
+      "path": "artifacts/rust-rewrite/evidence/94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187.log",
+      "sha256": "94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187",
+      "bytes": 3272,
+      "original_path": "artifacts/rust-rewrite/savings-finite-3/frozen-controls.log"
+    },
+    "clippy": {
+      "path": "artifacts/rust-rewrite/evidence/ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4.log",
+      "sha256": "ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4",
+      "bytes": 172,
+      "original_path": "artifacts/rust-rewrite/savings-finite-3/clippy.log"
+    },
+    "capture_repeat": {
+      "path": "artifacts/rust-rewrite/evidence/2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25.json",
+      "sha256": "2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25",
+      "bytes": 702,
+      "original_path": "artifacts/rust-rewrite/savings-finite-3/capture-checks.json"
+    },
+    "initial_native_failure": {
+      "path": "artifacts/rust-rewrite/evidence/8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754.log",
+      "sha256": "8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754",
+      "bytes": 9177,
+      "original_path": "artifacts/rust-rewrite/savings-finite-2/native-initial.log"
+    },
+    "validation": {
+      "path": "artifacts/rust-rewrite/evidence/86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7.json",
+      "sha256": "86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7",
+      "bytes": 3574,
+      "original_path": "/private/tmp/autorouter-savings-finite-validation.json"
+    }
+  },
+  "current_sources": [
+    {
+      "path": "rust/parity/capture-savings-finite-contracts.mjs",
+      "sha256": "fee5ba81a2e460e9d30b77a22f28fe35fd1dc61b8427ffe819e4a24cbc8a81d0",
+      "bytes": 11426
+    },
+    {
+      "path": "rust/parity/cases/savings-finite-contracts.jsonl",
+      "sha256": "a21e7d67a339695afaa9ed792e4888d750964f53f524f9c509596236d3357789",
+      "bytes": 293769
+    },
+    {
+      "path": "rust/parity/cases/savings-finite-contracts.capture.json",
+      "sha256": "c2dbd0b1bdd14a06362b8fd3d429e7f9bad538c70861cabb46c283c7f002823b",
+      "bytes": 30151
+    },
+    {
+      "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+      "sha256": "eee837a994bff7748a78988068abd19c02734151e095e0806d1c6b0cfabe8385",
+      "bytes": 13539
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/savings.rs",
+      "sha256": "412da2b6cc87f7b0bcf85f29be57948b2e097064c8128902666123392aa8492c",
+      "bytes": 34419
+    }
+  ],
+  "rows": [
+    {
+      "id": "test/savings.test.mjs#1",
+      "file": "test/savings.test.mjs",
+      "name": "compares provider-confirmed token usage with Opus and exposes only aggregate estimates",
+      "baseline_file_sha256": "e0fbfb074a8f06267efbca6d17cf7431577acbd373c376949b593e6a58e651cd",
+      "definition_sha256": "1baf927e5532beef80bb2036122c9a04ed4de2bdaa36ceadfd6d8741d947920b",
+      "statement_sha256": "3e80b6ac9173237948a4e9ce341234afb30d81a44d02863a33856bef58a766fc",
+      "hash_scope": "definition_sha256 is exact original AST call; statement_sha256 includes semicolon; each assertion hash covers unchanged assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_unchanged_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#provider_confirmed_usage_settles_only_at_completion_and_keeps_aggregate_privacy"
+      ],
+      "shared_cases": [
+        "savings-finite-1-1"
+      ],
+      "assertions": [
+        {
+          "line": 28,
+          "expression": "assert.equal(current(tracker).requests, 0)",
+          "sha256": "6a5ae9cf6f81191bab416652b2b8f018ef957e7f454b084079742f642044d9a9",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#provider_confirmed_usage_settles_only_at_completion_and_keeps_aggregate_privacy",
+            "shared_cases_pointer": "#/rows/0/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#1:assert-1",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 30,
+          "expression": "assert.deepEqual(current(tracker), { baseline_model: OPUS, actual_usd: 6, baseline_usd: 24,\n    saved_usd: 18, percent: 75, requests: 1, unpriced_requests: 0, unpriced_reasons: {},\n    pricing_version: PRICING_VERSION, pricing_date: PRICING_DATE, pricing_source: PRICING_SOURCE })",
+          "sha256": "01809556589d68f25aaa33278e3abcafb796d07a86fbef53b75aaac67201e09d",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#provider_confirmed_usage_settles_only_at_completion_and_keeps_aggregate_privacy",
+            "shared_cases_pointer": "#/rows/0/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#1:assert-2",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 33,
+          "expression": "assert.equal(JSON.stringify(tracker.snapshot()).includes('SECRET'), false)",
+          "sha256": "8dc04b1f0e05982cadf88bd0a888a65f31e2aac36de50ed7f056f6e5fad83792",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#provider_confirmed_usage_settles_only_at_completion_and_keeps_aggregate_privacy",
+            "shared_cases_pointer": "#/rows/0/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#1:assert-3",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 34,
+          "expression": "assert.equal(JSON.stringify(tracker.snapshot()).includes('input_tokens'), false)",
+          "sha256": "f6b4e00dbbb0985f6e1964b121326cb5c891d7aa909816e2aab92e28d3126df8",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#provider_confirmed_usage_settles_only_at_completion_and_keeps_aggregate_privacy",
+            "shared_cases_pointer": "#/rows/0/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#1:assert-4",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/savings.test.mjs#2",
+      "file": "test/savings.test.mjs",
+      "name": "prices cache reads and both write TTLs without counting cached input twice",
+      "baseline_file_sha256": "e0fbfb074a8f06267efbca6d17cf7431577acbd373c376949b593e6a58e651cd",
+      "definition_sha256": "eed2b1d04a032df9b6dc17ffd897935fbcaf47198e3e790a6dbd36ef3a78da28",
+      "statement_sha256": "48f5951062b0e9a00e0a489bd05bcc8764a8553416269ca41e3bbfe8fb2438c9",
+      "hash_scope": "definition_sha256 is exact original AST call; statement_sha256 includes semicolon; each assertion hash covers unchanged assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_unchanged_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#cache_reads_both_write_ttls_and_accumulated_percentage_match"
+      ],
+      "shared_cases": [
+        "savings-finite-2-1"
+      ],
+      "assertions": [
+        {
+          "line": 43,
+          "expression": "assert.equal(result.actual_usd, 0.003755)",
+          "sha256": "a51088a87307c638f9b67fbed89d014bc90898145ea0fb66c170045aa7cbda48",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#cache_reads_both_write_ttls_and_accumulated_percentage_match",
+            "shared_cases_pointer": "#/rows/1/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#2:assert-1",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 44,
+          "expression": "assert.equal(result.baseline_usd, 0.01496)",
+          "sha256": "046fa0b67a7ca93d0f8bd09faf42cc74c5dc8b116650bdf63f0f6687a3b35430",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#cache_reads_both_write_ttls_and_accumulated_percentage_match",
+            "shared_cases_pointer": "#/rows/1/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#2:assert-2",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 45,
+          "expression": "assert.equal(result.saved_usd, 0.011205)",
+          "sha256": "d9bf51cb06b6fb0d2d451c7e7b74012a1ba3ee0eaf761a20c3dbba76fc97f0e9",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#cache_reads_both_write_ttls_and_accumulated_percentage_match",
+            "shared_cases_pointer": "#/rows/1/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#2:assert-3",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 46,
+          "expression": "assert.equal(result.percent, 0.011205 / 0.01496 * 100)",
+          "sha256": "037b4358c58b081a4d52d88cbe2ee92cc7e68954b166db921280221ba2797719",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#cache_reads_both_write_ttls_and_accumulated_percentage_match",
+            "shared_cases_pointer": "#/rows/1/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#2:assert-4",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 49,
+          "expression": "assert.equal(current(tracker).actual_usd, 0.203755)",
+          "sha256": "0a3cbb767b236b56a018839ca27951caa05fee8f9cd9fda78db5acb1540ebc3f",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#cache_reads_both_write_ttls_and_accumulated_percentage_match",
+            "shared_cases_pointer": "#/rows/1/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#2:assert-5",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 50,
+          "expression": "assert.equal(current(tracker).baseline_usd, 0.21496)",
+          "sha256": "2155c97d9cf21b791790a21aae0e80b517857cd66717cdb8e818cd115ed812c6",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#cache_reads_both_write_ttls_and_accumulated_percentage_match",
+            "shared_cases_pointer": "#/rows/1/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#2:assert-6",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 51,
+          "expression": "assert.equal(current(tracker).saved_usd, 0.011205)",
+          "sha256": "f8206a99a93c66a798324d0b73a8b270f07d001543f2085414d72361c3bd8a5f",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#cache_reads_both_write_ttls_and_accumulated_percentage_match",
+            "shared_cases_pointer": "#/rows/1/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#2:assert-7",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/savings.test.mjs#3",
+      "file": "test/savings.test.mjs",
+      "name": "supports documented exact aliases, an Opus baseline override, and negative savings",
+      "baseline_file_sha256": "e0fbfb074a8f06267efbca6d17cf7431577acbd373c376949b593e6a58e651cd",
+      "definition_sha256": "b0fe2a52b7d1fb5350dcbdbee0782d554e7d1381100a7ffc45dca7490bd0bc97",
+      "statement_sha256": "b77a1db790b3acec8056386ff6f782932234ca0f5a12c8261310c293f2584df6",
+      "hash_scope": "definition_sha256 is exact original AST call; statement_sha256 includes semicolon; each assertion hash covers unchanged assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_unchanged_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#all_exact_aliases_baseline_override_and_negative_savings_match"
+      ],
+      "shared_cases": [
+        "savings-finite-3-1",
+        "savings-finite-3-2",
+        "savings-finite-3-3",
+        "savings-finite-3-4",
+        "savings-finite-3-5",
+        "savings-finite-3-6",
+        "savings-finite-3-7",
+        "savings-finite-3-8"
+      ],
+      "assertions": [
+        {
+          "line": 58,
+          "expression": "assert.equal(current(tracker).requests, 1, model)",
+          "sha256": "7b6c53bded6791ed8c8f778811ac2adffe0feadcf27c5953f7c6e6d5a1efc54c",
+          "expanded_executions": 6,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#all_exact_aliases_baseline_override_and_negative_savings_match",
+            "shared_cases_pointer": "#/rows/2/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#3:assert-1",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 62,
+          "expression": "assert.equal(current(original).saved_usd, 24)",
+          "sha256": "486b6adc75fa16028672fa8ddd5e5fbeb3e1a50ac0ee746260c3db752adbbb6c",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#all_exact_aliases_baseline_override_and_negative_savings_match",
+            "shared_cases_pointer": "#/rows/2/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#3:assert-2",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 63,
+          "expression": "assert.equal(current(original).percent, 80)",
+          "sha256": "49ab125e947a777c9fa8723eaa9846ff6848aa3c20c792dbaa02ab9a9b6662be",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#all_exact_aliases_baseline_override_and_negative_savings_match",
+            "shared_cases_pointer": "#/rows/2/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#3:assert-3",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 66,
+          "expression": "assert.equal(current(moreExpensive).saved_usd, -6)",
+          "sha256": "789baa8ca72bd6be2848585c6233fdd6b4aa0fde55bd63b454501322a51a4442",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#all_exact_aliases_baseline_override_and_negative_savings_match",
+            "shared_cases_pointer": "#/rows/2/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#3:assert-4",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 67,
+          "expression": "assert.equal(current(moreExpensive).percent, -25)",
+          "sha256": "f20e7997afb93f134eb0c7fccb88ed958dc5a759f03eeeb8b06cd4e3218af7da",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#all_exact_aliases_baseline_override_and_negative_savings_match",
+            "shared_cases_pointer": "#/rows/2/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#3:assert-5",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/savings.test.mjs#4",
+      "file": "test/savings.test.mjs",
+      "name": "includes main, subagent and auxiliary calls and settles overlapping requests independently",
+      "baseline_file_sha256": "e0fbfb074a8f06267efbca6d17cf7431577acbd373c376949b593e6a58e651cd",
+      "definition_sha256": "1cd2896cb3936076f030bbd36bf307a7890e812d105fd23be6b775fb928f6f1b",
+      "statement_sha256": "cbfbd678215be7b6a79d35d12bf54dc6748831d45e8ee1c70083b34b8f18235a",
+      "hash_scope": "definition_sha256 is exact original AST call; statement_sha256 includes semicolon; each assertion hash covers unchanged assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_unchanged_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#overlapping_main_subagent_and_auxiliary_requests_settle_independently"
+      ],
+      "shared_cases": [
+        "savings-finite-4-1"
+      ],
+      "assertions": [
+        {
+          "line": 85,
+          "expression": "assert.equal(current(tracker).requests, 3)",
+          "sha256": "588a91422f98d02177b82bc0473a412d7451ac6dfcf4f27f9415908f622d5168",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#overlapping_main_subagent_and_auxiliary_requests_settle_independently",
+            "shared_cases_pointer": "#/rows/3/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#4:assert-1",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 86,
+          "expression": "assert.equal(current(tracker).actual_usd, 42)",
+          "sha256": "20e0bf962ee2b7d483f9bb175a71d3e8ef0769ffa0888acfdcc9f42576f6c1e2",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#overlapping_main_subagent_and_auxiliary_requests_settle_independently",
+            "shared_cases_pointer": "#/rows/3/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#4:assert-2",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 87,
+          "expression": "assert.equal(current(tracker).baseline_usd, 72)",
+          "sha256": "0cba9eb4eeb82207d57d7cede5b86aff83e3e1092679094fa86bc907b5f90d3d",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#overlapping_main_subagent_and_auxiliary_requests_settle_independently",
+            "shared_cases_pointer": "#/rows/3/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#4:assert-3",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 88,
+          "expression": "assert.equal(current(tracker).saved_usd, 30)",
+          "sha256": "9aee32ed7318a72807c92718a071ccc43d301d592fa314ec302c14898bb495a8",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#overlapping_main_subagent_and_auxiliary_requests_settle_independently",
+            "shared_cases_pointer": "#/rows/3/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#4:assert-4",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/savings.test.mjs#5",
+      "file": "test/savings.test.mjs",
+      "name": "keeps sessions isolated and rejects malformed IDs without prototype pollution",
+      "baseline_file_sha256": "e0fbfb074a8f06267efbca6d17cf7431577acbd373c376949b593e6a58e651cd",
+      "definition_sha256": "a7bb15275f7fee96fadbc5bf7bea610cdd3c8206a31ece6ab4d6cc0a05d30c5c",
+      "statement_sha256": "22b17adb7cb3cecb2e5c5e1e40a656da80925f72bd4e2a7f095d5b02bb18fc4c",
+      "hash_scope": "definition_sha256 is exact original AST call; statement_sha256 includes semicolon; each assertion hash covers unchanged assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_unchanged_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#sessions_and_literal_prototype_keys_remain_isolated"
+      ],
+      "shared_cases": [
+        "savings-finite-5-1"
+      ],
+      "assertions": [
+        {
+          "line": 98,
+          "expression": "assert.equal(Object.keys(snapshot).length, 5)",
+          "sha256": "c7c8b89e3fc3694537e6ba3c312f979de0feebb17ab443c1333c9afb843ae8d9",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#sessions_and_literal_prototype_keys_remain_isolated",
+            "shared_cases_pointer": "#/rows/4/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#5:assert-1",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers. Literal __proto__/constructor keys stay independent map keys; explicit native fresh-map/tracker isolation replaces JavaScript prototype mechanics."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 99,
+          "expression": "assert.equal(snapshot['session-b'].actual_usd, 12)",
+          "sha256": "b89a1865e2fcfb22ff9a5253ef78530dfdec454ea1ff455ee1c91b6adc368750",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#sessions_and_literal_prototype_keys_remain_isolated",
+            "shared_cases_pointer": "#/rows/4/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#5:assert-2",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers. Literal __proto__/constructor keys stay independent map keys; explicit native fresh-map/tracker isolation replaces JavaScript prototype mechanics."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 100,
+          "expression": "assert.equal(snapshot.__proto__.actual_usd, 6)",
+          "sha256": "895f2ad340403ce771e635b470ddd4303c60cdcb3da408b696ef6f8e0094b676",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#sessions_and_literal_prototype_keys_remain_isolated",
+            "shared_cases_pointer": "#/rows/4/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#5:assert-3",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers. Literal __proto__/constructor keys stay independent map keys; explicit native fresh-map/tracker isolation replaces JavaScript prototype mechanics."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 101,
+          "expression": "assert.equal({}.actual_usd, undefined)",
+          "sha256": "83c426a3a96e771ab01aa3d58c6120d20e64f73414c3eb2924b9a47656064500",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#sessions_and_literal_prototype_keys_remain_isolated",
+            "shared_cases_pointer": "#/rows/4/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#5:assert-4",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers. Literal __proto__/constructor keys stay independent map keys; explicit native fresh-map/tracker isolation replaces JavaScript prototype mechanics."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 102,
+          "expression": "assert.equal(current(tracker).requests, 1)",
+          "sha256": "03d97051c43cc537e57433f73b710a49c7be27d93f2406e9cc14eb2f753f8d33",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#sessions_and_literal_prototype_keys_remain_isolated",
+            "shared_cases_pointer": "#/rows/4/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#5:assert-5",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers. Literal __proto__/constructor keys stay independent map keys; explicit native fresh-map/tracker isolation replaces JavaScript prototype mechanics."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/savings.test.mjs#6",
+      "file": "test/savings.test.mjs",
+      "name": "duplicate events and terminal notifications do not count the same request twice",
+      "baseline_file_sha256": "e0fbfb074a8f06267efbca6d17cf7431577acbd373c376949b593e6a58e651cd",
+      "definition_sha256": "1139614570bbe78e9b6271541e36b3dec5ea75d53f4fc71bc9c5a923a1be7214",
+      "statement_sha256": "cd1e0e889931734964711f19ea2fa679bee711ae752ead0435bedb5daf2405a4",
+      "hash_scope": "definition_sha256 is exact original AST call; statement_sha256 includes semicolon; each assertion hash covers unchanged assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_unchanged_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#duplicate_terminals_and_detached_snapshot_mutation_do_not_change_totals"
+      ],
+      "shared_cases": [
+        "savings-finite-6-1"
+      ],
+      "assertions": [
+        {
+          "line": 115,
+          "expression": "assert.equal(current(tracker).requests, 1)",
+          "sha256": "03d97051c43cc537e57433f73b710a49c7be27d93f2406e9cc14eb2f753f8d33",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#duplicate_terminals_and_detached_snapshot_mutation_do_not_change_totals",
+            "shared_cases_pointer": "#/rows/5/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#6:assert-1",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers. verify_snapshot independently mutates owned aggregate costs and nested reasons, then requires unchanged tracker state."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 116,
+          "expression": "assert.equal(current(tracker).unpriced_requests, 0)",
+          "sha256": "d8fe6ba72bc5859b89ee3dc5f6fc151bf902c9e6d11bb8422bd2e1ff383fb853",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#duplicate_terminals_and_detached_snapshot_mutation_do_not_change_totals",
+            "shared_cases_pointer": "#/rows/5/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#6:assert-2",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers. verify_snapshot independently mutates owned aggregate costs and nested reasons, then requires unchanged tracker state."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 119,
+          "expression": "assert.equal(current(tracker).actual_usd, 6)",
+          "sha256": "1dbae3d9e9529f2180958a1aeef3dc514409018d468c9c5df197d56596c49234",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#duplicate_terminals_and_detached_snapshot_mutation_do_not_change_totals",
+            "shared_cases_pointer": "#/rows/5/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#6:assert-3",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers. verify_snapshot independently mutates owned aggregate costs and nested reasons, then requires unchanged tracker state."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/savings.test.mjs#7",
+      "file": "test/savings.test.mjs",
+      "name": "unknown models or a custom non-Opus baseline remain unpriced",
+      "baseline_file_sha256": "e0fbfb074a8f06267efbca6d17cf7431577acbd373c376949b593e6a58e651cd",
+      "definition_sha256": "3edd14497526f9e8f0eb1bff2ad39ebfeca3d3784e11fbda0df4d4fcd1edff2f",
+      "statement_sha256": "b64e7b8623080d2a4716c902de0057808a66b937d1f849c45827fce474e07790",
+      "hash_scope": "definition_sha256 is exact original AST call; statement_sha256 includes semicolon; each assertion hash covers unchanged assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_unchanged_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#unknown_models_and_invalid_baselines_never_guess_prices"
+      ],
+      "shared_cases": [
+        "savings-finite-7-1",
+        "savings-finite-7-2",
+        "savings-finite-7-3",
+        "savings-finite-7-4",
+        "savings-finite-7-5",
+        "savings-finite-7-6",
+        "savings-finite-7-7"
+      ],
+      "assertions": [
+        {
+          "line": 130,
+          "expression": "assert.equal(current(tracker).requests, 0)",
+          "sha256": "6a5ae9cf6f81191bab416652b2b8f018ef957e7f454b084079742f642044d9a9",
+          "expanded_executions": 4,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#unknown_models_and_invalid_baselines_never_guess_prices",
+            "shared_cases_pointer": "#/rows/6/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#7:assert-1",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 131,
+          "expression": "assert.equal(current(tracker).unpriced_requests, 1)",
+          "sha256": "792fae5a0cc8d02e2d94445d293f11dbe4405bfe596eeb3ecc83a30ab8bb1f2a",
+          "expanded_executions": 4,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#unknown_models_and_invalid_baselines_never_guess_prices",
+            "shared_cases_pointer": "#/rows/6/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#7:assert-2",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 136,
+          "expression": "assert.equal(current(tracker).unpriced_requests, 1)",
+          "sha256": "792fae5a0cc8d02e2d94445d293f11dbe4405bfe596eeb3ecc83a30ab8bb1f2a",
+          "expanded_executions": 3,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#unknown_models_and_invalid_baselines_never_guess_prices",
+            "shared_cases_pointer": "#/rows/6/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#7:assert-3",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 137,
+          "expression": "assert.equal(current(tracker).baseline_usd, 0)",
+          "sha256": "93649e8a675554252bde249ae919a9bbb51b1890feafe4d98fdbf3381d2c58ad",
+          "expanded_executions": 3,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#unknown_models_and_invalid_baselines_never_guess_prices",
+            "shared_cases_pointer": "#/rows/6/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#7:assert-4",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/savings.test.mjs#9",
+      "file": "test/savings.test.mjs",
+      "name": "accepts explicit zero usage and a complete TTL split without an aggregate field",
+      "baseline_file_sha256": "e0fbfb074a8f06267efbca6d17cf7431577acbd373c376949b593e6a58e651cd",
+      "definition_sha256": "fe070fc5c2d5777c6b345fdec3c043ae93208ffc3bdf0411853a1e1db6bcedb9",
+      "statement_sha256": "35da22e86bc15628b015bc8f67449c4a3297647d738c7aaf3befa7b269ac27f9",
+      "hash_scope": "definition_sha256 is exact original AST call; statement_sha256 includes semicolon; each assertion hash covers unchanged assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_unchanged_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#zero_usage_and_split_only_cache_creation_match"
+      ],
+      "shared_cases": [
+        "savings-finite-9-1"
+      ],
+      "assertions": [
+        {
+          "line": 164,
+          "expression": "assert.equal(current(tracker).percent, 0)",
+          "sha256": "80739c1f80a3b23aba0b3f9fd2a8571be3563be36cf14ae70a3c402931e043fc",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#zero_usage_and_split_only_cache_creation_match",
+            "shared_cases_pointer": "#/rows/7/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#9:assert-1",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 165,
+          "expression": "assert.equal(current(tracker).requests, 1)",
+          "sha256": "03d97051c43cc537e57433f73b710a49c7be27d93f2406e9cc14eb2f753f8d33",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#zero_usage_and_split_only_cache_creation_match",
+            "shared_cases_pointer": "#/rows/7/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#9:assert-2",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 168,
+          "expression": "assert.equal(current(tracker).actual_usd, 2)",
+          "sha256": "f3571d37d4ce415b3c02c6ebadc9fa87ce2c2428bb7f005d1065ba5d45b9d323",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#zero_usage_and_split_only_cache_creation_match",
+            "shared_cases_pointer": "#/rows/7/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#9:assert-3",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 169,
+          "expression": "assert.equal(current(tracker).baseline_usd, 8)",
+          "sha256": "4d1c1293cccd97679c17f82b566d5cd38d5733d3752853e2acbbc83682441110",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#zero_usage_and_split_only_cache_creation_match",
+            "shared_cases_pointer": "#/rows/7/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#9:assert-4",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/savings.test.mjs#10",
+      "file": "test/savings.test.mjs",
+      "name": "unsupported request or actual usage pricing modifiers remain unpriced",
+      "baseline_file_sha256": "e0fbfb074a8f06267efbca6d17cf7431577acbd373c376949b593e6a58e651cd",
+      "definition_sha256": "ab29345fc8e3b9c5227e1f70642206dfffa62aa7ad71727ab26ef26b9b5dbebd",
+      "statement_sha256": "d7cb45e0ebaf5483f10902aedef81b69d13dd6643646ec2cd237e5bdfce69952",
+      "hash_scope": "definition_sha256 is exact original AST call; statement_sha256 includes semicolon; each assertion hash covers unchanged assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_unchanged_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#request_and_actual_usage_modifiers_have_exact_unpriced_behavior"
+      ],
+      "shared_cases": [
+        "savings-finite-10-1",
+        "savings-finite-10-2",
+        "savings-finite-10-3",
+        "savings-finite-10-4",
+        "savings-finite-10-5",
+        "savings-finite-10-6",
+        "savings-finite-10-7",
+        "savings-finite-10-8",
+        "savings-finite-10-9"
+      ],
+      "assertions": [
+        {
+          "line": 179,
+          "expression": "assert.equal(current(tracker).unpriced_requests, 2, JSON.stringify(context))",
+          "sha256": "45a368db9d6e9744557456c95b899d0124ebc51a4cb8039ec8ac30fb28b3c435",
+          "expanded_executions": 8,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#request_and_actual_usage_modifiers_have_exact_unpriced_behavior",
+            "shared_cases_pointer": "#/rows/8/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#10:assert-1",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 180,
+          "expression": "assert.equal(current(tracker).requests, 0)",
+          "sha256": "6a5ae9cf6f81191bab416652b2b8f018ef957e7f454b084079742f642044d9a9",
+          "expanded_executions": 8,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#request_and_actual_usage_modifiers_have_exact_unpriced_behavior",
+            "shared_cases_pointer": "#/rows/8/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#10:assert-2",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 185,
+          "expression": "assert.equal(current(tracker).requests, 1)",
+          "sha256": "03d97051c43cc537e57433f73b710a49c7be27d93f2406e9cc14eb2f753f8d33",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#request_and_actual_usage_modifiers_have_exact_unpriced_behavior",
+            "shared_cases_pointer": "#/rows/8/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#10:assert-3",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/savings.test.mjs#11",
+      "file": "test/savings.test.mjs",
+      "name": "prices Haiku 4.5 unavailable geography at its documented standard rate only",
+      "baseline_file_sha256": "e0fbfb074a8f06267efbca6d17cf7431577acbd373c376949b593e6a58e651cd",
+      "definition_sha256": "6d4de16df05e644c3548fe3ce8e1bf3f08da98a4b1a3884acd0cb5a6e75bdf0a",
+      "statement_sha256": "1d373f13a531a2313e3475a0013b94a45fc3b090ba24106172552ebd4f4fc5af",
+      "hash_scope": "definition_sha256 is exact original AST call; statement_sha256 includes semicolon; each assertion hash covers unchanged assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_unchanged_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#unavailable_geography_is_limited_to_exact_haiku_models"
+      ],
+      "shared_cases": [
+        "savings-finite-11-1",
+        "savings-finite-11-2",
+        "savings-finite-11-3",
+        "savings-finite-11-4",
+        "savings-finite-11-5",
+        "savings-finite-11-6",
+        "savings-finite-11-7",
+        "savings-finite-11-8"
+      ],
+      "assertions": [
+        {
+          "line": 192,
+          "expression": "assert.equal(current(tracker).requests, 1)",
+          "sha256": "03d97051c43cc537e57433f73b710a49c7be27d93f2406e9cc14eb2f753f8d33",
+          "expanded_executions": 2,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#unavailable_geography_is_limited_to_exact_haiku_models",
+            "shared_cases_pointer": "#/rows/9/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#11:assert-1",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 193,
+          "expression": "assert.equal(current(tracker).actual_usd, 6)",
+          "sha256": "1dbae3d9e9529f2180958a1aeef3dc514409018d468c9c5df197d56596c49234",
+          "expanded_executions": 2,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#unavailable_geography_is_limited_to_exact_haiku_models",
+            "shared_cases_pointer": "#/rows/9/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#11:assert-2",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 194,
+          "expression": "assert.equal(current(tracker).baseline_usd, 24)",
+          "sha256": "5453bad2b6c6468e34203d9914cdc9e22cb61e1eb181cafc528d7f4921eea416",
+          "expanded_executions": 2,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#unavailable_geography_is_limited_to_exact_haiku_models",
+            "shared_cases_pointer": "#/rows/9/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#11:assert-3",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 195,
+          "expression": "assert.equal(current(tracker).percent, 75)",
+          "sha256": "87d886b827a97b1cb6f93fbe9e77d4ee9e344501ee80442d0ac8a5a5239ae287",
+          "expanded_executions": 2,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#unavailable_geography_is_limited_to_exact_haiku_models",
+            "shared_cases_pointer": "#/rows/9/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#11:assert-4",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 200,
+          "expression": "assert.equal(current(tracker).requests, 0, model)",
+          "sha256": "657308d04e38fd64685113e127cc8b0a443ee004b6acf070183a9a2b6f61c222",
+          "expanded_executions": 5,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#unavailable_geography_is_limited_to_exact_haiku_models",
+            "shared_cases_pointer": "#/rows/9/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#11:assert-5",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 201,
+          "expression": "assert.equal(current(tracker).unpriced_requests, 1, model)",
+          "sha256": "005025c28c97620ab72dd5e6f698b397292faad870f5dbc85893b679c1b729f3",
+          "expanded_executions": 5,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#unavailable_geography_is_limited_to_exact_haiku_models",
+            "shared_cases_pointer": "#/rows/9/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#11:assert-6",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 207,
+          "expression": "assert.equal(current(tracker).requests, 0)",
+          "sha256": "6a5ae9cf6f81191bab416652b2b8f018ef957e7f454b084079742f642044d9a9",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#unavailable_geography_is_limited_to_exact_haiku_models",
+            "shared_cases_pointer": "#/rows/9/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#11:assert-7",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 208,
+          "expression": "assert.equal(current(tracker).unpriced_requests, 3)",
+          "sha256": "e30e24ff83d60d3d39d6ea76b83904401a745d6c897b53ead1e2195ea44ef81c",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#unavailable_geography_is_limited_to_exact_haiku_models",
+            "shared_cases_pointer": "#/rows/9/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#11:assert-8",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/savings.test.mjs#12",
+      "file": "test/savings.test.mjs",
+      "name": "HTTP, streaming, transport and cancelled failures never appear as savings",
+      "baseline_file_sha256": "e0fbfb074a8f06267efbca6d17cf7431577acbd373c376949b593e6a58e651cd",
+      "definition_sha256": "e3747c83cc7b7b12fa2eeb341035a11eb8a71e44c2d9c779b7e39c80ba9b5fd9",
+      "statement_sha256": "34392f52f7cffcf137187ba9220b5f88d41588970f7e346e13dfccf12e54276e",
+      "hash_scope": "definition_sha256 is exact original AST call; statement_sha256 includes semicolon; each assertion hash covers unchanged assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_unchanged_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#http_streaming_transport_and_cancelled_failures_never_become_savings"
+      ],
+      "shared_cases": [
+        "savings-finite-12-1",
+        "savings-finite-12-2",
+        "savings-finite-12-3",
+        "savings-finite-12-4"
+      ],
+      "assertions": [
+        {
+          "line": 221,
+          "expression": "assert.equal(current(tracker).requests, 0)",
+          "sha256": "6a5ae9cf6f81191bab416652b2b8f018ef957e7f454b084079742f642044d9a9",
+          "expanded_executions": 4,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#http_streaming_transport_and_cancelled_failures_never_become_savings",
+            "shared_cases_pointer": "#/rows/10/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#12:assert-1",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 222,
+          "expression": "assert.equal(current(tracker).unpriced_requests, 1)",
+          "sha256": "792fae5a0cc8d02e2d94445d293f11dbe4405bfe596eeb3ecc83a30ab8bb1f2a",
+          "expanded_executions": 4,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#http_streaming_transport_and_cancelled_failures_never_become_savings",
+            "shared_cases_pointer": "#/rows/10/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#12:assert-2",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 223,
+          "expression": "assert.equal(current(tracker).saved_usd, 0)",
+          "sha256": "b4ca87ab4ef696a42053cb135880e73e062776793218def63fc02ff5b5d1eae5",
+          "expanded_executions": 4,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#http_streaming_transport_and_cancelled_failures_never_become_savings",
+            "shared_cases_pointer": "#/rows/10/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#12:assert-3",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/savings.test.mjs#13",
+      "file": "test/savings.test.mjs",
+      "name": "conflicting model or final usage observations invalidate the request",
+      "baseline_file_sha256": "e0fbfb074a8f06267efbca6d17cf7431577acbd373c376949b593e6a58e651cd",
+      "definition_sha256": "0925deaf02f393b00e4ca351d1aa26f96fae2f1216cb123407bfba8262642ee2",
+      "statement_sha256": "e15a99c97630f7ae372d7e8c352d7c9d1ed73a112203c86a18fb2095167b5e95",
+      "hash_scope": "definition_sha256 is exact original AST call; statement_sha256 includes semicolon; each assertion hash covers unchanged assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_unchanged_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#conflicting_model_and_usage_observations_invalidate_requests"
+      ],
+      "shared_cases": [
+        "savings-finite-13-1",
+        "savings-finite-13-2",
+        "savings-finite-13-3"
+      ],
+      "assertions": [
+        {
+          "line": 236,
+          "expression": "assert.equal(current(tracker).unpriced_requests, 1)",
+          "sha256": "792fae5a0cc8d02e2d94445d293f11dbe4405bfe596eeb3ecc83a30ab8bb1f2a",
+          "expanded_executions": 3,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#conflicting_model_and_usage_observations_invalidate_requests",
+            "shared_cases_pointer": "#/rows/11/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#13:assert-1",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/savings.test.mjs#19",
+      "file": "test/savings.test.mjs",
+      "name": "unpriced reasons are bounded aggregate counts, detached from tracker state",
+      "baseline_file_sha256": "e0fbfb074a8f06267efbca6d17cf7431577acbd373c376949b593e6a58e651cd",
+      "definition_sha256": "fabebba9ff68cc7e22ce89f64c7b0ee19b1f6851e282be053cef6cf43a87c72b",
+      "statement_sha256": "ea546ca54506b507cc1e805b8f806d21c6bd4a5835a4f744a88c63018a3beb06",
+      "hash_scope": "definition_sha256 is exact original AST call; statement_sha256 includes semicolon; each assertion hash covers unchanged assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_unchanged_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#unpriced_reason_counts_remain_detached_and_private"
+      ],
+      "shared_cases": [
+        "savings-finite-19-1"
+      ],
+      "assertions": [
+        {
+          "line": 303,
+          "expression": "assert.deepEqual(current(tracker).unpriced_reasons, { request_failed: 1, unknown_model: 1, invalid_usage: 2, unsupported_pricing: 1 })",
+          "sha256": "8fec4406c163d7416d4413337570b9e2ea07d843a8709ec73c3211237c31e51d",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#unpriced_reason_counts_remain_detached_and_private",
+            "shared_cases_pointer": "#/rows/12/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#19:assert-1",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers. verify_snapshot independently mutates owned aggregate costs and nested reasons, then requires unchanged tracker state."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 306,
+          "expression": "assert.equal(current(tracker).unpriced_reasons.invalid_usage, 2)",
+          "sha256": "5977564fc96d464993c274a7e9a4031e67c7f67de1c3c0b905f3fa6eb21b0e93",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#unpriced_reason_counts_remain_detached_and_private",
+            "shared_cases_pointer": "#/rows/12/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#19:assert-2",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers. verify_snapshot independently mutates owned aggregate costs and nested reasons, then requires unchanged tracker state."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 307,
+          "expression": "assert.equal(JSON.stringify(result).includes('private secret'), false)",
+          "sha256": "e8fa1c407cf54a5343379ce361292cd2805008ea0dae0ba1a4b6524bde123f4c",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#unpriced_reason_counts_remain_detached_and_private",
+            "shared_cases_pointer": "#/rows/12/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#19:assert-3",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers. verify_snapshot independently mutates owned aggregate costs and nested reasons, then requires unchanged tracker state."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/savings.test.mjs#20",
+      "file": "test/savings.test.mjs",
+      "name": "mixed serving models remain unpriced even when their rate tables are identical",
+      "baseline_file_sha256": "e0fbfb074a8f06267efbca6d17cf7431577acbd373c376949b593e6a58e651cd",
+      "definition_sha256": "98cf28ddb23e9e1cb06f9067224086ffee18bc2ede4b441c7b4dbcbebdb51047",
+      "statement_sha256": "81e657903519ead2694b43b4a75f5f52b96d1ab5c98ad28320004441dd223daa",
+      "hash_scope": "definition_sha256 is exact original AST call; statement_sha256 includes semicolon; each assertion hash covers unchanged assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_unchanged_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#distinct_serving_models_are_unpriced_even_with_identical_rates"
+      ],
+      "shared_cases": [
+        "savings-finite-20-1"
+      ],
+      "assertions": [
+        {
+          "line": 317,
+          "expression": "assert.deepEqual(current(tracker).unpriced_reasons, { mixed_models: 1 })",
+          "sha256": "5cfa3a4c99316d196668185d26e85d5109ef7f7f18653c55081f0dfff93db314",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#distinct_serving_models_are_unpriced_even_with_identical_rates",
+            "shared_cases_pointer": "#/rows/13/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#20:assert-1",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 318,
+          "expression": "assert.equal(current(tracker).requests, 0)",
+          "sha256": "6a5ae9cf6f81191bab416652b2b8f018ef957e7f454b084079742f642044d9a9",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#distinct_serving_models_are_unpriced_even_with_identical_rates",
+            "shared_cases_pointer": "#/rows/13/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#20:assert-2",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        },
+        {
+          "line": 319,
+          "expression": "assert.equal(current(tracker).saved_usd, 0)",
+          "sha256": "b4ca87ab4ef696a42053cb135880e73e062776793218def63fc02ff5b5d1eae5",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#distinct_serving_models_are_unpriced_even_with_identical_rates",
+            "shared_cases_pointer": "#/rows/13/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#20:assert-3",
+            "comparison": "Every original snapshot and all 421 post-update states compare as complete native objects; no omitted fields or approximate numbers."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 161,
+            "anchor": "verify_snapshot(&tracker, &step[\"expected_snapshot\"])?;"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/savings.test.mjs#22",
+      "file": "test/savings.test.mjs",
+      "name": "saved outcomes require their recorded pricing version, Opus baseline and confirmed completion",
+      "baseline_file_sha256": "e0fbfb074a8f06267efbca6d17cf7431577acbd373c376949b593e6a58e651cd",
+      "definition_sha256": "c98f41a07c79550acd3f7af425595204100e5105e3146f9f237fee2d8a4733ee",
+      "statement_sha256": "57eb5443fc7e191999f1dc3a4bdc07de30ff37dbcc51f4999b41c411c61eb3e5",
+      "hash_scope": "definition_sha256 is exact original AST call; statement_sha256 includes semicolon; each assertion hash covers unchanged assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_unchanged_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#saved_outcomes_require_recorded_provenance_and_confirmed_completion"
+      ],
+      "shared_cases": [
+        "savings-finite-22-1",
+        "savings-finite-22-2",
+        "savings-finite-22-3",
+        "savings-finite-22-4",
+        "savings-finite-22-5",
+        "savings-finite-22-6",
+        "savings-finite-22-7",
+        "savings-finite-22-8",
+        "savings-finite-22-9",
+        "savings-finite-22-10",
+        "savings-finite-22-11",
+        "savings-finite-22-12",
+        "savings-finite-22-13",
+        "savings-finite-22-14",
+        "savings-finite-22-15",
+        "savings-finite-22-16",
+        "savings-finite-22-17",
+        "savings-finite-22-18",
+        "savings-finite-22-19",
+        "savings-finite-22-20",
+        "savings-finite-22-21"
+      ],
+      "assertions": [
+        {
+          "line": 337,
+          "expression": "assert.deepEqual(estimateOutcomeSavings(outcome()), { priced: true, actual_usd: 6, baseline_usd: 24,\n    saved_usd: 18, percent: 75, baseline_model: OPUS, pricing_version: PRICING_VERSION })",
+          "sha256": "03c1a7121abf427ab179fcb4128e5bca5f8db4b6b916fda25b52a71c39d8d903",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#saved_outcomes_require_recorded_provenance_and_confirmed_completion",
+            "shared_cases_pointer": "#/rows/14/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#22:assert-1",
+            "comparison": "Every actual saved-outcome result compares as a complete object with exact pricing/reason values."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 167,
+            "anchor": "if !same_json(&estimate_outcome_savings(input), &row[\"expected\"]) {"
+          },
+          "remaining": []
+        },
+        {
+          "line": 339,
+          "expression": "assert.equal(estimateOutcomeSavings(outcome({ baseline_model: 'claude-opus-5' })).saved_usd, 24)",
+          "sha256": "7a0272389b1a3eda202cc785d6b57ec3f79d8401429808de6c2c5576c31cff6b",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#saved_outcomes_require_recorded_provenance_and_confirmed_completion",
+            "shared_cases_pointer": "#/rows/14/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#22:assert-2",
+            "comparison": "Every actual saved-outcome result compares as a complete object with exact pricing/reason values."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 167,
+            "anchor": "if !same_json(&estimate_outcome_savings(input), &row[\"expected\"]) {"
+          },
+          "remaining": []
+        },
+        {
+          "line": 360,
+          "expression": "assert.deepEqual(estimateOutcomeSavings(outcome(extra)), { priced: false, unpriced_reason: reason })",
+          "sha256": "c3355430758b3efa0e499971591f8e4b4f0f9db142122eac89b1b74068c05530",
+          "expanded_executions": 18,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#saved_outcomes_require_recorded_provenance_and_confirmed_completion",
+            "shared_cases_pointer": "#/rows/14/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#22:assert-3",
+            "comparison": "Every actual saved-outcome result compares as a complete object with exact pricing/reason values."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 167,
+            "anchor": "if !same_json(&estimate_outcome_savings(input), &row[\"expected\"]) {"
+          },
+          "remaining": []
+        },
+        {
+          "line": 361,
+          "expression": "assert.equal(estimateOutcomeSavings({ event: 'decision', request_id: 'legacy', requested_model: HAIKU,\n    selected_model: SONNET, schema_version: 1 }).unpriced_reason, 'invalid_telemetry')",
+          "sha256": "f687523b4f900ac02a5a9ab3ae846b05ebb7a08351f3d7c735874f4dcd5dc654",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#saved_outcomes_require_recorded_provenance_and_confirmed_completion",
+            "shared_cases_pointer": "#/rows/14/shared_cases",
+            "capture_assertion_id": "test/savings.test.mjs#22:assert-4",
+            "comparison": "Every actual saved-outcome result compares as a complete object with exact pricing/reason values."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+            "line": 167,
+            "anchor": "if !same_json(&estimate_outcome_savings(input), &row[\"expected\"]) {"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    }
+  ],
+  "preserved_boundaries": [
+    "No pricing update; exact dated frozen pricing version and provenance only.",
+    "Definitions8,14\u201318 unqualified by this finite batch; previously covered21 remains untouched.",
+    "Typed Rust JSON API is not an ESM/JavaScript prototype or accessor implementation.",
+    "No capacity/performance/real-provider/Keychain/platform/resource gate is inferred from these finite operations."
+  ],
+  "retained_sources": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/fee5ba81a2e460e9d30b77a22f28fe35fd1dc61b8427ffe819e4a24cbc8a81d0.mjs",
+      "sha256": "fee5ba81a2e460e9d30b77a22f28fe35fd1dc61b8427ffe819e4a24cbc8a81d0",
+      "bytes": 11426,
+      "original_path": "rust/parity/capture-savings-finite-contracts.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/a21e7d67a339695afaa9ed792e4888d750964f53f524f9c509596236d3357789.jsonl",
+      "sha256": "a21e7d67a339695afaa9ed792e4888d750964f53f524f9c509596236d3357789",
+      "bytes": 293769,
+      "original_path": "rust/parity/cases/savings-finite-contracts.jsonl"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/c2dbd0b1bdd14a06362b8fd3d429e7f9bad538c70861cabb46c283c7f002823b.json",
+      "sha256": "c2dbd0b1bdd14a06362b8fd3d429e7f9bad538c70861cabb46c283c7f002823b",
+      "bytes": 30151,
+      "original_path": "rust/parity/cases/savings-finite-contracts.capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/eee837a994bff7748a78988068abd19c02734151e095e0806d1c6b0cfabe8385.rs",
+      "sha256": "eee837a994bff7748a78988068abd19c02734151e095e0806d1c6b0cfabe8385",
+      "bytes": 13539,
+      "original_path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/412da2b6cc87f7b0bcf85f29be57948b2e097064c8128902666123392aa8492c.rs",
+      "sha256": "412da2b6cc87f7b0bcf85f29be57948b2e097064c8128902666123392aa8492c",
+      "bytes": 34419,
+      "original_path": "rust/crates/autorouter-core/src/savings.rs"
+    }
+  ],
+  "input_coverage": {
+    "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+    "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+    "bytes": 1434838,
+    "original_path": "rust/parity/coverage.json"
+  },
+  "status": "Reviewed finite assertion mapping; complete rewrite qualification remains open.",
+  "review": {
+    "proposal": {
+      "path": "artifacts/rust-rewrite/evidence/88a244ec23454286375fbb8415ef4ae3629945c4558d38f3d19c119161fed793.json",
+      "sha256": "88a244ec23454286375fbb8415ef4ae3629945c4558d38f3d19c119161fed793",
+      "bytes": 89357,
+      "original_path": "/private/tmp/autorouter-savings-finite-mapping-proposal.json"
+    },
+    "review": {
+      "path": "artifacts/rust-rewrite/evidence/d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62.json",
+      "sha256": "d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62",
+      "bytes": 3987,
+      "original_path": "/private/tmp/autorouter-savings-finite-root-review.json"
+    },
+    "independent_review": {
+      "path": "artifacts/rust-rewrite/evidence/c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f.json",
+      "sha256": "c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f",
+      "bytes": 10764,
+      "original_path": "/private/tmp/autorouter-savings-finite-independent-review.json"
+    }
+  },
+  "previous_coverage_rows": [
+    {
+      "id": "test/savings.test.mjs#1",
+      "file": "test/savings.test.mjs",
+      "name": "compares provider-confirmed token usage with Opus and exposes only aggregate estimates",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/savings.rs#savings::tests::exact_rates_cache_ttls_and_negative_savings_are_retained"
+      ],
+      "shared_cases": [
+        "accounting-3993",
+        "accounting-3995",
+        "accounting-3997"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Intermediate pre-completion zero totals, selected-versus-confirmed mismatch, and aggregate-only privacy are not jointly asserted by the retained tracker cases; native rate test covers the final ordinary estimate only."
+      ]
+    },
+    {
+      "id": "test/savings.test.mjs#2",
+      "file": "test/savings.test.mjs",
+      "name": "prices cache reads and both write TTLs without counting cached input twice",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/savings.rs#savings::tests::exact_rates_cache_ttls_and_negative_savings_are_retained"
+      ],
+      "shared_cases": [
+        "accounting-3993",
+        "accounting-3995",
+        "accounting-3997"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Native exact mixed-TTL values are asserted, but the second cache-read-only request and its cumulative actual/baseline/saved totals are not retained together."
+      ]
+    },
+    {
+      "id": "test/savings.test.mjs#3",
+      "file": "test/savings.test.mjs",
+      "name": "supports documented exact aliases, an Opus baseline override, and negative savings",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/savings.rs#savings::tests::exact_rates_cache_ttls_and_negative_savings_are_retained"
+      ],
+      "shared_cases": [
+        "accounting-3993",
+        "accounting-3995",
+        "accounting-3997"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "All six known model IDs and Opus baseline override are in differential cases; add the exact positive override percent=80 assertion and the complete baseline alias/result matrix as one auditable definition mapping."
+      ]
+    },
+    {
+      "id": "test/savings.test.mjs#4",
+      "file": "test/savings.test.mjs",
+      "name": "includes main, subagent and auxiliary calls and settles overlapping requests independently",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/savings.rs#savings::tests::overlapping_calls_and_duplicate_notifications_have_independent_settlement"
+      ],
+      "shared_cases": [
+        "accounting-3993",
+        "accounting-3995",
+        "accounting-3997"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Native overlapping settlement covers three models and order, but omits explicit agent_id/request_class main/subagent/auxiliary fields and the full baseline/saved totals assertions."
+      ]
+    },
+    {
+      "id": "test/savings.test.mjs#5",
+      "file": "test/savings.test.mjs",
+      "name": "keeps sessions isolated and rejects malformed IDs without prototype pollution",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/savings.rs#savings::tests::overlapping_calls_and_duplicate_notifications_have_independent_settlement"
+      ],
+      "shared_cases": [
+        "accounting-3993",
+        "accounting-3995",
+        "accounting-3997"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "The corpus varies anonymous/prototype/malformed session IDs separately. It does not retain the combined five-session snapshot, malformed request ID rejection, and unrelated-object pollution check from this definition."
+      ]
+    },
+    {
+      "id": "test/savings.test.mjs#6",
+      "file": "test/savings.test.mjs",
+      "name": "duplicate events and terminal notifications do not count the same request twice",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/savings.rs#savings::tests::overlapping_calls_and_duplicate_notifications_have_independent_settlement"
+      ],
+      "shared_cases": [
+        "accounting-3993",
+        "accounting-3995",
+        "accounting-3997"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Native tests cover late completion and detached snapshot mutation, but not the full repeated request_start/usage/terminal/upstream_error sequence and all aggregate counters."
+      ]
+    },
+    {
+      "id": "test/savings.test.mjs#7",
+      "file": "test/savings.test.mjs",
+      "name": "unknown models or a custom non-Opus baseline remain unpriced",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/savings.rs#savings::tests::malformed_usage_and_unsupported_modifiers_never_gain_a_guessed_price"
+      ],
+      "shared_cases": [
+        "accounting-3993",
+        "accounting-3995",
+        "accounting-3997"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "The corpus covers unknown/null/missing serving models and custom/non-Opus baselines. Exact future-date/opus99 aliases and escape-bearing baseline variants are absent."
+      ]
+    },
+    {
+      "id": "test/savings.test.mjs#9",
+      "file": "test/savings.test.mjs",
+      "name": "accepts explicit zero usage and a complete TTL split without an aggregate field",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/savings.rs#savings::tests::exact_rates_cache_ttls_and_negative_savings_are_retained"
+      ],
+      "shared_cases": [
+        "accounting-3993",
+        "accounting-3995",
+        "accounting-3997"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "TTL splits without aggregate are exercised; the all-zero input/output counters case with percent=0 and exact isolated one-hour-only total is not retained as an explicit tracker case."
+      ]
+    },
+    {
+      "id": "test/savings.test.mjs#10",
+      "file": "test/savings.test.mjs",
+      "name": "unsupported request or actual usage pricing modifiers remain unpriced",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/savings.rs#savings::tests::malformed_usage_and_unsupported_modifiers_never_gain_a_guessed_price"
+      ],
+      "shared_cases": [
+        "accounting-3993",
+        "accounting-3995",
+        "accounting-3997"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Unsupported context/usage variants exist, but batch/unknown service tier and each unsupported flag across both request and actual-usage locations plus the full standard triple are not all represented."
+      ]
+    },
+    {
+      "id": "test/savings.test.mjs#11",
+      "file": "test/savings.test.mjs",
+      "name": "prices Haiku 4.5 unavailable geography at its documented standard rate only",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/savings.rs#savings::tests::geography_exception_belongs_only_to_confirmed_haiku_usage"
+      ],
+      "shared_cases": [
+        "accounting-4379",
+        "accounting-4389",
+        "accounting-4780"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Unavailable geography is exercised for several exact models; missing the complete context-not_available plus actual null/unknown geography matrix and both Sonnet aliases in the native exception test."
+      ]
+    },
+    {
+      "id": "test/savings.test.mjs#12",
+      "file": "test/savings.test.mjs",
+      "name": "HTTP, streaming, transport and cancelled failures never appear as savings",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/savings.rs#savings::tests::errors_cancellation_and_unconfirmed_completion_never_count_as_savings"
+      ],
+      "shared_cases": [
+        "accounting-3993",
+        "accounting-3995",
+        "accounting-3997"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Native failures cover upstream/request errors, cancellation and repeat completion; corpus covers HTTP429. Preserve a single definition-level mapping asserting zero priced/one unpriced for each full baseline failure sequence."
+      ]
+    },
+    {
+      "id": "test/savings.test.mjs#13",
+      "file": "test/savings.test.mjs",
+      "name": "conflicting model or final usage observations invalidate the request",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/savings.rs#savings::tests::historical_estimates_require_recorded_provenance_and_clean_outcomes"
+      ],
+      "shared_cases": [
+        "accounting-3993",
+        "accounting-3995",
+        "accounting-3997"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Corpus has differing model and differing usage observations; explicit second null usage after valid usage is not present, so that invalidation branch remains unmapped."
+      ]
+    },
+    {
+      "id": "test/savings.test.mjs#19",
+      "file": "test/savings.test.mjs",
+      "name": "unpriced reasons are bounded aggregate counts, detached from tracker state",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/savings.rs#savings::tests::errors_cancellation_and_unconfirmed_completion_never_count_as_savings"
+      ],
+      "shared_cases": [
+        "accounting-3993",
+        "accounting-3995",
+        "accounting-3997"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Individual unpriced reasons are covered; combined reason histogram, mutation of its returned map, and unknown/private reason suppression are not asserted together."
+      ]
+    },
+    {
+      "id": "test/savings.test.mjs#20",
+      "file": "test/savings.test.mjs",
+      "name": "mixed serving models remain unpriced even when their rate tables are identical",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/savings.rs#savings::tests::historical_estimates_require_recorded_provenance_and_clean_outcomes"
+      ],
+      "shared_cases": [
+        "accounting-3993",
+        "accounting-3995",
+        "accounting-3997"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Core historical estimator covers distinct Sonnet5 and Sonnet5.5 transitions. Tracker-specific two equal-price observations and final zero-dollar/unpriced behavior are not directly retained."
+      ]
+    },
+    {
+      "id": "test/savings.test.mjs#22",
+      "file": "test/savings.test.mjs",
+      "name": "saved outcomes require their recorded pricing version, Opus baseline and confirmed completion",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/savings.rs#savings::tests::historical_estimates_require_recorded_provenance_and_clean_outcomes"
+      ],
+      "shared_cases": [
+        "accounting-4",
+        "accounting-9",
+        "accounting-14"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Core estimator asserts most provenance/completion negatives and corpus covers field mutations. Missing a complete mapping for absent completion confirmation, malformed legacy decision input, and all 18 negative baseline variants as a set."
+      ]
+    }
+  ]
+}

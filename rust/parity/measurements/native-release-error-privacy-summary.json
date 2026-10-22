@@ -1,0 +1,348 @@
+{
+  "kind": "native_release_error_output_privacy_checkpoint",
+  "recorded_at_utc": "2026-10-18T02:11:06.685462+00:00",
+  "decision_scope": "Retain the release-verifier error-output privacy fix and its regressions. No baseline definition, resource-limit, area or release eligibility is promoted by this summary.",
+  "source_snapshot": {
+    "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/green-source.json",
+    "bytes": 116787,
+    "sha256": "3590c9985986672ea23e36c5fb11184dbb87a524f30def8462b6d8a3fb335a68"
+  },
+  "changed_input": "rust/xtask/src/release_verify.rs",
+  "production_and_tests_before": {
+    "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/release_verify.before.rs",
+    "bytes": 37698,
+    "sha256": "3323d199e74b66e3ac8aa118f845910764eee1d19db16d7850eb6bff0c0dc2d1"
+  },
+  "production_and_tests_after": {
+    "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/release_verify.final.rs",
+    "bytes": 58901,
+    "sha256": "71756592b0d0ee6bd605677b7306ef0ece7983b3a4a5de99db81c03e3ec857bf"
+  },
+  "cause_and_change": [
+    "ReleaseError is an open typed seam with arbitrary JSON detail and arbitrary static code. Attempt rows previously cloned reason/http_status; the CLI failure wrapper copied every detail field, allowing payload disclosure, state/phase/code override and nonobject-detail panic.",
+    "Both output boundaries now project11 fixed code families and61 known code/reason pairs. Unknown codes become verification_error; unknown or nontext reasons fall back to the recognized code. This preserves all99 existing literal producer error calls without universal installed_cli_failed normalization.",
+    "Attempt errors expose only safe reason and optional registry_unavailable integer HTTP status100..999. The generic CLI wrapper alone may retain version_order current_latest as null or strict bounded SemVer. Parsing validates representation, not registry origin or trust.",
+    "The historical invalid_archive/checksum_mismatch CLI report shape remains unchanged. Cancellation precedence, retry states/timing, event bound, archive integrity/admission, deadlines and isolated-install policies are unchanged."
+  ],
+  "actual_checks": {
+    "red": {
+      "record": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/red.json",
+        "bytes": 575,
+        "sha256": "75da3eb830ab0ffcb28f55a8a6e2478f2e06b47e84776fbd23c100a5fe2e7855"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/red.stdout",
+        "bytes": 4638,
+        "sha256": "976ed92fa4cc94025a74ba7f2716168a760a0386034ccd6df39683bee75816af"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/red.stderr",
+        "bytes": 749,
+        "sha256": "7f22879af9c9e6d28363c0b70a27bc2c531aefc30e94798cc17bf44877ad5860"
+      },
+      "exit_code": 101,
+      "actual_counts": {
+        "groups": 1,
+        "passed": 6,
+        "failed": 4,
+        "ignored": 0
+      }
+    },
+    "green": {
+      "record": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/green.json",
+        "bytes": 572,
+        "sha256": "74f0ade3251018a1483c7b7fca24cdbcfc8a6f46c846d0b074eeb4ecee209293"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/green.stdout",
+        "bytes": 1273,
+        "sha256": "1f930dceca81343c596e511ca7696b2959051611fb3cafa595c64e077840a230"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/green.stderr",
+        "bytes": 692,
+        "sha256": "4868d897b03e673f648b30d9cd4343571fe1d887647edd5493e7f0d0c0f62bf2"
+      },
+      "exit_code": 0,
+      "actual_counts": {
+        "groups": 1,
+        "passed": 11,
+        "failed": 0,
+        "ignored": 0
+      }
+    },
+    "source-original9": {
+      "record": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/source-original9.json",
+        "bytes": 856,
+        "sha256": "e5f189405f8ef75056aae54b54b6576335695f23513e648d14891665c83fd2b9"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/source-original9.stdout",
+        "bytes": 329,
+        "sha256": "c8f0f166ea8dfdb1740f49edb08a3d941cacb00583550a171c92177204925801"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/source-original9.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exit_code": 0
+    },
+    "workspace": {
+      "record": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/workspace.json",
+        "bytes": 513,
+        "sha256": "7f7c1b4f06065b6fb566a8928d337b89841444c69b480c964f69c7557a35a8ce"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/workspace.stdout",
+        "bytes": 147344,
+        "sha256": "58aa1eec7b14418b5496720951aeca863dd2cb70259a0808c01a7ad7b65a46d9"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/workspace.stderr",
+        "bytes": 7303,
+        "sha256": "05e21d8813d7a8c8c4a58a89c7bc4ad7f7df4f3e959eb69a49257dc6ee2ac4cd"
+      },
+      "exit_code": 101,
+      "actual_counts": {
+        "groups": 61,
+        "passed": 1400,
+        "failed": 1,
+        "ignored": 10
+      }
+    },
+    "remaining-xtask": {
+      "record": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/remaining-xtask.json",
+        "bytes": 651,
+        "sha256": "6fdc112184e373b24409b2650be86c5148dfe25343f546a8ba8f8fc220c4c706"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/remaining-xtask.stdout",
+        "bytes": 1298,
+        "sha256": "67d52407328b5f65347ad0c76d204d2a6dabcc109edbed8b1673a21beb6874a6"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/remaining-xtask.stderr",
+        "bytes": 891,
+        "sha256": "d219490cf271f07f6e975e9f840e0601c1ac45dbc4de84624103762e2c4c564a"
+      },
+      "exit_code": 0,
+      "actual_counts": {
+        "groups": 3,
+        "passed": 11,
+        "failed": 0,
+        "ignored": 1
+      }
+    },
+    "fmt": {
+      "record": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/fmt.json",
+        "bytes": 434,
+        "sha256": "b28b715bc0beef707c2f850c56a2ad609c7d5f700a1afff904e7b8fce8454fbe"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/fmt.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/fmt.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exit_code": 0
+    },
+    "clippy": {
+      "record": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/clippy.json",
+        "bytes": 537,
+        "sha256": "a15757acd9805a25379d06c8590b87130c52abd659dd94fcc54d91731973e428"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/clippy.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/clippy.stderr",
+        "bytes": 637,
+        "sha256": "e3496cc7cbb8d7631c315dce4b5f7941db6b8703945aea895075446bf7a34c41"
+      },
+      "exit_code": 0
+    }
+  },
+  "focused_reproduction": {
+    "red": "All 6 preexisting verifier tests pass; all 4 new privacy tests fail on actual assertions before the production fix. First failing assertions expose raw Installer reason, private extra field, state/phase/code overwrite and retained invalid HTTP status. Later loop rows are not individually claimed observed in the failing run.",
+    "green": "All 6 preexisting tests, all 4 privacy regressions and the added cancellation test pass:11/0/0. Static loop definitions cover12 Installer error profiles,16 HTTP status profiles,3 cancellation schedules and known-reason compatibility; no per-row runtime instrumentation was added.",
+    "callback_storage_scope": "Actual verify → callback → persist → stored callback/final report and event history are exercised; safe reason fields stay text and arbitrary extra fields are excluded.",
+    "source_original9": "The exact frozen original test an older dist-tag remains pending and installation is required before verified was freshly selected and passed:1 test,0 failed,0 skipped. This includes the ordinary Error.message omission assertion; it does not exercise all arbitrary ReleaseError payloads.",
+    "source_error_distinction": "Frozen Source directly forwards ReleaseError.detail.reason and code while omitting ordinary Error.message. Closed native output projection is an intentional stricter privacy policy, not literal equivalence for every injected JavaScript error value.",
+    "cancellation": "Precancelled token prevents requests/install; an installer that cancels its token while returning a private error yields exact safe cancellation; typed code==cancelled also cancels with an active token. All 3 assert callbacks 0 and absent report file. The last is preexisting native typed-control behavior; Source raw-error handling checks its signal instead."
+  },
+  "composed_rust_result": {
+    "passed": 1411,
+    "failed": 1,
+    "ignored": 11,
+    "completed_groups": 64,
+    "composition": "Workspace attempt 1400/1/10 across 61 groups exits101 at known source-transfer cap. Cargo was not run with --no-fail-fast, so3 deferred xtask integration targets were run separately with --no-fail-fast: 11/0/1 across 3 groups. This is the union of completed groups, not a single green workspace run or a doc-test coverage claim.",
+    "sole_failed_test": "bundle::transfer::tests::transfer_has_only_verified_sources_a_shared_budget_and_create_only_evidence",
+    "formatting_and_strict_clippy": "Actual cargo fmt --all --check and workspace all-targets locked/offline clippy -Dwarnings both exit0. Clippy retains the already-known vendored hyper-util unused timer warning; no supplier source was altered."
+  },
+  "source_transfer": {
+    "census": {
+      "path": "artifacts/rust-rewrite/source-transfer-census-20261018-12/census.json",
+      "bytes": 13942,
+      "sha256": "223a1c879427bad67464fc3b94ca2e7c07f2be1268cfaddc6c016efbaf951376"
+    },
+    "measurement": "Exact offline current schema6 size arithmetic, not an archive/export/restore result.",
+    "unchanged_each_cap_bytes": 33554432,
+    "logical_bytes": 33693363,
+    "logical_overage_bytes": 138931,
+    "expanded_carrier_bytes": 33668096,
+    "expanded_carrier_overage_bytes": 113664,
+    "status": "Both source-transfer caps remain exceeded. All sources, fixed 89 case files, vendor files, licenses, allowlist, schemas and workloads remain intact."
+  },
+  "reviews": {
+    "producer_reason_inventory": {
+      "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/publication-draft-v2/final-producer-error-inventory.json",
+      "bytes": 3675,
+      "sha256": "4ebd0ad6851f30c7ff0af53c43d9a8d4ec4dc3a9f3a73ddf27e6876ac542b540"
+    },
+    "final_policy_and_test_draft": {
+      "path": "artifacts/rust-rewrite/release-error-output-privacy-draft-20261018-1/v3/handoff.json",
+      "bytes": 5587,
+      "sha256": "7a24ed4bd40acfc21ca56f9e0e94405cb383fce4b51a3ee731da6abcf587a1bc"
+    },
+    "combined_production_and_cancellation_patch": {
+      "path": "artifacts/rust-rewrite/release-error-output-privacy-draft-20261018-1/v3/cancellation-supplement/tests-only-to-final.patch",
+      "bytes": 8520,
+      "sha256": "b1dc91d5f2fcb6ba98d2afc31aaa6709b90664b0ca5df95de9842e552fc9de80"
+    },
+    "independent_static_review": {
+      "path": "artifacts/rust-rewrite/release-error-output-privacy-draft-20261018-1/v3/independent-static-review.json",
+      "bytes": 9661,
+      "sha256": "ad773a11ed9c9b444cc1f72144e36b466aa6e18300817fd493eb05448c80b4ff"
+    },
+    "independent_focused_actual_and_format_binding_review": {
+      "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/independent-focused-red-green-review.json",
+      "bytes": 8443,
+      "sha256": "0a0914fe159c2498225a31af1f1b0f3004ce675e72f4de87850c0b15bb5eda51"
+    },
+    "historical_v2_inventory_scope": "The v2 author inventory remains retained historically; only the new current-source inventory above is used here. Its superseded100..599 policy is not accepted."
+  },
+  "source_binding": {
+    "current_native_inputs_rehashed": 696,
+    "current_native_mismatches": [],
+    "frozen_reference_inventory": {
+      "path": "rust/parity/baseline.json",
+      "bytes": 86691,
+      "sha256": "6722bd7a0109efb4d48e743412fbcc21affb0ceda1058d06726d03375113f588"
+    },
+    "current_frozen_inputs_rehashed": 111,
+    "current_frozen_mismatches": [],
+    "actual_stage_receipts": "Every listed actual wrapper record verifies its own native snapshot and all 111 frozen files before/after. RED has its distinct 0e28d1fb source; all later stages bind 3590c998. Current sources independently rehashed for summary preparation.",
+    "wrapper": {
+      "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/run-check.py",
+      "bytes": 2499,
+      "sha256": "1b919c91e805f8be82e34364c79d06e5ad60a680d1dd09f9a431ff737048f033"
+    },
+    "limits": "These are local actual command/source receipts, not compiler artifact-JSON provenance, OS syscall network guarding, current-source remote CI, platform or performance qualification."
+  },
+  "remaining_limits": [
+    "Successful custom Installer Value and manually constructed Artifact fields retain their existing trusted API scope; success payloads are not generally privacy-filtered. NativeInstaller itself emits fixed version/help/isolated/registry fields.",
+    "Known diagnostic labels and parse-valid CLI versions do not prove error origin or registry authenticity. No arbitrary Debug/display output privacy guarantee is added.",
+    "No wholesale original release-tool parity, historical/native format migration, package lifecycle, publication eligibility or full resource-supervisor acceptance follows from these tests.",
+    "Source-transfer fit, current-source CI/platform/provider/performance/provenance/rollback/stabilization and final cutover remain separate open work."
+  ],
+  "ordinary_javascript_checks": {
+    "shipping_module_snapshot": {
+      "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/shipping-source.json",
+      "bytes": 5118,
+      "sha256": "a55c4e169b2a500e54c269c8241bded5878f48f9a2c471300ebb696747ed4e81"
+    },
+    "check": {
+      "record": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/npm-check.json",
+        "bytes": 505,
+        "sha256": "7d2c603939933101661f0566a38a9210b5f236b6e6a2d040471d572a928ee014"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/npm-check.stdout",
+        "bytes": 153,
+        "sha256": "4882654ddbf9853bf4f185dc398c36b83eaa63b59fbb76d525b746ce417b768f"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/npm-check.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exit_code": 0
+    },
+    "initial_test_with_private_runner_umask": {
+      "record": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/npm-test.json",
+        "bytes": 492,
+        "sha256": "9bafd2c71c88c6d7fb8ef6d681789925f2edd8df2370c0eab9228f084758fbb9"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/npm-test.stdout",
+        "bytes": 136261,
+        "sha256": "9a4755c55b032d704f1da11be76b2fda0acf9a1cb2462cee9757dbce43f4dce5"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/npm-test.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exit_code": 1
+    },
+    "test_with_normal_child_umask": {
+      "record": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/npm-test-normal-umask.json",
+        "bytes": 519,
+        "sha256": "7bd9a065d0cdb30d8be555c10070d7b264801467dc7f9f25272262a2cf82aaa4"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/npm-test-normal-umask.stdout",
+        "bytes": 135708,
+        "sha256": "54333fea18520e9c059024d234988a83d10d060eb5931dba4ff28a4368c6310e"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/npm-test-normal-umask.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exit_code": 0
+    },
+    "package": {
+      "record": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/npm-package.json",
+        "bytes": 513,
+        "sha256": "d20bda8a8eeed6d6c695b9a92db36ea665b31c71dd541880d868d1568dea9f4e"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/npm-package.stdout",
+        "bytes": 884,
+        "sha256": "03a5a91b3def0df2eba03614be17fb154ced476a05b68a73ad0fdd831f701707"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/npm-package.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exit_code": 0
+    },
+    "result": "Static checks pass; all596 tests pass with child umask0022; exact offline package smoke passes with58 archive files.",
+    "retained_initial_failure": "Initial run inherited artifact owner's0077 mask:595pass/1fail. Original session-log test creates0644 target without chmod and expects0644; creation was masked0600 before product operation. Only child umask changed for retry; all36 shipping modules and every test remain unchanged. Parent artifact files retain0077 creation.",
+    "admission": {
+      "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/node-test-umask-admission.json",
+      "bytes": 754,
+      "sha256": "32c99bb59716d92874caf931f5c376a75f72b1f70e3a60a5c21438dc09c2dae7"
+    }
+  }
+}

@@ -1,0 +1,702 @@
+{
+  "schema_version": 1,
+  "status": "reviewed_original_prompt_excerpt_obligations_and_explicit_api_migrations",
+  "scope": "Only source original prompt-state1/4/5 and declared synthetic public-bound/private-iterator/typed-consumer controls. No original or resource ledger promotion; no provider/model/benchmark/archive/public qualification.",
+  "counts": {
+    "source": {
+      "callbacks": 3,
+      "static_assertions": 17,
+      "expanded_assertions": 27,
+      "dormant_getter_guards": 7,
+      "configured_getters": 18,
+      "original_prompt_calls": 21,
+      "supplemental_prompt_calls": 10
+    },
+    "native_focus": {
+      "prompt_units": 8,
+      "new_units": 3,
+      "original_prompt_contracts": 16,
+      "redaction_contracts": 2,
+      "total_passed": 26,
+      "clippy": "strict_core_all_targets_passed"
+    },
+    "typed_compiler_consumers": {
+      "declared": 16,
+      "legal": 2,
+      "rejected_E0308": 14,
+      "final_matched": 16,
+      "initial_stale_library_run_matched": 12
+    }
+  },
+  "mappings": [
+    {
+      "baseline_test": "test/prompt-state.test.mjs#1",
+      "name": "prompt excerpts contain only the latest direct human text, never tool or multimodal payloads",
+      "status": "covered_with_reviewed_native_api_migrations",
+      "source_file_sha256": "ea3cc66eeb4022258336f5b0ee7441c959d79de68904d500db6816b7045b5824",
+      "legacy_definition_sha256": "6f16a8e5544df586fabf99e77b2b26a3f52354aaffbd5d175f957e273c9452a9",
+      "exact_statement_sha256": "a99b0fa7b08bef1e837dbd8c33f1e60d3b93a809b7c3198e70192a1e0115aae3",
+      "statement_hash_rule": "Frozen AST Statement full source text from exact Source driver, including semicolon; differs deliberately from older before-next-test source span rule. Both identities retained.",
+      "assertions": [
+        {
+          "id": "test/prompt-state.test.mjs#1:assert-1",
+          "line": 13,
+          "expression": "assert.fail(`Excerpt read ${type}.${key}`)",
+          "sha256": "e292b1f63cbd382295dd61569039cc27d1b6c208aa7fcd407f25b9e16681cd2f",
+          "executions": 0,
+          "native_proof_kind": "Source live throwing accessor guard + explicit proved native parsed-input API migration",
+          "native_tests": [
+            "prompt_state_contracts::excerpts_select_latest_direct_text_and_omit_all_opaque_payloads"
+          ],
+          "explicit_limits_or_migrations": [
+            "Exact source getter identity/function bytes retained, configured instances18 aggregate; guard remains dormant because original excerpt does not read it.",
+            "Native JsDocument/Value are closed detached parsed values, not live host objects; both actual host-getter consumers reject E0308. Native output/opaque-canary/immutability assertions are supplemental value controls, not a fake accessor replay."
+          ],
+          "root_review": "accepted_explicit_native_api_migration_and_recorded_behavior"
+        },
+        {
+          "id": "test/prompt-state.test.mjs#1:assert-2",
+          "line": 16,
+          "expression": "assert.fail('Excerpt read assistant output')",
+          "sha256": "3a3a69ad9f2a6acc50647164ae2c2d48720e37c75cce695690ce1fc2f5e64fdd",
+          "executions": 0,
+          "native_proof_kind": "Source live throwing accessor guard + explicit proved native parsed-input API migration",
+          "native_tests": [
+            "prompt_state_contracts::excerpts_select_latest_direct_text_and_omit_all_opaque_payloads"
+          ],
+          "explicit_limits_or_migrations": [
+            "Exact source getter identity/function bytes retained, configured instances18 aggregate; guard remains dormant because original excerpt does not read it.",
+            "Native JsDocument/Value are closed detached parsed values, not live host objects; both actual host-getter consumers reject E0308. Native output/opaque-canary/immutability assertions are supplemental value controls, not a fake accessor replay."
+          ],
+          "root_review": "accepted_explicit_native_api_migration_and_recorded_behavior"
+        },
+        {
+          "id": "test/prompt-state.test.mjs#1:assert-3",
+          "line": 26,
+          "expression": "assert.fail('Excerpt read assistant tool calls')",
+          "sha256": "58d56a6857b03f08f090733a7af79340ff3de3266b5cc4c8ef364db0dfa8874f",
+          "executions": 0,
+          "native_proof_kind": "Source live throwing accessor guard + explicit proved native parsed-input API migration",
+          "native_tests": [
+            "prompt_state_contracts::excerpts_select_latest_direct_text_and_omit_all_opaque_payloads"
+          ],
+          "explicit_limits_or_migrations": [
+            "Exact source getter identity/function bytes retained, configured instances18 aggregate; guard remains dormant because original excerpt does not read it.",
+            "Native JsDocument/Value are closed detached parsed values, not live host objects; both actual host-getter consumers reject E0308. Native output/opaque-canary/immutability assertions are supplemental value controls, not a fake accessor replay."
+          ],
+          "root_review": "accepted_explicit_native_api_migration_and_recorded_behavior"
+        },
+        {
+          "id": "test/prompt-state.test.mjs#1:assert-4",
+          "line": 31,
+          "expression": "assert.fail('Excerpt read system instructions')",
+          "sha256": "ef047af56646e850560c178ad26881407a1e6973c569e6fb1d67dfcfde812adc",
+          "executions": 0,
+          "native_proof_kind": "Source live throwing accessor guard + explicit proved native parsed-input API migration",
+          "native_tests": [
+            "prompt_state_contracts::excerpts_select_latest_direct_text_and_omit_all_opaque_payloads"
+          ],
+          "explicit_limits_or_migrations": [
+            "Exact source getter identity/function bytes retained, configured instances18 aggregate; guard remains dormant because original excerpt does not read it.",
+            "Native JsDocument/Value are closed detached parsed values, not live host objects; both actual host-getter consumers reject E0308. Native output/opaque-canary/immutability assertions are supplemental value controls, not a fake accessor replay."
+          ],
+          "root_review": "accepted_explicit_native_api_migration_and_recorded_behavior"
+        },
+        {
+          "id": "test/prompt-state.test.mjs#1:assert-5",
+          "line": 32,
+          "expression": "assert.fail('Excerpt read tool definitions')",
+          "sha256": "7b7ed1aa41a98cbe604944e1a48500ec0ba4121fe2767d78ed60a6845d13afa5",
+          "executions": 0,
+          "native_proof_kind": "Source live throwing accessor guard + explicit proved native parsed-input API migration",
+          "native_tests": [
+            "prompt_state_contracts::excerpts_select_latest_direct_text_and_omit_all_opaque_payloads"
+          ],
+          "explicit_limits_or_migrations": [
+            "Exact source getter identity/function bytes retained, configured instances18 aggregate; guard remains dormant because original excerpt does not read it.",
+            "Native JsDocument/Value are closed detached parsed values, not live host objects; both actual host-getter consumers reject E0308. Native output/opaque-canary/immutability assertions are supplemental value controls, not a fake accessor replay."
+          ],
+          "root_review": "accepted_explicit_native_api_migration_and_recorded_behavior"
+        },
+        {
+          "id": "test/prompt-state.test.mjs#1:assert-6",
+          "line": 34,
+          "expression": "assert.equal(promptExcerpt(body), 'Describe the attached diagram.\\nKeep the answer brief.')",
+          "sha256": "700250bb9d765b31aac0f79f1f8654b35a8d19de6e5f4d2787032a8306125ca0",
+          "executions": 1,
+          "native_proof_kind": "Exact successful output via existing native string predicate; no mutation",
+          "native_tests": [
+            "prompt_state_contracts::excerpts_select_latest_direct_text_and_omit_all_opaque_payloads"
+          ],
+          "explicit_limits_or_migrations": [],
+          "root_review": "accepted_native_behavior"
+        }
+      ]
+    },
+    {
+      "baseline_test": "test/prompt-state.test.mjs#4",
+      "name": "prompt excerpt limits count Unicode code points and never leave invalid surrogate pairs",
+      "status": "covered_with_reviewed_native_api_migrations",
+      "source_file_sha256": "ea3cc66eeb4022258336f5b0ee7441c959d79de68904d500db6816b7045b5824",
+      "legacy_definition_sha256": "dcb5f93bd16f4ac664e79586f6755f2d1a996bedad1fb85367491860a5fba62a",
+      "exact_statement_sha256": "dbde1ac4eb4fd75a0508341ec769ba841caa6a5012965bc7659f648cbce44468",
+      "statement_hash_rule": "Frozen AST Statement full source text from exact Source driver, including semicolon; differs deliberately from older before-next-test source span rule. Both identities retained.",
+      "assertions": [
+        {
+          "id": "test/prompt-state.test.mjs#4:assert-1",
+          "line": 76,
+          "expression": "assert.equal(promptExcerpt(body), '\ud83d\ude00'.repeat(500))",
+          "sha256": "0373f3df631aa909321cebc477c0d26f78b134e7e87e51ef5adbee82a635af51",
+          "executions": 1,
+          "native_proof_kind": "Exact default500emoji equality, Result success explicit",
+          "native_tests": [
+            "prompt_state_contracts::excerpt_limits_count_scalars_and_repair_lone_surrogates"
+          ],
+          "explicit_limits_or_migrations": [],
+          "root_review": "accepted_native_behavior"
+        },
+        {
+          "id": "test/prompt-state.test.mjs#4:assert-2",
+          "line": 79,
+          "expression": "assert.equal(Array.from(result).length, maxChars)",
+          "sha256": "60e37a42940ea27678cdbacca5560b250fc369c46782848fff860ddecd6af0aa",
+          "executions": 6,
+          "native_proof_kind": "Exact emoji string equality at all six bounds implies exact scalar count; Source count predicate preserved unchanged",
+          "native_tests": [
+            "prompt_state_contracts::excerpt_limits_count_scalars_and_repair_lone_surrogates"
+          ],
+          "explicit_limits_or_migrations": [],
+          "root_review": "accepted_native_behavior"
+        },
+        {
+          "id": "test/prompt-state.test.mjs#4:assert-3",
+          "line": 80,
+          "expression": "assert.ok(result.isWellFormed())",
+          "sha256": "4c4ef24b0b8bb2645d8f406876589186b835508f4976dfac0835e495ffecbb61",
+          "executions": 6,
+          "native_proof_kind": "Exact valid Rust UTF-8 String and Unicode replacement behavior; Source isWellFormed predicate preserved",
+          "native_tests": [
+            "prompt_state_contracts::excerpt_limits_count_scalars_and_repair_lone_surrogates"
+          ],
+          "explicit_limits_or_migrations": [
+            "Rust String cannot contain unpaired UTF-16 surrogate code units. JsDocument literal surrogate fixture does preserve original escaped input until excerpt converts it."
+          ],
+          "root_review": "accepted_explicit_native_api_migration_and_recorded_behavior"
+        },
+        {
+          "id": "test/prompt-state.test.mjs#4:assert-4",
+          "line": 83,
+          "expression": "assert.equal(promptExcerpt(mixed, 4), 'A\ud83d\ude00\\n\ud801\udc37')",
+          "sha256": "df3c11e1b4e09795ba91a5b6c1a60060ef1b16763f978a02080f361828da6b41",
+          "executions": 1,
+          "native_proof_kind": "Exact mixed scalar/lone surrogate output equality using source-compatible JsDocument for lone surrogate",
+          "native_tests": [
+            "prompt_state_contracts::excerpt_limits_count_scalars_and_repair_lone_surrogates"
+          ],
+          "explicit_limits_or_migrations": [],
+          "root_review": "accepted_native_behavior"
+        },
+        {
+          "id": "test/prompt-state.test.mjs#4:assert-5",
+          "line": 84,
+          "expression": "assert.equal(promptExcerpt(request([{ role: 'user', content: '\\ud800A\\udc00' }])), '\\ufffdA\\ufffd')",
+          "sha256": "1eab9def25b4b467f9cb798fa80620d9fa4ee94d3aa6c05586fe71fcb631703a",
+          "executions": 1,
+          "native_proof_kind": "Exact mixed scalar/lone surrogate output equality using source-compatible JsDocument for lone surrogate",
+          "native_tests": [
+            "prompt_state_contracts::excerpt_limits_count_scalars_and_repair_lone_surrogates"
+          ],
+          "explicit_limits_or_migrations": [],
+          "root_review": "accepted_native_behavior"
+        },
+        {
+          "id": "test/prompt-state.test.mjs#4:assert-6",
+          "line": 86,
+          "expression": "assert.throws(() => promptExcerpt(body, invalid), /maxChars/)",
+          "sha256": "6bb16a99422a343cd9ba7306935adc92726e79a5c7d5fe279a30aa8d286e7f41",
+          "executions": 6,
+          "native_proof_kind": "Source six actual invalid values retained; native unsafe integer runtime guard plus explicit parameter-domain/compiler migration",
+          "native_tests": [
+            "prompt_state_contracts::excerpt_limits_count_scalars_and_repair_lone_surrogates",
+            "prompt_state::tests::excerpt_public_bounds_reject_unsafe_before_body_work_and_keep_safe_values"
+          ],
+          "explicit_limits_or_migrations": [
+            "Representable2^53 and usizeMAX reject through both actual public Result APIs, with singleton exact Display source message and guard before body closure. Source throws TypeError; native returns typed PromptExcerptError\u2014an explicit SDK error-channel migration, not a runtime TypeError claim.",
+            "Negative/fractional/Infinity/NaN/string parameter types reject E0308 across both real APIs. Ordinary serde Value cannot carry actual NaN/Infinity; raw Source binary64 tags are retained and no null normalization is performed.",
+            "Pre-fix direct APIs accepted unsafe values even though fixture guard rejected; both raw pre-fix and corrected native results retained."
+          ],
+          "root_review": "accepted_explicit_native_api_migration_and_recorded_behavior"
+        }
+      ]
+    },
+    {
+      "baseline_test": "test/prompt-state.test.mjs#5",
+      "name": "bounded excerpts avoid building evaluator history or reading text after the limit",
+      "status": "covered_with_reviewed_native_api_migrations",
+      "source_file_sha256": "ea3cc66eeb4022258336f5b0ee7441c959d79de68904d500db6816b7045b5824",
+      "legacy_definition_sha256": "b368ff4d3b5633b85bdb00c08693a8e5332cbc0a2f48c6e534adf22cee5c0572",
+      "exact_statement_sha256": "2d2abfc0bb5ae5366f16cb717c57f51feebcdf48aa456e4c4ff26302416b5b2e",
+      "statement_hash_rule": "Frozen AST Statement full source text from exact Source driver, including semicolon; differs deliberately from older before-next-test source span rule. Both identities retained.",
+      "assertions": [
+        {
+          "id": "test/prompt-state.test.mjs#5:assert-1",
+          "line": 92,
+          "expression": "assert.fail('An ordinary excerpt does not need earlier task text')",
+          "sha256": "11e3e118ad226279e93e717c448eb2ea91f1052f470062dce9f4a8661256b39a",
+          "executions": 0,
+          "native_proof_kind": "Source earlier-content accessor guard + explicit native parsed-object migration; same actual current-human output selects/returns before earlier human text",
+          "native_tests": [
+            "prompt_state_contracts::bounded_excerpts_preserve_literal_and_malformed_wrapper_text"
+          ],
+          "explicit_limits_or_migrations": [
+            "Native parsed values cannot execute property getters. Actual host-object compiler rejections prove the boundary; no accessor substitution is labeled equivalent.",
+            "The serde Value convenience facade serializes the complete supplied value after limit validation. Actual lazy text lookup proof applies to excerpt collection from parsed JsDocument; it does not prove that facade conversion skips older or opaque input fields."
+          ],
+          "root_review": "accepted_explicit_native_api_migration_and_recorded_behavior"
+        },
+        {
+          "id": "test/prompt-state.test.mjs#5:assert-2",
+          "line": 94,
+          "expression": "assert.fail('Text after the excerpt limit must not be collected')",
+          "sha256": "8e9912475d5c4ea9350ebe5027ee6774bd1abdc7e85b2bc44014b2aa988bbbc5",
+          "executions": 0,
+          "native_proof_kind": "Source late-text accessor guard + actual native production private iterator lookup witness",
+          "native_tests": [
+            "prompt_state_contracts::bounded_excerpts_preserve_literal_and_malformed_wrapper_text",
+            "prompt_state::tests::excerpt_production_iterator_stops_text_lookup_after_redaction_window",
+            "prompt_state::tests::excerpt_keeps_full_type_scan_through_late_tool_result_before_text_iteration"
+          ],
+          "explicit_limits_or_migrations": [
+            "Production private lookup closure is invoked only for first long text, fails if later text is looked up, then exact first block identity and unchanged serialization are asserted. There is no eager Vec of all text values, no public observation API, no independent facsimile loop.",
+            "Source full block.type pre-scan remains mandatory. Supplemental Source/native final10002-block tool_result control returns Earlier safe and the actual native lookup closure panics if tool-result turn reaches any text lookup.",
+            "Raw pre-fix allocations are scoped alloc/realloc event/net samples; raw tracked_sample_valid/peak field spelling is not qualified true ownership/peak proof and is not a text-access/timing result.",
+            "The serde Value convenience facade serializes the complete supplied value after limit validation. Actual lazy text lookup proof applies to excerpt collection from parsed JsDocument; it does not prove that facade conversion skips older or opaque input fields."
+          ],
+          "root_review": "accepted_explicit_native_api_migration_and_recorded_behavior"
+        },
+        {
+          "id": "test/prompt-state.test.mjs#5:assert-3",
+          "line": 96,
+          "expression": "assert.equal(promptExcerpt(body, 12), 'Current task')",
+          "sha256": "678ea35ca06f855a3df7b6d4912bda94e4108cc646292b4aeb6ea2f74b617fb2",
+          "executions": 1,
+          "native_proof_kind": "Exact current text12 result with unchanged input, through modified production entrypoint",
+          "native_tests": [
+            "prompt_state_contracts::bounded_excerpts_preserve_literal_and_malformed_wrapper_text"
+          ],
+          "explicit_limits_or_migrations": [],
+          "root_review": "accepted_native_behavior"
+        },
+        {
+          "id": "test/prompt-state.test.mjs#5:assert-4",
+          "line": 97,
+          "expression": "assert.equal(promptExcerpt(body, 0), '')",
+          "sha256": "f1d8f4fdcf5b561a89708200284b54adf63de6271e4df484f62426bb4f8392b2",
+          "executions": 1,
+          "native_proof_kind": "Exact zero output; actual private production text lookup closure remains uninvoked",
+          "native_tests": [
+            "prompt_state_contracts::bounded_excerpts_preserve_literal_and_malformed_wrapper_text",
+            "prompt_state::tests::excerpt_production_iterator_stops_text_lookup_after_redaction_window"
+          ],
+          "explicit_limits_or_migrations": [
+            "Source reads body.messages before its zero early return; native zero can return before parsed document lookup. No live native accessor equivalence is claimed. Source original predicates avoid earlier content/later text in either case.",
+            "The serde Value convenience facade serializes the complete supplied value after limit validation. Actual lazy text lookup proof applies to excerpt collection from parsed JsDocument; it does not prove that facade conversion skips older or opaque input fields."
+          ],
+          "root_review": "accepted_explicit_native_api_migration_and_recorded_behavior"
+        },
+        {
+          "id": "test/prompt-state.test.mjs#5:assert-5",
+          "line": 101,
+          "expression": "assert.equal(promptExcerpt(request([{ role: 'user', content: [text(task)] }])), task)",
+          "sha256": "d38efad370bdc9fd68abe79750b1aaf97399fc2d4fdd8e16ad49cffc677792f9",
+          "executions": 3,
+          "native_proof_kind": "All three exact literal/incomplete/mixed wrapper strings retain native predicates",
+          "native_tests": [
+            "prompt_state_contracts::bounded_excerpts_preserve_literal_and_malformed_wrapper_text"
+          ],
+          "explicit_limits_or_migrations": [],
+          "root_review": "accepted_native_behavior"
+        }
+      ]
+    }
+  ],
+  "bindings": [
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/controls.json",
+      "bytes": 7082,
+      "sha256": "3a31c9876d52b123ea8c5a020c886e1c3412115aff0d782dd9144120de5dea79"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/capture-source.draft.mjs",
+      "bytes": 9004,
+      "sha256": "b391d7f2558c5d2f056c4cea72f2fc51c93d372e94bb8939c6648ec9289902ee"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/source-observations.json",
+      "bytes": 442221,
+      "sha256": "a939c0f7a6f315f4d29f2f6fb90beb227fe041c03327330058bfe5767ff0774b"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/source.log",
+      "bytes": 263,
+      "sha256": "8a2de3693ce6da7382fa4f07ed14683ef825185598e7e5049b1b2a1fadaa2519"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/transformed-source.mjs",
+      "bytes": 4462,
+      "sha256": "021b3f0a89793ffb29ea67fa9408b4492825b5afab9aa32ef6b878c81862df7c"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/native-prefixed.draft.rs",
+      "bytes": 6439,
+      "sha256": "e2efa6cd6adf4eca763e45310d49423389c9de10edab300bb9c3ddf43cc398e9"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/run-native-prefixed.draft.py",
+      "bytes": 5728,
+      "sha256": "5e5e62d5ec4900b2e140e4f4d52f5eefdb3310c82a452cfc1e1009616dd48e09"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/native-prefixed-1/execution-declaration.json",
+      "bytes": 12173,
+      "sha256": "c053fb87771636a872531b07eb400b103e0557d7c0babe6a591830e0ae49fefd"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/native-prefixed-1/execution-report.json",
+      "bytes": 13183,
+      "sha256": "ac2f852ac007e17623cd947656713d0e13eb53c31d80e6bd1468e7dcfcb18c96"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/native-prefixed-1/observations.json",
+      "bytes": 7549,
+      "sha256": "ccfe2be2c7ca2c4da19d39eedd6fcead14c62a6155e2833a7daaf94d1a6d3633"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/prefixed-interpretation.json",
+      "bytes": 6917,
+      "sha256": "c8b37f53b66b86690243f87d3ec42458b5e625d7ddce6d22cd5edfe9a5249db7"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/candidate-v2/narrow-correction.patch",
+      "bytes": 15634,
+      "sha256": "7928904e39e8b3689ed379a870cb61690628736c08bcbab0df9751d8e5fad28e"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/candidate-v2/candidate-bindings.json",
+      "bytes": 2269,
+      "sha256": "d70b7750af78ded38f0795cbf855b692238cc998c3f4f463c1d1f320800eee75"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/candidate-v2/compiler-controls.json",
+      "bytes": 5236,
+      "sha256": "e9dfc9e18b973bc5a5f829236c0c4d77085924997dadbb0ef49cdeb3526d4aca"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/run-focused.draft.py",
+      "bytes": 3162,
+      "sha256": "4df641823953d371ecc59ccb9e381c04d77b48702282002321c03bed4d677d43"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-1/execution-declaration.json",
+      "bytes": 2907,
+      "sha256": "2b7ac53d18648f00b937784ceb4d82d336b5cb70eee53928052c37a1a2b14455"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-1/execution-report.json",
+      "bytes": 4096,
+      "sha256": "b830178e747a25127899fc61bea184eb1bf7350631fc6fa9fabb8455ad87081c"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-1/prompt-units.log",
+      "bytes": 2110,
+      "sha256": "026de51682e0e8412aed40b5a21a6a77ff9091c1922622ca889944ddd8bdf8cc"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-1/original-contracts.log",
+      "bytes": 1970,
+      "sha256": "be1d637ed9d558fde439ff5b4e34d13dc30fb02ddd1ab02f2a24675f7103ac85"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-1/strict-core-clippy.log",
+      "bytes": 938,
+      "sha256": "0ae9d9e4b29cc78c1f746990d44c3ad326f79fd7d53eb505577f5da5098ab57b"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/run-compiler-controls.draft.py",
+      "bytes": 4352,
+      "sha256": "076c9244bbe0dbb0470216d2d41594c5a639f12b3155373ddd894b78b85c9d83"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-compiler-1/execution-report.json",
+      "bytes": 27886,
+      "sha256": "a1428d19b251a39ce194a7a4c3aae7157409a672f1eb6727488f97da246ce6e6"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/run-compiler-controls-v2.draft.py",
+      "bytes": 5520,
+      "sha256": "6804a92a14bacb45bacbdb751f108ac17af56852fc265e215b50cf37c7532905"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-compiler-2/execution-declaration.json",
+      "bytes": 10859,
+      "sha256": "7a081db2d65185101551eecafe42d297e3a1982fe13843ffea3ed2f9ceeb26ea"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-compiler-2/execution-report.json",
+      "bytes": 27887,
+      "sha256": "6edbee9118135861786fc831987ee455ec051617e4bed813bcfb5be2293a138f"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/prompt_state.rs",
+      "bytes": 33317,
+      "sha256": "023fc4f942bd5de2e6bff1c8428946630634f0fcc0a0954d3a6bd0cf6f79ca94"
+    },
+    {
+      "path": "rust/crates/autorouter-core/tests/prompt_state_contracts.rs",
+      "bytes": 18764,
+      "sha256": "b16dba258b9f56f6b77a6d012ebffa5de23e0fad959c76b1402efd896b22673c"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/fixture.rs",
+      "bytes": 18532,
+      "sha256": "8caa248e7bddecda9282b8fef60d4bc65d5557a111ce7bb9c3d09a7f99651e20"
+    },
+    {
+      "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+      "bytes": 7928,
+      "sha256": "ef78ca599dd866bdaea2c9ea91b077fd3bff59fa5dfe4c3b1b86010f0d20134d"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/server_events.rs",
+      "bytes": 42525,
+      "sha256": "e585ea17bd35236eaf2a4fcd9a252817079e11a831895309f018adf23d5a1dd9"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/js_json.rs",
+      "bytes": 39185,
+      "sha256": "b46db5e17ffc9e32378a65d1f45d7afc6f63c877ac2e2e878446708f245394b4"
+    },
+    {
+      "path": "rust/parity/assertion-mappings/prompt-state.json",
+      "bytes": 16526,
+      "sha256": "0d2d381c74b2d17ee8f7403e584c869c118f8ae5a827866ad5f94729923b7e04"
+    }
+  ],
+  "fragment_anchors": [
+    {
+      "path": "rust/crates/autorouter-core/src/prompt_state.rs",
+      "line": 555,
+      "start": "pub struct PromptExcerptError;",
+      "end_exclusive": "fn with_excerpt_limit<T>",
+      "bytes": 288,
+      "sha256": "6aab49a1941f64869938cf3fe8329a5e32fe410253ae7b249edbb69ccfe58a72",
+      "hash_rule": "Exact UTF-8 substring starting at start and ending immediately before end_exclusive; no trimming/normalization."
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/prompt_state.rs",
+      "line": 564,
+      "start": "fn with_excerpt_limit<T>",
+      "end_exclusive": "/// Collect a diagnostic excerpt",
+      "bytes": 262,
+      "sha256": "272013fd5393e2e21621f090d2f0baebbc05617416b9be1bb4c0d664a9edd977",
+      "hash_rule": "Exact UTF-8 substring starting at start and ending immediately before end_exclusive; no trimming/normalization."
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/prompt_state.rs",
+      "line": 576,
+      "start": "pub fn prompt_excerpt_document(",
+      "end_exclusive": "fn excerpt_document(",
+      "bytes": 192,
+      "sha256": "72e79b7311c54c3f632cdb779294a9b65d808f9a2c1c6c2a8510be84f54b4c8e",
+      "hash_rule": "Exact UTF-8 substring starting at start and ending immediately before end_exclusive; no trimming/normalization."
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/prompt_state.rs",
+      "line": 583,
+      "start": "fn excerpt_document(",
+      "end_exclusive": "// The production iterator",
+      "bytes": 195,
+      "sha256": "43578ff63f8c61b486e74cc2f8e35aedc9d4bf76133dd8746cdb4bbd0063c0a8",
+      "hash_rule": "Exact UTF-8 substring starting at start and ending immediately before end_exclusive; no trimming/normalization."
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/prompt_state.rs",
+      "line": 591,
+      "start": "fn excerpt_document_with<'doc>(",
+      "end_exclusive": "fn document(",
+      "bytes": 2761,
+      "sha256": "9a436370f133c922934b8db74d66e3b1060eee7afaeb0705acf90668a5341f76",
+      "hash_rule": "Exact UTF-8 substring starting at start and ending immediately before end_exclusive; no trimming/normalization."
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/prompt_state.rs",
+      "line": 681,
+      "start": "pub fn prompt_excerpt(body:",
+      "end_exclusive": "pub fn goal_feedback_indexes(",
+      "bytes": 179,
+      "sha256": "f00fa7ad4ae0c2b279ba00b1c4a0620e82ba6dadae736f05485b7e0594be6538",
+      "hash_rule": "Exact UTF-8 substring starting at start and ending immediately before end_exclusive; no trimming/normalization."
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/prompt_state.rs",
+      "line": 766,
+      "start": "    fn excerpt_public_bounds_reject_unsafe_before_body_work_and_keep_safe_values()",
+      "end_exclusive": "    #[test]\n    fn excerpt_production_iterator",
+      "bytes": 1986,
+      "sha256": "461b40b2f0fc346c03428527abf1a32e457e991a0ae03eef8a4efa84f7f6d374",
+      "hash_rule": "Exact UTF-8 substring starting at start and ending immediately before end_exclusive; no trimming/normalization."
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/prompt_state.rs",
+      "line": 817,
+      "start": "    fn excerpt_production_iterator_stops_text_lookup_after_redaction_window()",
+      "end_exclusive": "    #[test]\n    fn excerpt_keeps_full_type_scan",
+      "bytes": 1287,
+      "sha256": "9c1af425c3ee69db06064c5b86e0c32827207540f0c19d38a353562fafeb8cad",
+      "hash_rule": "Exact UTF-8 substring starting at start and ending immediately before end_exclusive; no trimming/normalization."
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/prompt_state.rs",
+      "line": 844,
+      "start": "    fn excerpt_keeps_full_type_scan_through_late_tool_result_before_text_iteration()",
+      "end_exclusive": null,
+      "bytes": 922,
+      "sha256": "834a36e891f7a22c3c8782c4e0b716140a731cd63262f7a339db51f56bd176ea",
+      "hash_rule": "Exact UTF-8 substring starting at start and ending immediately before end_exclusive; no trimming/normalization."
+    },
+    {
+      "path": "rust/crates/autorouter-core/tests/prompt_state_contracts.rs",
+      "line": 38,
+      "start": "fn excerpts_select_latest_direct_text_and_omit_all_opaque_payloads()",
+      "end_exclusive": "#[test]\nfn excerpts_follow_goal",
+      "bytes": 1607,
+      "sha256": "74baae1c88c5b18cd7646fc5929e6f4c749e53b618af17447303a669c1661f9e",
+      "hash_rule": "Exact UTF-8 substring starting at start and ending immediately before end_exclusive; no trimming/normalization."
+    },
+    {
+      "path": "rust/crates/autorouter-core/tests/prompt_state_contracts.rs",
+      "line": 164,
+      "start": "fn excerpt_limits_count_scalars_and_repair_lone_surrogates()",
+      "end_exclusive": "#[test]\nfn bounded_excerpts",
+      "bytes": 662,
+      "sha256": "967fb2cd29374e93a552c36fed8c944ffce6188a6c264e07e334cd63eb98adc7",
+      "hash_rule": "Exact UTF-8 substring starting at start and ending immediately before end_exclusive; no trimming/normalization."
+    },
+    {
+      "path": "rust/crates/autorouter-core/tests/prompt_state_contracts.rs",
+      "line": 178,
+      "start": "fn bounded_excerpts_preserve_literal_and_malformed_wrapper_text()",
+      "end_exclusive": "#[test]\nfn exact_feedback",
+      "bytes": 765,
+      "sha256": "204d24eca33db7f6e138535b04e2d51818aabbd125c38bf6ccf176791d8e2829",
+      "hash_rule": "Exact UTF-8 substring starting at start and ending immediately before end_exclusive; no trimming/normalization."
+    }
+  ],
+  "raw_compiler_records": [
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-compiler-2/document_result.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-compiler-2/prompt_excerpt_document_fraction.jsonl",
+      "bytes": 4797,
+      "sha256": "342d541722c6d912a461d3bd1b215d12e39ad7152c91783de5abc3490d50a8d6"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-compiler-2/prompt_excerpt_document_host_getter.jsonl",
+      "bytes": 3988,
+      "sha256": "480c0edf90fb034adcf1d5d6de8afca851bd4e05dbace8f3f062c7589f1d4557"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-compiler-2/prompt_excerpt_document_infinity.jsonl",
+      "bytes": 3607,
+      "sha256": "249d5a3302ef978a7d192e93eb29ae2a8581ca6dabba893e5e4fd35c96847c23"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-compiler-2/prompt_excerpt_document_legacy_unchecked_string.jsonl",
+      "bytes": 5002,
+      "sha256": "6b2003e88f3dda8a7d5968d71824f3721a39728eacc69c5eb416a2222e09b1bb"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-compiler-2/prompt_excerpt_document_nan.jsonl",
+      "bytes": 3552,
+      "sha256": "93001ff24b604ce09a3c896c0ace3b071de21c0ce6c8c6628986406a94c6233e"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-compiler-2/prompt_excerpt_document_negative.jsonl",
+      "bytes": 3730,
+      "sha256": "2c89c7180174bd911325dd9b98c2050923449863c0480ede05ba852ccddfe74b"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-compiler-2/prompt_excerpt_document_string.jsonl",
+      "bytes": 3559,
+      "sha256": "3a1b46e9cc17cfa79fd714507220f6687f3775468cabed67814d50f71fc5e24b"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-compiler-2/prompt_excerpt_fraction.jsonl",
+      "bytes": 4690,
+      "sha256": "7547ed0012fb775ade1d2e630d634031ace43aaf831f81d821dd2adbb25c943b"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-compiler-2/prompt_excerpt_host_getter.jsonl",
+      "bytes": 3954,
+      "sha256": "567408227ab0ca45ffd02df5481d0a76b0a9d870b571d0c8567469f4ada96cc8"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-compiler-2/prompt_excerpt_infinity.jsonl",
+      "bytes": 3674,
+      "sha256": "e4cd48ab53c924053c031a2f39ee938c3c721af8a43dac67a600b7b7dcf0bdb3"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-compiler-2/prompt_excerpt_legacy_unchecked_string.jsonl",
+      "bytes": 4797,
+      "sha256": "f44216a250386079774e2476110b4fd4004127c766e3c841a19f56b5dc469479"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-compiler-2/prompt_excerpt_nan.jsonl",
+      "bytes": 3639,
+      "sha256": "142aa99db9c5ba9d962a82e7e6019611894283e59de8fb300ee7ea380deae783"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-compiler-2/prompt_excerpt_negative.jsonl",
+      "bytes": 3815,
+      "sha256": "efa673ad4035c3ee97571572c0e91b319d1f75f50ad7cbe68f3347c582d7324c"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-compiler-2/prompt_excerpt_string.jsonl",
+      "bytes": 3644,
+      "sha256": "399a30638d81de3b5b6071935439b18cca315bf1ac02c0c4d374358d5c9c5ff7"
+    },
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-compiler-2/value_result.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "initial_failures": [
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-compiler-1/execution-report.json",
+      "description": "First isolated compiler runner reused hardcoded pre-fix core04rlib. LegalResult imports failed E0432 and legacyString consumers compiled. All16results retained; runner corrected to actual executed prompt_state_contracts Cargo dependency fingerprint3944023063353378053 resolving coreb3; no product code change/relabel."
+    }
+  ],
+  "legacy_evidence_limit": "Original mapping raw prompt-state-contracts-2.log is absent locally; no claim of independently rereading that file. Current focused16passed fresh log is bound.",
+  "remaining_before_handoff": [
+    "Final source transfer, exact installed archive/platform qualification, final CI, performance/hardware/live gates and release/cutover remain separately pending; this assertion review does not qualify them."
+  ],
+  "allocator_caveat": "Raw native-prefixed report field tracked_sample_valid and allocator_peak_live_bytes are retained raw harness spellings only. No pointer membership accounting was collected; negative flag cannot certify true live/peak. Only actual scoped alloc/realloc event counts/net observations are reported. Native actual late text lookup behavior is proved by private production iterator witness.",
+  "private_draft": {
+    "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/per-assertion-supplement.draft.json",
+    "bytes": 36739,
+    "sha256": "9c9249421c563f4e543abc5875425e9999a43e41635c839ccc13a8ed63378c77"
+  },
+  "root_review": {
+    "date": "2026-10-14",
+    "accepted": true,
+    "scope": "Each of the17original assertion sites was reviewed separately against actual Source and native/consumer evidence. Parsed-input/getter, primitive-parameter and String-to-Result differences are explicit native API migrations; no live getter replay or arbitrary JavaScript error identity equivalence is claimed.",
+    "independent_peer_review": "Verified17Source assertion records,48file/diagnostic bindings,12native fragments,26actual passing focused tests and16actual compiler outcomes against the exact executed dependency fingerprint. Root independently revalidated48bindings and12fragments.",
+    "runtime_integration": "Combined workspace at this production-source checkpoint passed1209tests,0failed,9defaultignored; strictworkspacealltargetClippy andfmtpassed. Later test additions remain separately validated.",
+    "facade_conversion_scope": "The serde Value convenience facade serializes the complete supplied value after limit validation. Actual lazy text lookup proof applies to excerpt collection from parsed JsDocument; it does not prove that facade conversion skips older or opaque input fields.",
+    "nonqualification": "Platform, controlled hardware, performance, full release and final cutover gates remain open."
+  }
+}

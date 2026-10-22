@@ -1,0 +1,1504 @@
+{
+  "schema_version": 1,
+  "kind": "synthetic_runtime_neutral_benchmark_summary",
+  "date": "2026-10-10",
+  "run": 4,
+  "completed": true,
+  "deterministic_parity": true,
+  "rounds": 5,
+  "rows": 225,
+  "status": "all_measured_v1_targets_met_on_this_host",
+  "representative_hardware_acceptance": false,
+  "overall_plan_performance_gate": "incomplete",
+  "raw_report": {
+    "path": "artifacts/rust-rewrite/benchmark-checkpoint19-v1-1/report.json",
+    "bytes": 16510253,
+    "sha256": "1c0b5127f3e6b9e6097809a27bf3602f27e6686d13e36f71ce2904932d1c6c2f"
+  },
+  "preflight": {
+    "path": "artifacts/rust-rewrite/benchmark-checkpoint19-v1-1/preflight.json",
+    "bytes": 99724,
+    "sha256": "de1f92ab16d11c16c4b0d366bc8fb010fab539f563fb30720581128911d81ae4"
+  },
+  "preregistration": {
+    "path": "artifacts/rust-rewrite/benchmark-checkpoint19-v1-1-preregistration.json",
+    "bytes": 3466,
+    "sha256": "53eef6e71670cba9f156474072a015083e5faaf3171c63e3ed0135d214e16cd1"
+  },
+  "stdout": {
+    "path": "artifacts/rust-rewrite/benchmark-checkpoint19-v1-1.stdout.log",
+    "bytes": 216,
+    "sha256": "bcd9f36eb2cfa2009b893928c0b4cb35f5a85527fecd3a75a8111e76af089a0e"
+  },
+  "stderr": {
+    "path": "artifacts/rust-rewrite/benchmark-checkpoint19-v1-1.stderr.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "exit_code": 0,
+  "single_execution_no_tuning_or_retries": true,
+  "approximate_duration_seconds_from_report_file_timestamps": 696.642956495285,
+  "protocol": {
+    "path": "rust/parity/local-benchmark-v1.json",
+    "bytes": 4710,
+    "sha256": "52efb9bdedecb8a695a7082532ba069263b3159105790c0ec6418fb58363f39d"
+  },
+  "protocol_sha256": "52efb9bdedecb8a695a7082532ba069263b3159105790c0ec6418fb58363f39d",
+  "gates": {
+    "path": "rust/parity/performance-gates.json",
+    "bytes": 4792,
+    "sha256": "a9a8d7e1f9868e23303972117a19d5f899a934ebf7e50c0e8fc7498870cbd84f"
+  },
+  "thresholds_unchanged": {
+    "functional_mismatches": 0,
+    "startup_native_over_node_max": 0.5,
+    "idle_rss_native_over_node_max": 0.6,
+    "cpu_per_request_native_over_node_max": 0.7,
+    "throughput_native_over_node_min": 0.9,
+    "p95_p99_native_minus_node_allowance": "max(10% of Node latency,0.5ms); 95% paired-bootstrap interval must lie at/below allowance to detect no regression",
+    "bootstrap": "5000 deterministic paired-round resamples; unchanged seed1597463007; no outlier removal"
+  },
+  "measured_identity": {
+    "candidate": {
+      "path": "artifacts/rust-rewrite/nineteenth-immutable-binaries/claude-autorouter",
+      "bytes": 12853856,
+      "sha256": "6ce97bbf7d093867e3d15ac4bfed3c0ca44e2ddd7b84a6c38d63109c3d2cda3c"
+    },
+    "optimized_driver": {
+      "path": "artifacts/rust-rewrite/thirteenth-final-4-binaries/xtask",
+      "bytes": 15004832,
+      "sha256": "8bd9ae6d204e1094c3f883b805b59852d0d1535c7ebb91d72f3bfda84f53bffb"
+    },
+    "node": {
+      "path": "/Users/fabio/.nvm/versions/node/v22.14.0/bin/node",
+      "bytes": 108619024,
+      "sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0"
+    },
+    "executable_hashes_unchanged_after_run": true,
+    "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+    "worktree_commit_at_start": "432b538782d3042510c7062dc6b9648c848f4b9e",
+    "candidate_build_evidence": {
+      "path": "artifacts/rust-rewrite/nineteenth-native-validation-1/report.json",
+      "bytes": 6273,
+      "sha256": "a6b9c2bbe551e0b13fc7f0913d82d7f691a06aacd1b956ae437c7a6839e27328"
+    },
+    "driver_build_evidence": {
+      "path": "artifacts/rust-rewrite/thirteenth-final-4-binaries/immutable-build.json",
+      "bytes": 759,
+      "sha256": "6ebd1b2a54f91a4ff2f5dcdc51a71c40f9a3d961dc6d07e8784595f7440d459b"
+    },
+    "driver_build_checks": {
+      "path": "artifacts/rust-rewrite/thirteenth-final-4-checks.json",
+      "bytes": 4175,
+      "sha256": "6eb23075de553dd48b2bea5039a5260c175983777ec3896ae49cf31727670e52"
+    },
+    "compiler_explanation": "Candidate build explicitly used cargo +1.99.0; retained optimized driver was built under the workspace Rust1.99.0 pin. The benchmark environment invokes rustc from PATH at the repository root and observed1.81.0; that observation is not the build compiler. Raw environment evidence is preserved."
+  },
+  "environment_before": {
+    "os": "macos",
+    "architecture": "aarch64",
+    "os_release": "27.0.0",
+    "cpu": "Apple M2 Ultra",
+    "memory_bytes": 68719476736,
+    "logical_cpus": 24,
+    "node": "v22.14.0",
+    "rustc": "rustc 1.81.0 (eeb90cda1 2024-09-04)\nbinary: rustc\ncommit-hash: eeb90cda1969383f56a2637cbd3037bdf598841c\ncommit-date: 2024-09-04\nhost: aarch64-apple-darwin\nrelease: 1.81.0\nLLVM version: 18.1.7",
+    "source_commit": "432b538782d3042510c7062dc6b9648c848f4b9e",
+    "build_profile": "release requested; binary hash recorded; source-to-binary provenance not verified",
+    "power_settings": "AC Power:\n Sleep On Power Button 1\n autorestartatconnect 0\n lowpowermode         0\n standby              0\n ttyskeepawake        1\n powernap             1\n displaysleep         120\n womp                 1\n networkoversleep     0\n sleep                0\n tcpkeepalive         1\n autorestart          0\n disksleep            10",
+    "power_mode_qualification": "uncontrolled developer workstation; representative-hardware acceptance unavailable",
+    "background_load": "{ 3.36 5.79 6.49 }",
+    "driver_worker_threads": 2,
+    "candidate_worker_configuration": "Native serve uses one current-thread Tokio executor; Node uses one JavaScript event-loop thread; both may use runtime background workers. Driver uses two Tokio workers.",
+    "cpu_time_resolution_ms": 10,
+    "rss_method": "ps whole-process RSS KiB sampled every100ms; sampled peak is a lower bound",
+    "process_names_collected": false
+  },
+  "environment_after": {
+    "os": "macos",
+    "architecture": "aarch64",
+    "os_release": "27.0.0",
+    "cpu": "Apple M2 Ultra",
+    "memory_bytes": 68719476736,
+    "logical_cpus": 24,
+    "node": "v22.14.0",
+    "rustc": "rustc 1.81.0 (eeb90cda1 2024-09-04)\nbinary: rustc\ncommit-hash: eeb90cda1969383f56a2637cbd3037bdf598841c\ncommit-date: 2024-09-04\nhost: aarch64-apple-darwin\nrelease: 1.81.0\nLLVM version: 18.1.7",
+    "source_commit": "432b538782d3042510c7062dc6b9648c848f4b9e",
+    "build_profile": "release requested; binary hash recorded; source-to-binary provenance not verified",
+    "power_settings": "AC Power:\n Sleep On Power Button 1\n autorestartatconnect 0\n lowpowermode         0\n standby              0\n ttyskeepawake        1\n powernap             1\n displaysleep         120\n womp                 1\n networkoversleep     0\n sleep                0\n tcpkeepalive         1\n autorestart          0\n disksleep            10",
+    "power_mode_qualification": "uncontrolled developer workstation; representative-hardware acceptance unavailable",
+    "background_load": "{ 7.74 7.84 7.27 }",
+    "driver_worker_threads": 2,
+    "candidate_worker_configuration": "Native serve uses one current-thread Tokio executor; Node uses one JavaScript event-loop thread; both may use runtime background workers. Driver uses two Tokio workers.",
+    "cpu_time_resolution_ms": 10,
+    "rss_method": "ps whole-process RSS KiB sampled every100ms; sampled peak is a lower bound",
+    "process_names_collected": false
+  },
+  "comparison_status_counts": {
+    "observed_target_met": 42,
+    "no_regression_detected": 26,
+    "reported_http_metric_processing_only_gate_unmeasured": 1
+  },
+  "results": [
+    {
+      "workload": "cache_hit",
+      "paired_median_ranges_across_concurrencies": {
+        "cpu_per_request_ratio": {
+          "minimum": 0.4691358024691358,
+          "maximum": 0.4935064935064935,
+          "statuses": [
+            "observed_target_met"
+          ]
+        },
+        "idle_rss_ratio": {
+          "minimum": 0.17398330191220038,
+          "maximum": 0.17654950362221625,
+          "statuses": [
+            "observed_target_met"
+          ]
+        },
+        "p95_regression_margin_ms": {
+          "minimum": -16.496242400000003,
+          "maximum": -0.7088329999999998,
+          "statuses": [
+            "no_regression_detected"
+          ]
+        },
+        "p99_regression_margin_ms": {
+          "minimum": -28.170870100000005,
+          "maximum": -0.858209,
+          "statuses": [
+            "no_regression_detected"
+          ]
+        },
+        "throughput_ratio": {
+          "minimum": 1.3122827268328925,
+          "maximum": 1.507987387874825,
+          "statuses": [
+            "observed_target_met"
+          ]
+        }
+      },
+      "idle_rss_mib_median_across_rounds_and_concurrencies": {
+        "node": 58.0078125,
+        "rust": 10.1953125
+      },
+      "concurrency_one_median_of_round_metrics": {
+        "node": {
+          "p95_ms": 0.538875,
+          "p99_ms": 0.727,
+          "requests_per_second": 2640.987318742141,
+          "cpu_ms_per_request": 0.475
+        },
+        "rust": {
+          "p95_ms": 0.336208,
+          "p99_ms": 0.41716600000000004,
+          "requests_per_second": 3962.96706353305,
+          "cpu_ms_per_request": 0.23
+        }
+      }
+    },
+    {
+      "workload": "large_catalog_miss",
+      "paired_median_ranges_across_concurrencies": {
+        "cpu_per_request_ratio": {
+          "minimum": 0.5709939148073022,
+          "maximum": 0.6205357142857143,
+          "statuses": [
+            "observed_target_met"
+          ]
+        },
+        "idle_rss_ratio": {
+          "minimum": 0.1745219499057366,
+          "maximum": 0.17612101566720692,
+          "statuses": [
+            "observed_target_met"
+          ]
+        },
+        "large_catalog_http_p95_ratio": {
+          "minimum": 0.6628326081224848,
+          "maximum": 0.6628326081224848,
+          "statuses": [
+            "reported_http_metric_processing_only_gate_unmeasured"
+          ]
+        },
+        "p95_regression_margin_ms": {
+          "minimum": -234.86510000000004,
+          "maximum": -2.3644382,
+          "statuses": [
+            "no_regression_detected"
+          ]
+        },
+        "p99_regression_margin_ms": {
+          "minimum": -345.70508259999997,
+          "maximum": -3.3426712,
+          "statuses": [
+            "no_regression_detected"
+          ]
+        },
+        "throughput_ratio": {
+          "minimum": 1.409649062948684,
+          "maximum": 1.4419808105452692,
+          "statuses": [
+            "observed_target_met"
+          ]
+        }
+      },
+      "idle_rss_mib_median_across_rounds_and_concurrencies": {
+        "node": 57.890625,
+        "rust": 10.125
+      },
+      "concurrency_one_median_of_round_metrics": {
+        "node": {
+          "p95_ms": 5.450334000000001,
+          "p99_ms": 6.696834,
+          "requests_per_second": 217.32152328071112,
+          "cpu_ms_per_request": 4.595
+        },
+        "rust": {
+          "p95_ms": 3.6524579999999998,
+          "p99_ms": 3.900834,
+          "requests_per_second": 306.76334762054944,
+          "cpu_ms_per_request": 2.7750000000000004
+        }
+      }
+    },
+    {
+      "workload": "small_delayed",
+      "paired_median_ranges_across_concurrencies": {
+        "cpu_per_request_ratio": {
+          "minimum": 0.44235924932975873,
+          "maximum": 0.44235924932975873,
+          "statuses": [
+            "observed_target_met"
+          ]
+        },
+        "idle_rss_ratio": {
+          "minimum": 0.17559523809523808,
+          "maximum": 0.17559523809523808,
+          "statuses": [
+            "observed_target_met"
+          ]
+        },
+        "p95_regression_margin_ms": {
+          "minimum": -1.4006419999999988,
+          "maximum": -1.4006419999999988,
+          "statuses": [
+            "no_regression_detected"
+          ]
+        },
+        "p99_regression_margin_ms": {
+          "minimum": -1.8475833000000008,
+          "maximum": -1.8475833000000008,
+          "statuses": [
+            "no_regression_detected"
+          ]
+        },
+        "throughput_ratio": {
+          "minimum": 1.0422859091213292,
+          "maximum": 1.0422859091213292,
+          "statuses": [
+            "observed_target_met"
+          ]
+        }
+      },
+      "idle_rss_mib_median_across_rounds_and_concurrencies": {
+        "node": 57.96875,
+        "rust": 10.171875
+      },
+      "concurrency_one_median_of_round_metrics": {
+        "node": {
+          "p95_ms": 9.387583,
+          "p99_ms": 10.19075,
+          "requests_per_second": 115.42292858297188,
+          "cpu_ms_per_request": 1.76
+        },
+        "rust": {
+          "p95_ms": 8.944875,
+          "p99_ms": 9.741041000000001,
+          "requests_per_second": 120.63727302497897,
+          "cpu_ms_per_request": 0.77
+        }
+      }
+    },
+    {
+      "workload": "small_miss",
+      "paired_median_ranges_across_concurrencies": {
+        "cpu_per_request_ratio": {
+          "minimum": 0.3555555555555556,
+          "maximum": 0.36153846153846164,
+          "statuses": [
+            "observed_target_met"
+          ]
+        },
+        "idle_rss_ratio": {
+          "minimum": 0.1746971736204576,
+          "maximum": 0.17712276906435911,
+          "statuses": [
+            "observed_target_met"
+          ]
+        },
+        "p95_regression_margin_ms": {
+          "minimum": -36.5690087,
+          "maximum": -0.942874,
+          "statuses": [
+            "no_regression_detected"
+          ]
+        },
+        "p99_regression_margin_ms": {
+          "minimum": -56.737716000000006,
+          "maximum": -1.336625,
+          "statuses": [
+            "no_regression_detected"
+          ]
+        },
+        "throughput_ratio": {
+          "minimum": 1.7509191321078172,
+          "maximum": 1.9415171022569337,
+          "statuses": [
+            "observed_target_met"
+          ]
+        }
+      },
+      "idle_rss_mib_median_across_rounds_and_concurrencies": {
+        "node": 57.984375,
+        "rust": 10.140625
+      },
+      "concurrency_one_median_of_round_metrics": {
+        "node": {
+          "p95_ms": 0.848583,
+          "p99_ms": 1.30375,
+          "requests_per_second": 1609.1758968674274,
+          "cpu_ms_per_request": 0.79
+        },
+        "rust": {
+          "p95_ms": 0.408792,
+          "p99_ms": 0.474417,
+          "requests_per_second": 3043.803956494965,
+          "cpu_ms_per_request": 0.28500000000000003
+        }
+      }
+    },
+    {
+      "workload": "startup_help",
+      "paired_median_ranges_across_concurrencies": {
+        "startup_median_ratio": {
+          "minimum": 0.05705091616751332,
+          "maximum": 0.05705091616751332,
+          "statuses": [
+            "observed_target_met"
+          ]
+        }
+      },
+      "startup_ms_median_of_five_round_p50": {
+        "node": 48.42375,
+        "rust": 2.781333
+      }
+    },
+    {
+      "workload": "startup_status",
+      "paired_median_ranges_across_concurrencies": {
+        "startup_median_ratio": {
+          "minimum": 0.09247652537271364,
+          "maximum": 0.09247652537271364,
+          "statuses": [
+            "observed_target_met"
+          ]
+        }
+      },
+      "startup_ms_median_of_five_round_p50": {
+        "node": 30.008,
+        "rust": 2.763792
+      }
+    },
+    {
+      "workload": "startup_version",
+      "paired_median_ranges_across_concurrencies": {
+        "startup_median_ratio": {
+          "minimum": 0.055646361208010496,
+          "maximum": 0.055646361208010496,
+          "statuses": [
+            "observed_target_met"
+          ]
+        }
+      },
+      "startup_ms_median_of_five_round_p50": {
+        "node": 48.94825,
+        "rust": 2.682709
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "workload": "cache_hit",
+      "concurrency": 1,
+      "metric": "idle_rss_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.17398330191220038,
+        "low": 0.17317987152034262,
+        "high": 0.17794077696278185
+      },
+      "threshold": 0.6,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "cache_hit",
+      "concurrency": 1,
+      "metric": "cpu_per_request_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.48421052631578954,
+        "low": 0.4736842105263158,
+        "high": 0.4893617021276596
+      },
+      "threshold": 0.7,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "cache_hit",
+      "concurrency": 1,
+      "metric": "throughput_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 1.507987387874825,
+        "low": 1.4554779746230035,
+        "high": 1.695245946722508
+      },
+      "threshold": 0.9,
+      "minimum": true,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "cache_hit",
+      "concurrency": 1,
+      "metric": "p95_regression_margin_ms",
+      "interval": {
+        "median": -0.7088329999999998,
+        "low": -0.7595000000000001,
+        "high": -0.676458
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "cache_hit",
+      "concurrency": 1,
+      "metric": "p99_regression_margin_ms",
+      "interval": {
+        "median": -0.858209,
+        "low": -1.560875,
+        "high": -0.731542
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "cache_hit",
+      "concurrency": 8,
+      "metric": "idle_rss_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.1761194029850746,
+        "low": 0.17447150120417448,
+        "high": 0.1785132935431362
+      },
+      "threshold": 0.6,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "cache_hit",
+      "concurrency": 8,
+      "metric": "cpu_per_request_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.4691358024691358,
+        "low": 0.46341463414634143,
+        "high": 0.5185185185185185
+      },
+      "threshold": 0.7,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "cache_hit",
+      "concurrency": 8,
+      "metric": "throughput_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 1.4846418388249858,
+        "low": 1.333716939099988,
+        "high": 1.5288345362798468
+      },
+      "threshold": 0.9,
+      "minimum": true,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "cache_hit",
+      "concurrency": 8,
+      "metric": "p95_regression_margin_ms",
+      "interval": {
+        "median": -1.9039160000000002,
+        "low": -2.083624,
+        "high": -1.6521249999999998
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "cache_hit",
+      "concurrency": 8,
+      "metric": "p99_regression_margin_ms",
+      "interval": {
+        "median": -2.2355840000000002,
+        "low": -2.5450409999999994,
+        "high": -1.6184160000000003
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "cache_hit",
+      "concurrency": 32,
+      "metric": "idle_rss_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.17654950362221625,
+        "low": 0.17537715517241378,
+        "high": 0.17710292932007524
+      },
+      "threshold": 0.6,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "cache_hit",
+      "concurrency": 32,
+      "metric": "cpu_per_request_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.4935064935064935,
+        "low": 0.48717948717948717,
+        "high": 0.5131578947368421
+      },
+      "threshold": 0.7,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "cache_hit",
+      "concurrency": 32,
+      "metric": "throughput_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 1.362273214885965,
+        "low": 1.333384688946071,
+        "high": 1.403028857770718
+      },
+      "threshold": 0.9,
+      "minimum": true,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "cache_hit",
+      "concurrency": 32,
+      "metric": "p95_regression_margin_ms",
+      "interval": {
+        "median": -5.134344799999999,
+        "low": -5.9733163000000005,
+        "high": -3.9841163000000015
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "cache_hit",
+      "concurrency": 32,
+      "metric": "p99_regression_margin_ms",
+      "interval": {
+        "median": -6.22795,
+        "low": -8.993792399999998,
+        "high": -5.9441243
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "cache_hit",
+      "concurrency": 128,
+      "metric": "idle_rss_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.17599130907115698,
+        "low": 0.17364465915190552,
+        "high": 0.17734522844011896
+      },
+      "threshold": 0.6,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "cache_hit",
+      "concurrency": 128,
+      "metric": "cpu_per_request_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.48717948717948717,
+        "low": 0.46249999999999997,
+        "high": 0.4935064935064935
+      },
+      "threshold": 0.7,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "cache_hit",
+      "concurrency": 128,
+      "metric": "throughput_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 1.3122827268328925,
+        "low": 1.285924636069457,
+        "high": 1.4299811075551792
+      },
+      "threshold": 0.9,
+      "minimum": true,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "cache_hit",
+      "concurrency": 128,
+      "metric": "p95_regression_margin_ms",
+      "interval": {
+        "median": -16.496242400000003,
+        "low": -25.943874299999997,
+        "high": -15.4830201
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "cache_hit",
+      "concurrency": 128,
+      "metric": "p99_regression_margin_ms",
+      "interval": {
+        "median": -28.170870100000005,
+        "low": -34.1033205,
+        "high": -20.888896499999998
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 1,
+      "metric": "idle_rss_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.1752298539751217,
+        "low": 0.1739603153030715,
+        "high": 0.1783008658008658
+      },
+      "threshold": 0.6,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 1,
+      "metric": "cpu_per_request_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.6147902869757176,
+        "low": 0.593311758360302,
+        "high": 0.6248648648648648
+      },
+      "threshold": 0.7,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 1,
+      "metric": "throughput_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 1.4155902526773942,
+        "low": 1.3826432052197861,
+        "high": 1.443232955651122
+      },
+      "threshold": 0.9,
+      "minimum": true,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 1,
+      "metric": "p95_regression_margin_ms",
+      "interval": {
+        "median": -2.3644382,
+        "low": -2.5899663000000004,
+        "high": -2.3227837
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 1,
+      "metric": "p99_regression_margin_ms",
+      "interval": {
+        "median": -3.3426712,
+        "low": -3.6605125000000003,
+        "high": -3.2561465000000003
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 1,
+      "metric": "large_catalog_http_p95_ratio",
+      "interval": {
+        "median": 0.6628326081224848,
+        "low": 0.6410979913828067,
+        "high": 0.6725200495356083
+      },
+      "threshold": 0.5,
+      "status": "reported_http_metric_processing_only_gate_unmeasured",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 8,
+      "metric": "idle_rss_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.17612101566720692,
+        "low": 0.17407706817569388,
+        "high": 0.17723226328567576
+      },
+      "threshold": 0.6,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 8,
+      "metric": "cpu_per_request_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.6205357142857143,
+        "low": 0.6141906873614191,
+        "high": 0.6352549889135254
+      },
+      "threshold": 0.7,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 8,
+      "metric": "throughput_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 1.4337093083045516,
+        "low": 1.3999383715725622,
+        "high": 1.4587868365177212
+      },
+      "threshold": 0.9,
+      "minimum": true,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 8,
+      "metric": "p95_regression_margin_ms",
+      "interval": {
+        "median": -20.096770899999996,
+        "low": -20.9019663,
+        "high": -18.4676375
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 8,
+      "metric": "p99_regression_margin_ms",
+      "interval": {
+        "median": -22.256096199999995,
+        "low": -30.754459400000005,
+        "high": -21.3826719
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 32,
+      "metric": "idle_rss_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.17516094420600858,
+        "low": 0.17273701124799143,
+        "high": 0.17538628354567634
+      },
+      "threshold": 0.6,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 32,
+      "metric": "cpu_per_request_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.58004158004158,
+        "low": 0.5758513931888545,
+        "high": 0.5865284974093264
+      },
+      "threshold": 0.7,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 32,
+      "metric": "throughput_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 1.4419808105452692,
+        "low": 1.412493095438951,
+        "high": 1.4555696733156576
+      },
+      "threshold": 0.9,
+      "minimum": true,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 32,
+      "metric": "p95_regression_margin_ms",
+      "interval": {
+        "median": -76.369517,
+        "low": -80.60465900000003,
+        "high": -68.3562111
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 32,
+      "metric": "p99_regression_margin_ms",
+      "interval": {
+        "median": -76.66433719999999,
+        "low": -84.65942149999998,
+        "high": -62.87311180000002
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 128,
+      "metric": "idle_rss_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.1745219499057366,
+        "low": 0.17342281879194632,
+        "high": 0.17532992189604094
+      },
+      "threshold": 0.6,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 128,
+      "metric": "cpu_per_request_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.5709939148073022,
+        "low": 0.5505050505050506,
+        "high": 0.5836734693877551
+      },
+      "threshold": 0.7,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 128,
+      "metric": "throughput_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 1.409649062948684,
+        "low": 1.3866371182513042,
+        "high": 1.4725880225187644
+      },
+      "threshold": 0.9,
+      "minimum": true,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 128,
+      "metric": "p95_regression_margin_ms",
+      "interval": {
+        "median": -234.86510000000004,
+        "low": -324.97203609999997,
+        "high": -208.34157879999998
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 128,
+      "metric": "p99_regression_margin_ms",
+      "interval": {
+        "median": -345.70508259999997,
+        "low": -378.49085419999994,
+        "high": -280.1932389000001
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_delayed",
+      "concurrency": 1,
+      "metric": "idle_rss_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.17559523809523808,
+        "low": 0.1725067385444744,
+        "high": 0.17859064012910167
+      },
+      "threshold": 0.6,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_delayed",
+      "concurrency": 1,
+      "metric": "cpu_per_request_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.44235924932975873,
+        "low": 0.39181286549707606,
+        "high": 0.4715909090909091
+      },
+      "threshold": 0.7,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_delayed",
+      "concurrency": 1,
+      "metric": "throughput_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 1.0422859091213292,
+        "low": 1.0384274650245562,
+        "high": 1.058340216492398
+      },
+      "threshold": 0.9,
+      "minimum": true,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_delayed",
+      "concurrency": 1,
+      "metric": "p95_regression_margin_ms",
+      "interval": {
+        "median": -1.4006419999999988,
+        "low": -1.7424176999999985,
+        "high": -1.2095333000000017
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_delayed",
+      "concurrency": 1,
+      "metric": "p99_regression_margin_ms",
+      "interval": {
+        "median": -1.8475833000000008,
+        "low": -2.100999699999999,
+        "high": -1.4687839999999985
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_miss",
+      "concurrency": 1,
+      "metric": "idle_rss_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.17497291440953414,
+        "low": 0.1738312735088662,
+        "high": 0.17554774141195564
+      },
+      "threshold": 0.6,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_miss",
+      "concurrency": 1,
+      "metric": "cpu_per_request_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.35625000000000007,
+        "low": 0.3459119496855346,
+        "high": 0.37662337662337664
+      },
+      "threshold": 0.7,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_miss",
+      "concurrency": 1,
+      "metric": "throughput_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 1.90627044668012,
+        "low": 1.7802011322794713,
+        "high": 1.9533237050214882
+      },
+      "threshold": 0.9,
+      "minimum": true,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_miss",
+      "concurrency": 1,
+      "metric": "p95_regression_margin_ms",
+      "interval": {
+        "median": -0.942874,
+        "low": -0.950792,
+        "high": -0.864416
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_miss",
+      "concurrency": 1,
+      "metric": "p99_regression_margin_ms",
+      "interval": {
+        "median": -1.336625,
+        "low": -1.392667,
+        "high": -1.2381250000000001
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_miss",
+      "concurrency": 8,
+      "metric": "idle_rss_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.1746971736204576,
+        "low": 0.17288590604026846,
+        "high": 0.176916824708751
+      },
+      "threshold": 0.6,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_miss",
+      "concurrency": 8,
+      "metric": "cpu_per_request_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.3555555555555556,
+        "low": 0.3453237410071943,
+        "high": 0.3695652173913044
+      },
+      "threshold": 0.7,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_miss",
+      "concurrency": 8,
+      "metric": "throughput_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 1.9415171022569337,
+        "low": 1.872633959770329,
+        "high": 1.9723897423241126
+      },
+      "threshold": 0.9,
+      "minimum": true,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_miss",
+      "concurrency": 8,
+      "metric": "p95_regression_margin_ms",
+      "interval": {
+        "median": -3.3318514,
+        "low": -3.527958699999999,
+        "high": -3.1100537999999998
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_miss",
+      "concurrency": 8,
+      "metric": "p99_regression_margin_ms",
+      "interval": {
+        "median": -3.8347749999999996,
+        "low": -4.5627087,
+        "high": -3.6536781000000005
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_miss",
+      "concurrency": 32,
+      "metric": "idle_rss_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.17712276906435911,
+        "low": 0.17433414043583534,
+        "high": 0.17796381312449366
+      },
+      "threshold": 0.6,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_miss",
+      "concurrency": 32,
+      "metric": "cpu_per_request_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.36153846153846164,
+        "low": 0.3511450381679389,
+        "high": 0.3740458015267176
+      },
+      "threshold": 0.7,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_miss",
+      "concurrency": 32,
+      "metric": "throughput_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 1.8409476055669822,
+        "low": 1.7783530856130445,
+        "high": 1.865659171626064
+      },
+      "threshold": 0.9,
+      "minimum": true,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_miss",
+      "concurrency": 32,
+      "metric": "p95_regression_margin_ms",
+      "interval": {
+        "median": -10.279874300000003,
+        "low": -11.199828799999999,
+        "high": -9.432834399999999
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_miss",
+      "concurrency": 32,
+      "metric": "p99_regression_margin_ms",
+      "interval": {
+        "median": -12.6329958,
+        "low": -13.0684785,
+        "high": -10.030583700000003
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_miss",
+      "concurrency": 128,
+      "metric": "idle_rss_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.17623282134195634,
+        "low": 0.17371397791543228,
+        "high": 0.17768263312817767
+      },
+      "threshold": 0.6,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_miss",
+      "concurrency": 128,
+      "metric": "cpu_per_request_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.3555555555555556,
+        "low": 0.34848484848484856,
+        "high": 0.3692307692307693
+      },
+      "threshold": 0.7,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_miss",
+      "concurrency": 128,
+      "metric": "throughput_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 1.7509191321078172,
+        "low": 1.704608137800474,
+        "high": 1.7714501313652133
+      },
+      "threshold": 0.9,
+      "minimum": true,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_miss",
+      "concurrency": 128,
+      "metric": "p95_regression_margin_ms",
+      "interval": {
+        "median": -36.5690087,
+        "low": -44.0918736,
+        "high": -33.111833000000004
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "small_miss",
+      "concurrency": 128,
+      "metric": "p99_regression_margin_ms",
+      "interval": {
+        "median": -56.737716000000006,
+        "low": -64.36535450000001,
+        "high": -55.0705035
+      },
+      "absolute_noise_floor_ms": 0.5,
+      "relative_allowance": 0.1,
+      "status": "no_regression_detected",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "startup_help",
+      "concurrency": 0,
+      "metric": "startup_median_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.05705091616751332,
+        "low": 0.05597757794199016,
+        "high": 0.0574476987015669
+      },
+      "threshold": 0.5,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "startup_status",
+      "concurrency": 0,
+      "metric": "startup_median_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.09247652537271364,
+        "low": 0.09088626215593884,
+        "high": 0.0946751680281471
+      },
+      "threshold": 0.5,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    },
+    {
+      "workload": "startup_version",
+      "concurrency": 0,
+      "metric": "startup_median_ratio",
+      "paired_rounds": 5,
+      "interval": {
+        "median": 0.055646361208010496,
+        "low": 0.054631073842611066,
+        "high": 0.056143656345350554
+      },
+      "threshold": 0.5,
+      "minimum": false,
+      "status": "observed_target_met",
+      "acceptance_qualified": false
+    }
+  ],
+  "quality_controls": {
+    "original_reference_integrity_verified": true,
+    "HTTP_rows_with_exact_count_and_response_checks": 195,
+    "measured_requests_per_HTTP_row": 2000,
+    "warmup_requests_per_HTTP_row": 200,
+    "measured_HTTP_requests_including_direct_controls": 390000,
+    "complete_response_bytes_and_expected_evaluator_upstream_counts_match": true,
+    "mock_upstream_and_evaluator_only": true,
+    "external_provider_calls": 0,
+    "model_downloads": 0,
+    "user_configuration_changes": 0
+  },
+  "distribution_context": {
+    "exact_package": {
+      "path": "artifacts/rust-rewrite/native-nineteenth-host-1/package-report.json",
+      "bytes": 2934,
+      "sha256": "510bcb00e229771959617974209885425f30ac4ddeb6e400ccad4ab608a47069"
+    },
+    "installed_native_package_tests": 74,
+    "exact_archive_upgrade_rollback": {
+      "path": "artifacts/rust-rewrite/resumed-upgrade-rollback-1/report.json",
+      "bytes": 2393,
+      "sha256": "6a133a3a2e99cc3d404e35703294609ca58d967cabab98cb8eea250ac75dcb85"
+    },
+    "upgrade_rollback_passed": true,
+    "previous_head_CI": {
+      "path": "artifacts/rust-rewrite/ci-d2c357f/completed.json",
+      "bytes": 89266,
+      "sha256": "fa0f2632e97c5d6c0405cd4db83b2136e01b9df691a7d58c71cd11360da48922"
+    },
+    "previous_head_all10_jobs_passed": true,
+    "CI_scope": "The linked CI result is d2c357f only; exact432b538 and subsequent-fix CI remain separately tracked.",
+    "release_approved": false
+  },
+  "unmeasured": [
+    "cold_disk_cache",
+    "npm_dispatcher_timing",
+    "gateway_processing_only_latency",
+    "allocations",
+    "open_file_descriptors",
+    "near_limit_body",
+    "identical_shared_evaluation",
+    "continuity",
+    "cancellation",
+    "upstream_failures",
+    "token_count_workloads",
+    "storage_slow_failed",
+    "status_polling",
+    "history_at_read_limits",
+    "resource_soak",
+    "real_evaluator_quality",
+    "other_hardware_and_platforms",
+    "true_peak_rss",
+    "streaming"
+  ],
+  "later_source_change": "During this run root authored a separate deadline-under-backpressure fix in server.rs/transport_completion.rs without compiling or executing it. The measured immutable candidate remained6ce97bbf throughout. These timings do not qualify that subsequent fix or later binaries.",
+  "conclusion": "The measured checkpoint19 candidate clears every implemented v1 performance target on this workstation, supporting its scoped local opt-in performance case. This is not completion of the rewrite, a release authorization or a performance claim for the later deadline fix.",
+  "limits": [
+    "One Apple M2 Ultra64GiB macOS27 host, Node22.14, observedACpower/lowpowermode0; background load remains uncontrolled.",
+    "All42 ratio targets and26 latency nonregression intervals met unchanged thresholds. WholeHTTP latency includes driver, mocks and transport; no processing-only0.5 target claim.",
+    "100ms sampled RSS is not true peak memory. No first-body streaming, allocation/FD, backpressure/cancellation performance, soak, representative-hardware or real-provider quality qualification.",
+    "Independent historical runs1\u20133 remain separate and unchanged; their older executable results were not pooled.",
+    "Raw samples/source and binary evidence remain retained development artifacts; this summary does not claim publication or reproducible release provenance."
+  ]
+}

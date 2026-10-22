@@ -1,0 +1,231 @@
+{
+  "schema_version": 1,
+  "kind": "INDIVIDUAL_DEFAULT_PULL_AND_WARMUP_POLICY_DEADLINES",
+  "status": "ACCEPTED_INDIVIDUAL_PULL_AND_WARMUP_DEFAULT_POLICY_LIMITS",
+  "only_limits": {
+    "pull_ms": 900000,
+    "warmup_ms": 60000
+  },
+  "thresholds_declared_before_observation": {
+    "native": {
+      "path": "artifacts/rust-rewrite/native-default-setup-budgets-draft-20261018-1/handoff.json",
+      "bytes": 2129,
+      "sha256": "311f798468f7c1baf8999e43d460b5caaf9a1e2f66a57a0dec1087cba937e378"
+    },
+    "Source_recipe": {
+      "path": "artifacts/rust-rewrite/setup-default-operation-timers-source-handoff-20261018-1/recipe-v2.json",
+      "bytes": 13479,
+      "sha256": "47432c533c1680ff7d01f13ffe6f3c3fded2829b527f48a792191bb5d1ce0fee"
+    },
+    "Source_declaration": {
+      "path": "artifacts/rust-rewrite/setup-default-operation-timers-source-handoff-20261018-1/declaration-v2.json",
+      "bytes": 17892,
+      "sha256": "e5ddb2268e4aa2328a38824a5dee788656474a47c78bd3ad654cc80ddc9e8743"
+    }
+  },
+  "source": {
+    "snapshot": {
+      "path": "artifacts/rust-rewrite/readiness-and-setup-budget-validation-20261018-1/source-fixed.json",
+      "bytes": 118475,
+      "sha256": "fa9b529c420451e2c178f493b97f92da3b5eec99b2509810dd18927accdced2d"
+    },
+    "inputs": 702,
+    "frozen": 111,
+    "native_test": {
+      "path": "rust/crates/autorouter-runtime/tests/local_setup_diagnostic_contracts.rs",
+      "bytes": 26429,
+      "sha256": "f2db949588ce68f5346e89557b644a851a115cbc3ecaebfe9df76f33e518fed3"
+    },
+    "runtime_unchanged": {
+      "path": "rust/crates/autorouter-runtime/src/ollama_setup.rs",
+      "bytes": 33911,
+      "sha256": "be67b7d323ce7ee0e83f4935446e9f08b7c0700ad9a30526fc8d02b533d1f286"
+    },
+    "frozen_setup": {
+      "path": "artifacts/rust-rewrite/reference/src/ollama-setup.mjs",
+      "bytes": 11024,
+      "sha256": "4b6ea01482b0480935d0a6541146c79403f1b0eb2652ee9a3edd7a7627d8e958"
+    }
+  },
+  "actual_rows": [
+    {
+      "operation": "warmup",
+      "late": false,
+      "held": "head",
+      "default_ms": 60000,
+      "Source_phase_ms": 0,
+      "Source_before_ms": 59999,
+      "Source_expiry_ms": 60000,
+      "Source_retry_ms": 60000,
+      "full_normalized_requests_equal": true,
+      "requests": 10,
+      "predicates": 27
+    },
+    {
+      "operation": "warmup",
+      "late": false,
+      "held": "body",
+      "default_ms": 60000,
+      "Source_phase_ms": 0,
+      "Source_before_ms": 59999,
+      "Source_expiry_ms": 60000,
+      "Source_retry_ms": 60000,
+      "full_normalized_requests_equal": true,
+      "requests": 10,
+      "predicates": 27
+    },
+    {
+      "operation": "warmup",
+      "late": true,
+      "held": "head",
+      "default_ms": 60000,
+      "Source_phase_ms": 4000,
+      "Source_before_ms": 63999,
+      "Source_expiry_ms": 64000,
+      "Source_retry_ms": 64000,
+      "full_normalized_requests_equal": true,
+      "requests": 10,
+      "predicates": 27
+    },
+    {
+      "operation": "warmup",
+      "late": true,
+      "held": "body",
+      "default_ms": 60000,
+      "Source_phase_ms": 4000,
+      "Source_before_ms": 63999,
+      "Source_expiry_ms": 64000,
+      "Source_retry_ms": 64000,
+      "full_normalized_requests_equal": true,
+      "requests": 10,
+      "predicates": 27
+    },
+    {
+      "operation": "pull",
+      "late": false,
+      "held": "head",
+      "default_ms": 900000,
+      "Source_phase_ms": 0,
+      "Source_before_ms": 899999,
+      "Source_expiry_ms": 900000,
+      "Source_retry_ms": 900000,
+      "full_normalized_requests_equal": true,
+      "requests": 9,
+      "predicates": 27
+    },
+    {
+      "operation": "pull",
+      "late": false,
+      "held": "body",
+      "default_ms": 900000,
+      "Source_phase_ms": 0,
+      "Source_before_ms": 899999,
+      "Source_expiry_ms": 900000,
+      "Source_retry_ms": 900000,
+      "full_normalized_requests_equal": true,
+      "requests": 9,
+      "predicates": 27
+    },
+    {
+      "operation": "pull",
+      "late": true,
+      "held": "head",
+      "default_ms": 900000,
+      "Source_phase_ms": 4000,
+      "Source_before_ms": 903999,
+      "Source_expiry_ms": 904000,
+      "Source_retry_ms": 904000,
+      "full_normalized_requests_equal": true,
+      "requests": 9,
+      "predicates": 27
+    },
+    {
+      "operation": "pull",
+      "late": true,
+      "held": "body",
+      "default_ms": 900000,
+      "Source_phase_ms": 4000,
+      "Source_before_ms": 903999,
+      "Source_expiry_ms": 904000,
+      "Source_retry_ms": 904000,
+      "full_normalized_requests_equal": true,
+      "requests": 9,
+      "predicates": 27
+    }
+  ],
+  "assertions": {
+    "native": "Onepausedclocktest/eightschedules atsource7a6426passed; sameunchangedtest passedagain infa9bfullworkspace. PublicSetupOptionsdefaults asserted inspection5000/pull900000/warm60000, runtimeOllama0. Positiveheldhead/body beforedeadline; exactdeadline publicOLLAMA_TIMEOUT/safe message/noerrorcause, DropbeforeErr, calleractive/configunchanged; freshsamecallerretry atsametime; completeprogress/result andexactpathsequence asserted; completefourfieldrequestobjects emitted forindependentpairedcomparison.",
+    "Source": "Eightrows/216declaredpredicates with alltimeroptions omitted: actualoperation creates5000/900000/60000 timers. Positivelyheldwork, pendingbudgetminus1 andtimeoutatexactbudget, activecaller, cleanedhandlers/bodyreads/cancels/unlocks beforefreshsuccessfulretry, configunchanged. Fullresponses/progress/result/errors/requestsbodiesretained; expectedSystemonefullbodyfromcanonicalimmutable2-1modelonlysubstitution.",
+    "paired": "All8fullrequestlists match independently after projecting acquiredSource rows.actual to native capturedurl/method/headers/body. No payloaddifferenceerased. Nativepercasewholeconfig assertedunchanged; Sourcebefore/aftertextretained. Lateinspection2s+2s startsoperation4s; warm40smetadata belongsinside60s leaves20s."
+  },
+  "timing_and_ownership_scope": "Controlledpolicyclock only; no real900s/60swait orphysicalperformance. SourceglobalsetTimeout overridden, originalrealwatchdogs preserved. OriginalAbortSignal.timeout60000 recordedanddelegated, Nodeinternalunref timer not driven/joinedbyfakeclock. Cooperativefetch/head/read/cancel fixtures only, no arbitraryabortignoring-clientguarantee. NativeDrop/lifetime isexplicittypedownershipproof, notJS callback/Error identity. Native safeError code/message maps SourceError shape atpublicoperation boundary.",
+  "evidence": {
+    "native_focus": [
+      {
+        "path": "artifacts/rust-rewrite/readiness-and-setup-budget-validation-20261018-1/timer-focus.json",
+        "bytes": 1200,
+        "sha256": "8a4b5c3970c4028657dd8dc5d07fe66ad27286a61e8a8295eda161da4e1d3b1a"
+      },
+      {
+        "path": "artifacts/rust-rewrite/readiness-and-setup-budget-validation-20261018-1/timer-focus.stdout",
+        "bytes": 199,
+        "sha256": "2fb38e8c19c9c05074d0ff70fc5c4a09569f0c073e5e0a6329bea4fd47261cd5"
+      },
+      {
+        "path": "artifacts/rust-rewrite/readiness-and-setup-budget-validation-20261018-1/timer-focus.stderr",
+        "bytes": 31128,
+        "sha256": "644bac44a0618573c358b7ac6ea46ba53287de1a79b88ddad8eb7a08f47fac30"
+      }
+    ],
+    "Source_actual": [
+      {
+        "path": "artifacts/rust-rewrite/readiness-and-setup-budget-validation-20261018-1/source-setup-timers.json",
+        "bytes": 1445,
+        "sha256": "884bed69e3a199bcffaeeadf603eee7db5d5cda24fa2658d6eb0b390f356e7e1"
+      },
+      {
+        "path": "artifacts/rust-rewrite/readiness-and-setup-budget-validation-20261018-1/source-setup-timers.stdout",
+        "bytes": 155243,
+        "sha256": "12f9935a90711ee012a571127a3642989085e35cd8079b8e640fef9cc4fe65a8"
+      },
+      {
+        "path": "artifacts/rust-rewrite/readiness-and-setup-budget-validation-20261018-1/source-setup-timers.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "native_static_review": {
+      "path": "artifacts/rust-rewrite/native-default-setup-budgets-draft-20261018-1/independent-static-review.json",
+      "bytes": 4569,
+      "sha256": "8524c1bb3263fe02be0de937d6b1582bd758738ab422debc0780daa8340b5765"
+    },
+    "Source_static_review": {
+      "path": "artifacts/rust-rewrite/setup-default-operation-timers-source-handoff-20261018-1/independent-source-v2-static-admission.json",
+      "bytes": 10085,
+      "sha256": "5dfe5a7c992eea80fe36608841c7f9e3a37fda7a1bd5f9e2a680d04fad253640"
+    },
+    "workspace": {
+      "path": "artifacts/rust-rewrite/readiness-and-setup-budget-validation-20261018-1/workspace.json",
+      "bytes": 1144,
+      "sha256": "68400ee97066be94b861e67efb8d95775d238bd96dd0093f445e2d280cb883c3"
+    },
+    "workspace_counts": {
+      "path": "artifacts/rust-rewrite/readiness-and-setup-budget-validation-20261018-1/workspace-counts.json",
+      "bytes": 961,
+      "sha256": "a365efa62495378cffd3701b13b6a29b844ef65c129ba49734ad75a6404e6b97"
+    },
+    "independent_actual_review": {
+      "path": "artifacts/rust-rewrite/readiness-and-setup-budget-validation-20261018-1/independent-default-setup-timers-actual-review.json",
+      "bytes": 13770,
+      "sha256": "a79b2c46bb76ee2b406385a5e053d34bbabfc166632cbb27971daf2e1a58bd6b"
+    },
+    "independent_summary_review": {
+      "path": "artifacts/rust-rewrite/readiness-and-setup-budget-validation-20261018-1/independent-default-setup-timers-summary-v2-addendum.json",
+      "bytes": 1527,
+      "sha256": "3c85d6ea0e4f90a80d660e92c54fdd33e2d258fa77f18d61c3ecf0aacc01815d"
+    }
+  },
+  "fixture_correction": "V1neverexecuted; independentstaticreviewfound canonicalfixture.response wrapper in expectedrequest. V2removesonlyresponsewrapper, keepingfullbody/schedules/thresholds; scripts2bindingliteralsupdated. v1andreviewpreserved, no heldoutmodelqualitylabelsorproductbehaviorretuned.",
+  "nonclaims": "Onlypull_ms/warmup_ms; no upstream600000/savingshistory10000/compressedorexpandedarchivepromotion, nocapchange, no modeldownload/startup/provider/platform/performance/generalresourcegate/release/cutoverapproval.",
+  "root_decision": "Accept only pull_ms900000 and warmup_ms60000. Eight controlled-clock Source/native schedules retain independent startup budgets with routing timeout0, exact boundary and active caller/fresh retry. No real-wall/model latency or Node-private timer joining, other fixed-limit, platform/performance/resource/release/cutover acceptance."
+}

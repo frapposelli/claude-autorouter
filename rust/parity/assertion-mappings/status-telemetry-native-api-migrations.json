@@ -1,0 +1,1055 @@
+{
+  "schema_version": 1,
+  "kind": "STATUS_TELEMETRY_INDIVIDUAL_NATIVE_API_MIGRATIONS",
+  "status": "ACCEPTED_ONLY_EIGHT_NAMED_ORIGINAL_DEFINITIONS",
+  "root_acceptance": {
+    "path": "artifacts/rust-rewrite/status-telemetry-native-validation-20261018-1/root-individual-acceptance-decisions.json",
+    "bytes": 6820,
+    "sha256": "f863be626d5a46ac56bad97030da1378bcb066c152521f22cee01168f9b58907"
+  },
+  "counts": {
+    "definitions_accepted": 8,
+    "assertion_sites_reviewed": 52,
+    "expanded_original_observations_reviewed": 74
+  },
+  "prior_maps": [
+    {
+      "path": "rust/parity/assertion-mappings/status-state-contracts.json",
+      "bytes": 91660,
+      "sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e"
+    },
+    {
+      "path": "rust/parity/assertion-mappings/telemetry-statusline-contracts.json",
+      "bytes": 351190,
+      "sha256": "e3bacc72ea3f928a8884fad8e8701df4c4d28163749f0f8f665e3dc24e4e0a82"
+    }
+  ],
+  "author_review": {
+    "path": "artifacts/rust-rewrite/status-telemetry-original-gap-review-20261018-1/handoff-v2.json",
+    "bytes": 56676,
+    "sha256": "5e24bf9ebe6bdc3a0acfa35e0403b197a755dd8cbd2992e8d81c9756795d15d5"
+  },
+  "migration_contracts": [
+    {
+      "id": "optional_undefined",
+      "native_boundary": "Own optional JS undefined maps to absent JSON field, never Null. None is an absent normalizer result; output absent field is tested via absence, not null. Top-level undefined is not an argument of &Value/&JsDocument; the host handles missing input before call.",
+      "affected": [
+        "status14",
+        "status15",
+        "status18",
+        "telemetry6",
+        "telemetry8",
+        "telemetry10"
+      ],
+      "nonclaim": "No ownership-preserving own-undefined native value, no null-as-undefined substitution."
+    },
+    {
+      "id": "host_json_input",
+      "native_boundary": "Borrowed Value/JsDocument are data trees without host Error instances, executable property accessors or cyclic host references. Host objects must be converted/validated before this boundary. Unknown host Error can be represented only as inert explicitly synthetic extra for allowlist/privacy checks.",
+      "affected": [
+        "status14",
+        "status15",
+        "status18",
+        "telemetry1",
+        "telemetry10"
+      ],
+      "nonclaim": "Original Source Error/cycle/getter tests remain actual Source evidence, not native executions or a promise to catch arbitrary panicking custom callbacks. JsDocument nonfinite Number/UTF16 behavior is retained separately, not erased as Null."
+    },
+    {
+      "id": "typed_options",
+      "native_boundary": "StatusOptions contains owned PathBuf and explicit I/O/clock adapters. A property getter that throws during option lookup has no corresponding native option operation. Ordinary unavailable paths still fail soft with None and owned close behavior.",
+      "affected": [
+        "status18"
+      ],
+      "nonclaim": "Unavailable-directory native test is not execution of a throwing JavaScript directory getter; no blanket custom-adapter panic containment."
+    },
+    {
+      "id": "owned_close_future",
+      "native_boundary": "StatusStore::close().await seals update admission on first poll. Separate close futures join one retained worker/readiness ownership chain and drain latest accepted state before removal; waiter cancellation leaves task handles owned for later close.",
+      "affected": [
+        "status21"
+      ],
+      "nonclaim": "No shared JS Promise reference identity, no unpolled-future or dropped-store awaited-drain promise, no universal denied-remove/crash/runtime-shutdown cleanup. Actual normal owned FS schedules remain specifically bounded."
+    }
+  ],
+  "definitions": [
+    {
+      "id": "test/status-state.test.mjs#14",
+      "name": "evaluator identity survives local, cached and fallback routes without retaining arbitrary metadata",
+      "original_definition_sha256": "bf673599e0c4d2d71b3a28b3a06c58b114393edee1d9becdaf976169b8cbdc22",
+      "original_status_preimage": "partial_assertion_mapping",
+      "Root_acceptance": {
+        "id": "test/status-state.test.mjs#14",
+        "status": "accepted_only_for_this_original_definition",
+        "migration_ids": [
+          "optional_undefined",
+          "host_json_input"
+        ],
+        "decision": "Accept absentoptionalundefined andJSONhostobjectboundaryforthisdefinitiononly; exactlocal/cache/fallbackidentity,staleagentinvalidresetandJevreplacement preserved. Finalprivacyabsence includesexplicitclosedallowlist/resetcomposition, notfabricatedsnapshot.",
+        "assertion_sites": 9,
+        "expanded_original_observations_reviewed": 19
+      },
+      "migration_ids": [
+        "optional_undefined",
+        "host_json_input"
+      ],
+      "operational_contract": "Exact local/cache/fallback3-way source/evaluator/tier/connecting values and all PRIVATE scans; new request clears transient identity, stale/agent/invalid events cannot poison it, later Jev overwrites. Final PRIVATE absence is static composition of closed allowlists/reset plus earlier executed full snapshot scans, not a separately retained final snapshot differential.",
+      "current_native_tests": [
+        "status_state::tests::evaluator_identity_and_private_fields_stay_separate_across_local_cache_and_fallback"
+      ],
+      "original_Source_actual": {
+        "receipt": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-test-v2.json",
+        "TAP": [
+          {
+            "line": 2543,
+            "text": "ok 499 - evaluator identity survives local, cached and fallback routes without retaining arbitrary metadata"
+          }
+        ]
+      },
+      "original_capture_cases": [],
+      "historical_skips_preserved": [
+        {
+          "baseline_test": "test/status-state.test.mjs#14",
+          "reason": "$.classifier_error: undefined",
+          "event_call": 2
+        },
+        {
+          "baseline_test": "test/status-state.test.mjs#14",
+          "reason": "$.classifier_error: undefined",
+          "event_call": 4
+        }
+      ],
+      "assertions": [
+        {
+          "site": 1,
+          "source_line": 346,
+          "expression_sha256": "70c4351aa0ad039ad849a34cccbe355c55404e757a61fdffa4436feb9fcd63dd",
+          "original_expression_ref": "status_original#/mappings/13/direct_assertions/0",
+          "expanded_observations": 3
+        },
+        {
+          "site": 2,
+          "source_line": 347,
+          "expression_sha256": "4dc40c72d446a30f80173762f9f052ca65ea1d51b5e170733db790564c1ebf8c",
+          "original_expression_ref": "status_original#/mappings/13/direct_assertions/1",
+          "expanded_observations": 3
+        },
+        {
+          "site": 3,
+          "source_line": 348,
+          "expression_sha256": "5c7c4bc3db8d765804330754a94ec3668d9245f1d37bf11272ce101f3337aad4",
+          "original_expression_ref": "status_original#/mappings/13/direct_assertions/2",
+          "expanded_observations": 3
+        },
+        {
+          "site": 4,
+          "source_line": 349,
+          "expression_sha256": "ca7123924f2786cd868e27c5c1d4b9591d25588f257f3bf7be779c978f0e9331",
+          "original_expression_ref": "status_original#/mappings/13/direct_assertions/3",
+          "expanded_observations": 3
+        },
+        {
+          "site": 5,
+          "source_line": 350,
+          "expression_sha256": "4471ee094bac2eb2e844146cf1bc933065920547335eba2e314faa011bd88ef9",
+          "original_expression_ref": "status_original#/mappings/13/direct_assertions/4",
+          "expanded_observations": 3
+        },
+        {
+          "site": 6,
+          "source_line": 357,
+          "expression_sha256": "52036cf1573ae992b544b90fd3d1fba6f99be7d7d91e925f8eff8fd785743d79",
+          "original_expression_ref": "status_original#/mappings/13/direct_assertions/5",
+          "expanded_observations": 1
+        },
+        {
+          "site": 7,
+          "source_line": 358,
+          "expression_sha256": "2bb8ab9d7eb7763f4f31ea56bdecebe61f8572856a776eb3dab2ac6d8f644f8a",
+          "original_expression_ref": "status_original#/mappings/13/direct_assertions/6",
+          "expanded_observations": 1
+        },
+        {
+          "site": 8,
+          "source_line": 359,
+          "expression_sha256": "4471ee094bac2eb2e844146cf1bc933065920547335eba2e314faa011bd88ef9",
+          "original_expression_ref": "status_original#/mappings/13/direct_assertions/7",
+          "expanded_observations": 1
+        },
+        {
+          "site": 9,
+          "source_line": 362,
+          "expression_sha256": "c3fca0c5e38596df628ef93ad2c9ec9cbb0aa52d01ed384d4dade6d8ae40691d",
+          "original_expression_ref": "status_original#/mappings/13/direct_assertions/8",
+          "expanded_observations": 1
+        }
+      ],
+      "author_definition_ref": "author_review#/definitions/0",
+      "status": "accepted_only_this_definition",
+      "historical_proposal_status": "ELIGIBLE_ONLY_AFTER_INDEPENDENT_AND_ROOT_API_REVIEW",
+      "current_actual_passes": [
+        {
+          "line": 133,
+          "text": "test status_state::tests::evaluator_identity_and_private_fields_stay_separate_across_local_cache_and_fallback ... ok"
+        }
+      ]
+    },
+    {
+      "id": "test/status-state.test.mjs#15",
+      "name": "bounds retained sessions and model metadata and discards sensitive extras",
+      "original_definition_sha256": "c309ba1fec083abef17ceb0162ce0eaecd965e3ba6074427115fd39910f8c4d2",
+      "original_status_preimage": "partial_assertion_mapping",
+      "Root_acceptance": {
+        "id": "test/status-state.test.mjs#15",
+        "status": "accepted_only_for_this_original_definition",
+        "migration_ids": [
+          "optional_undefined",
+          "host_json_input"
+        ],
+        "decision": "Accept JSONdatahostboundaryforError andundefinedextras only. Actual100retention/modelmetadataprivacy controls unchanged; SourcehostErroroperation nevercallednative.",
+        "assertion_sites": 8,
+        "expanded_original_observations_reviewed": 8
+      },
+      "migration_ids": [
+        "optional_undefined",
+        "host_json_input"
+      ],
+      "operational_contract": "Full102-session schedule retains100/evicts oldest2, rejects oversized/control model metadata, normalizes invalid error_type, and omits both SECRET canaries. RawInfinity is exercised through JsDocument; synthetic inert error string replaces only unknown host Error input and is not Error-instance execution.",
+      "current_native_tests": [
+        "status_state::tests::session_eviction_and_malformed_metadata_never_expose_private_extras"
+      ],
+      "original_Source_actual": {
+        "receipt": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-test-v2.json",
+        "TAP": [
+          {
+            "line": 2550,
+            "text": "ok 500 - bounds retained sessions and model metadata and discards sensitive extras"
+          }
+        ]
+      },
+      "original_capture_cases": [],
+      "historical_skips_preserved": [
+        {
+          "baseline_test": "test/status-state.test.mjs#15",
+          "reason": "$.error: non-plain object",
+          "event_call": 103
+        }
+      ],
+      "assertions": [
+        {
+          "site": 1,
+          "source_line": 375,
+          "expression_sha256": "d7e9e4d1e0ea6db82748e9d987470694e9183dac75ed3ddb1b8fef85439f38c9",
+          "original_expression_ref": "status_original#/mappings/14/direct_assertions/0",
+          "expanded_observations": 1
+        },
+        {
+          "site": 2,
+          "source_line": 376,
+          "expression_sha256": "8b80b6528bde2bd29ff440547cfa16b7ff5cdad2e643befb17a8bd8a3da58f6a",
+          "original_expression_ref": "status_original#/mappings/14/direct_assertions/1",
+          "expanded_observations": 1
+        },
+        {
+          "site": 3,
+          "source_line": 377,
+          "expression_sha256": "720f2b09da47bb84f2d1f061add31381bc2387533fdd61abf7331e8fe8fe4400",
+          "original_expression_ref": "status_original#/mappings/14/direct_assertions/2",
+          "expanded_observations": 1
+        },
+        {
+          "site": 4,
+          "source_line": 378,
+          "expression_sha256": "90ebfbba704bb1613c11973c479453376fae2366ff7b935b2e5a50180c457e64",
+          "original_expression_ref": "status_original#/mappings/14/direct_assertions/3",
+          "expanded_observations": 1
+        },
+        {
+          "site": 5,
+          "source_line": 379,
+          "expression_sha256": "df1036384e639a10284fa0476d3f48dc0327d5ae0a8cc23e59c6974dd76d646b",
+          "original_expression_ref": "status_original#/mappings/14/direct_assertions/4",
+          "expanded_observations": 1
+        },
+        {
+          "site": 6,
+          "source_line": 380,
+          "expression_sha256": "704f8a5dcc669658cfd34949ec9321ab7f92f4730bb151db2225741926eb67b5",
+          "original_expression_ref": "status_original#/mappings/14/direct_assertions/5",
+          "expanded_observations": 1
+        },
+        {
+          "site": 7,
+          "source_line": 381,
+          "expression_sha256": "ec7027273533bfec34f0b922d0e7fd51a7dcd2c92f116a3ad7786da9779a3383",
+          "original_expression_ref": "status_original#/mappings/14/direct_assertions/6",
+          "expanded_observations": 1
+        },
+        {
+          "site": 8,
+          "source_line": 384,
+          "expression_sha256": "3eb289603ebb88c03ab0d258c861c1a81d0a2febaa0e38c78a5aad2659513158",
+          "original_expression_ref": "status_original#/mappings/14/direct_assertions/7",
+          "expanded_observations": 1
+        }
+      ],
+      "author_definition_ref": "author_review#/definitions/1",
+      "status": "accepted_only_this_definition",
+      "historical_proposal_status": "ELIGIBLE_ONLY_AFTER_INDEPENDENT_AND_ROOT_API_REVIEW",
+      "current_actual_passes": [
+        {
+          "line": 141,
+          "text": "test status_state::tests::session_eviction_and_malformed_metadata_never_expose_private_extras ... ok"
+        }
+      ]
+    },
+    {
+      "id": "test/status-state.test.mjs#18",
+      "name": "unavailable storage and malformed telemetry never throw",
+      "original_definition_sha256": "06eaeb68e67215f5785c9a69a9341e85b3e4a6e4ec53182159b26025c13d4d19",
+      "original_status_preimage": "partial_assertion_mapping",
+      "Root_acceptance": {
+        "id": "test/status-state.test.mjs#18",
+        "status": "accepted_only_for_this_original_definition",
+        "migration_ids": [
+          "typed_options",
+          "host_json_input",
+          "optional_undefined"
+        ],
+        "decision": "Accept typedStatusOptions/Valueinputdomain in placeofthrowinghostgetters/topundefined. Realunavailablepath andmalformedJSONfailsoftcontrols executed. No arbitraryadapterpaniccatchclaim.",
+        "assertion_sites": 5,
+        "expanded_original_observations_reviewed": 5
+      },
+      "migration_ids": [
+        "typed_options",
+        "host_json_input",
+        "optional_undefined"
+      ],
+      "operational_contract": "Unavailable/non-directory storage yields None path and fail-soft update/flush/close without file mutation. Removed storage accepts null/array/malformed/valid telemetry without resurrection. Source option/event getters have no native executable-property operation; no arbitrary clock/I/O panic-catching promise is adopted.",
+      "current_native_tests": [
+        "status_store::tests::unavailable_and_removed_storage_accepts_malformed_updates_without_side_effects"
+      ],
+      "original_Source_actual": {
+        "receipt": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-test-v2.json",
+        "TAP": [
+          {
+            "line": 2565,
+            "text": "ok 503 - unavailable storage and malformed telemetry never throw"
+          }
+        ]
+      },
+      "original_capture_cases": [],
+      "historical_skips_preserved": [],
+      "assertions": [
+        {
+          "site": 1,
+          "source_line": 422,
+          "expression_sha256": "b5c1a95577c40dea7a6f49865fa2a822484a1c8452c22aa7c830a411448b76c4",
+          "original_expression_ref": "status_original#/mappings/17/direct_assertions/0",
+          "expanded_observations": 1
+        },
+        {
+          "site": 2,
+          "source_line": 423,
+          "expression_sha256": "38ea869efc04e91fbf3939ac7d09260ec101bf48486748365b42e7a1251555fe",
+          "original_expression_ref": "status_original#/mappings/17/direct_assertions/1",
+          "expanded_observations": 1
+        },
+        {
+          "site": 3,
+          "source_line": 425,
+          "expression_sha256": "b7b74bb7304bc0c675eae89f8201cb51482a075720fff9ca8efc7d8e08a3b84d",
+          "original_expression_ref": "status_original#/mappings/17/direct_assertions/2",
+          "expanded_observations": 1
+        },
+        {
+          "site": 4,
+          "source_line": 427,
+          "expression_sha256": "e986571589949586f89b7abd0b469c514a479fc58f003f228df9843b24d0027c",
+          "original_expression_ref": "status_original#/mappings/17/direct_assertions/3",
+          "expanded_observations": 1
+        },
+        {
+          "site": 5,
+          "source_line": 431,
+          "expression_sha256": "9195f034365ccb39fa8dace6fef2f4c75cb11317658af24a423f431af642052d",
+          "original_expression_ref": "status_original#/mappings/17/direct_assertions/4",
+          "expanded_observations": 1
+        }
+      ],
+      "author_definition_ref": "author_review#/definitions/2",
+      "status": "accepted_only_this_definition",
+      "historical_proposal_status": "ELIGIBLE_ONLY_AFTER_INDEPENDENT_AND_ROOT_API_REVIEW",
+      "current_actual_passes": [
+        {
+          "line": 621,
+          "text": "test status_store::tests::unavailable_and_removed_storage_accepts_malformed_updates_without_side_effects ... ok"
+        }
+      ]
+    },
+    {
+      "id": "test/status-state.test.mjs#21",
+      "name": "close drains the accepted latest state before deletion and cannot recreate status files",
+      "original_definition_sha256": "ae3c08815e5981262a3b303b74cf10897ef8f88d11d285c5f85db5ad54945096",
+      "original_status_preimage": "partial_assertion_mapping",
+      "Root_acceptance": {
+        "id": "test/status-state.test.mjs#21",
+        "status": "accepted_only_for_this_original_definition",
+        "migration_ids": [
+          "owned_close_future"
+        ],
+        "decision": "Accept firstpolledownedclosefuture semantics ratherthanJSsharedPromiseidentity. Concurrentwaiters/latestdrain/removal/norecreation andcancelledworker/readinesstaskowner schedules executed; no drop/unpolled/universalremove guarantee.",
+        "assertion_sites": 8,
+        "expanded_original_observations_reviewed": 8
+      },
+      "migration_ids": [
+        "owned_close_future"
+      ],
+      "operational_contract": "First-polled close seals admission; independent close futures wait while actual write is held, drain latest accepted model/request once through single writer, remove once and cannot recreate after later update/flush/10s paused advance. Worker/readiness cancellation ownership is checked by extra held-task controls; readiness injected handle is explicitly test-only after real readiness finishes.",
+      "current_native_tests": [
+        "status_store::tests::concurrent_close_callers_wait_for_one_native_drain_and_cannot_recreate_files",
+        "status_store::close_contracts::cancelled_first_close_retains_worker_until_real_directory_removal_finishes",
+        "status_store::close_contracts::cancelled_close_retains_readiness_join_owner_until_its_task_finishes"
+      ],
+      "original_Source_actual": {
+        "receipt": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-test-v2.json",
+        "TAP": [
+          {
+            "line": 2580,
+            "text": "ok 506 - close drains the accepted latest state before deletion and cannot recreate status files"
+          }
+        ]
+      },
+      "original_capture_cases": [],
+      "historical_skips_preserved": [],
+      "assertions": [
+        {
+          "site": 1,
+          "source_line": 512,
+          "expression_sha256": "70e66962eaf7b32a01441275342b86c5fe0fbaae4445487877cd56ddd5961ea3",
+          "original_expression_ref": "status_original#/mappings/20/direct_assertions/0",
+          "expanded_observations": 1
+        },
+        {
+          "site": 2,
+          "source_line": 517,
+          "expression_sha256": "7b31a88ae47ae3a73942ad3b569052b1a1207ee6cdeceaf6379fdac1fa48b6bf",
+          "original_expression_ref": "status_original#/mappings/20/direct_assertions/1",
+          "expanded_observations": 1
+        },
+        {
+          "site": 3,
+          "source_line": 518,
+          "expression_sha256": "b9e998049e2bf951eaee44d781e4a2e6406c2ed08d4bd7ffbb4ac0e8a5fd5360",
+          "original_expression_ref": "status_original#/mappings/20/direct_assertions/2",
+          "expanded_observations": 1
+        },
+        {
+          "site": 4,
+          "source_line": 521,
+          "expression_sha256": "020545711db6ccf5183c612bd7ceb980366fa648d35f6f1d7eb9502b66760976",
+          "original_expression_ref": "status_original#/mappings/20/direct_assertions/3",
+          "expanded_observations": 1
+        },
+        {
+          "site": 5,
+          "source_line": 522,
+          "expression_sha256": "252d988086771805c98c626488d8c006e391fcebd5a25f068c84ceeb7729e5c8",
+          "original_expression_ref": "status_original#/mappings/20/direct_assertions/4",
+          "expanded_observations": 1
+        },
+        {
+          "site": 6,
+          "source_line": 523,
+          "expression_sha256": "531b9fa823d32ed064f9a9aa44d36a5dc8de55a53f3840e0fdaa29faf9f98da5",
+          "original_expression_ref": "status_original#/mappings/20/direct_assertions/5",
+          "expanded_observations": 1
+        },
+        {
+          "site": 7,
+          "source_line": 524,
+          "expression_sha256": "7358daea81131b69c207792484f2f4867bf08fa09ccdef69aebcb0ab2f0a5ecb",
+          "original_expression_ref": "status_original#/mappings/20/direct_assertions/6",
+          "expanded_observations": 1
+        },
+        {
+          "site": 8,
+          "source_line": 527,
+          "expression_sha256": "7358daea81131b69c207792484f2f4867bf08fa09ccdef69aebcb0ab2f0a5ecb",
+          "original_expression_ref": "status_original#/mappings/20/direct_assertions/7",
+          "expanded_observations": 1
+        }
+      ],
+      "author_definition_ref": "author_review#/definitions/3",
+      "status": "accepted_only_this_definition",
+      "historical_proposal_status": "ELIGIBLE_ONLY_AFTER_INDEPENDENT_AND_ROOT_API_REVIEW",
+      "current_actual_passes": [
+        {
+          "line": 606,
+          "text": "test status_store::tests::concurrent_close_callers_wait_for_one_native_drain_and_cannot_recreate_files ... ok"
+        },
+        {
+          "line": 604,
+          "text": "test status_store::close_contracts::cancelled_first_close_retains_worker_until_real_directory_removal_finishes ... ok"
+        },
+        {
+          "line": 602,
+          "text": "test status_store::close_contracts::cancelled_close_retains_readiness_join_owner_until_its_task_finishes ... ok"
+        }
+      ]
+    },
+    {
+      "id": "test/telemetry-event.test.mjs#1",
+      "name": "one versioned allowlist retains decision evidence and excludes bodies, credentials and raw errors",
+      "original_definition_sha256": "2b14de699caa7305535686edfbefa5bb0044ec6108cb35fa5252f9e9b72a21aa",
+      "original_status_preimage": "partial_assertion_mapping",
+      "Root_acceptance": {
+        "id": "test/telemetry-event.test.mjs#1",
+        "status": "accepted_only_for_this_original_definition",
+        "migration_ids": [
+          "host_json_input"
+        ],
+        "decision": "AcceptJSONhostobjectboundary. Newactualcomplete20fieldallowlist/privacy/immutableinput controls inbothValueandJsDocument closeexactfinitebehavior gap; inertErrorJSONisnotexecutedhostError.",
+        "assertion_sites": 3,
+        "expanded_original_observations_reviewed": 3
+      },
+      "migration_ids": [
+        "host_json_input"
+      ],
+      "operational_contract": "Complete original20-field route fixture plus schema2, no private fields in normalized output, entire input/body unchanged. The exact complete fixture now passes both Value/document regression entrypoints in the focused and unfiltered workspace actuals; prior differently shaped fixture remains retained.",
+      "current_native_tests": [
+        "telemetry_event::tests::normalization_drops_payload_and_rejects_invalid_explicit_identities",
+        "telemetry_event::tests::original_route_allowlist_preserves_complete_evidence_and_input"
+      ],
+      "original_Source_actual": {
+        "receipt": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-test-v2.json",
+        "TAP": [
+          {
+            "line": 2750,
+            "text": "ok 540 - one versioned allowlist retains decision evidence and excludes bodies, credentials and raw errors"
+          }
+        ]
+      },
+      "original_capture_cases": [],
+      "historical_skips_preserved": [
+        {
+          "baseline_test": "test/telemetry-event.test.mjs#1",
+          "call": 1,
+          "op": "normalize_telemetry",
+          "reason": "$[0].error: non-plain object"
+        },
+        {
+          "baseline_test": "test/telemetry-event.test.mjs#1",
+          "call": 2,
+          "op": "normalize_telemetry",
+          "reason": "$[0].error: non-plain object"
+        }
+      ],
+      "assertions": [
+        {
+          "site": 1,
+          "source_line": 16,
+          "expression_sha256": "d7bdc7f02eb4e66175a891919ad6c9283cb52fb9fc588bd2490a1a56270979aa",
+          "original_expression_ref": "telemetry_original#/mappings/0/direct_assertions/0",
+          "expanded_observations": 1
+        },
+        {
+          "site": 2,
+          "source_line": 17,
+          "expression_sha256": "79632247bd8d2b35905b9d5fd17ee22846a8295d8c8363e7a97f51bb32d8c2b4",
+          "original_expression_ref": "telemetry_original#/mappings/0/direct_assertions/1",
+          "expanded_observations": 1
+        },
+        {
+          "site": 3,
+          "source_line": 18,
+          "expression_sha256": "a048f57e0136b979586e80f9f007fbf58bb0b96d11610647baffa0b166bc524e",
+          "original_expression_ref": "telemetry_original#/mappings/0/direct_assertions/2",
+          "expanded_observations": 1
+        }
+      ],
+      "author_definition_ref": "author_review#/definitions/4",
+      "status": "accepted_only_this_definition",
+      "historical_proposal_status": "HOLD_FOR_UNEXECUTED_NATIVE_CONTROLS",
+      "current_actual_passes": [
+        {
+          "line": 144,
+          "text": "test telemetry_event::tests::normalization_drops_payload_and_rejects_invalid_explicit_identities ... ok"
+        },
+        {
+          "line": 145,
+          "text": "test telemetry_event::tests::original_route_allowlist_preserves_complete_evidence_and_input ... ok"
+        }
+      ]
+    },
+    {
+      "id": "test/telemetry-event.test.mjs#6",
+      "name": "legacy decisions upgrade without claiming success and foreground excerpts use 500 Unicode code points",
+      "original_definition_sha256": "c579dc04e6078e75062858b68054f2d181e4b9ffd1d7061bc92db4853bc39892",
+      "original_status_preimage": "partial_assertion_mapping",
+      "Root_acceptance": {
+        "id": "test/telemetry-event.test.mjs#6",
+        "status": "accepted_only_for_this_original_definition",
+        "migration_ids": [
+          "optional_undefined"
+        ],
+        "decision": "Accept ownoptionalundefined asabsence. Newactualmissingselected_model rejection+restoredpositive withothermodelstillpresent; original500Unicode/excerpt/legacycapturedcontrols retained. No nullsubstitute.",
+        "assertion_sites": 7,
+        "expanded_original_observations_reviewed": 7
+      },
+      "migration_ids": [
+        "optional_undefined"
+      ],
+      "operational_contract": "Captured6-1/6-2 complete results preserve schema2/decision/absent status/500fox codepoints/truncatedtrue and reject schema99. Missing selected_model from own-undefined input must return None through both Value/document APIs, and restoring only missing field must yield valid positive result; that exact control now passes both entrypoints in the focused and unfiltered workspace actuals.",
+      "current_native_tests": [
+        "telemetry_event::tests::frozen_telemetry_calls_preserve_complete_outputs_and_explicit_absence",
+        "telemetry_event::tests::absent_required_decision_model_and_outcome_status_are_rejected"
+      ],
+      "original_Source_actual": {
+        "receipt": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-test-v2.json",
+        "TAP": [
+          {
+            "line": 2775,
+            "text": "ok 545 - legacy decisions upgrade without claiming success and foreground excerpts use 500 Unicode code points"
+          }
+        ]
+      },
+      "original_capture_cases": [
+        "baseline-normalize_session-6-1",
+        "baseline-normalize_session-6-2"
+      ],
+      "historical_skips_preserved": [
+        {
+          "baseline_test": "test/telemetry-event.test.mjs#6",
+          "call": 3,
+          "op": "normalize_session",
+          "reason": "$[0].selected_model: undefined"
+        }
+      ],
+      "assertions": [
+        {
+          "site": 1,
+          "source_line": 72,
+          "expression_sha256": "feb363bc21644844364ffe3935d2ed290b45240d067a83374810d0bc9cfb0ae6",
+          "original_expression_ref": "telemetry_original#/mappings/5/direct_assertions/0",
+          "expanded_observations": 1
+        },
+        {
+          "site": 2,
+          "source_line": 73,
+          "expression_sha256": "d94640bd67be7c950b5756317e1cdd710a92e112b4f1062ae89a2464f0b62600",
+          "original_expression_ref": "telemetry_original#/mappings/5/direct_assertions/1",
+          "expanded_observations": 1
+        },
+        {
+          "site": 3,
+          "source_line": 74,
+          "expression_sha256": "09bfda6ae097e229f93e6219c91610d0ac0e7f2e29bd12b9fc53b62ba32dc067",
+          "original_expression_ref": "telemetry_original#/mappings/5/direct_assertions/2",
+          "expanded_observations": 1
+        },
+        {
+          "site": 4,
+          "source_line": 75,
+          "expression_sha256": "fd8c703ed78dbebb85384289380bf53621451e35273a9401bdda0a7fef3ef199",
+          "original_expression_ref": "telemetry_original#/mappings/5/direct_assertions/3",
+          "expanded_observations": 1
+        },
+        {
+          "site": 5,
+          "source_line": 76,
+          "expression_sha256": "158b8323a6ef8013f3e944ca26dd29bce89e65dfcdabc0ec698df8ee40de0a94",
+          "original_expression_ref": "telemetry_original#/mappings/5/direct_assertions/4",
+          "expanded_observations": 1
+        },
+        {
+          "site": 6,
+          "source_line": 77,
+          "expression_sha256": "45cf67dbe6b6d0368aaccc9096de0e101ff6dce1009e3aea4ae5489e3b171aa0",
+          "original_expression_ref": "telemetry_original#/mappings/5/direct_assertions/5",
+          "expanded_observations": 1
+        },
+        {
+          "site": 7,
+          "source_line": 78,
+          "expression_sha256": "50ee80fbf2ec7227b67283a7f8dcc128f7f032904772b73f6a23f39b09cddd51",
+          "original_expression_ref": "telemetry_original#/mappings/5/direct_assertions/6",
+          "expanded_observations": 1
+        }
+      ],
+      "author_definition_ref": "author_review#/definitions/5",
+      "status": "accepted_only_this_definition",
+      "historical_proposal_status": "HOLD_FOR_UNEXECUTED_NATIVE_CONTROLS",
+      "current_actual_passes": [
+        {
+          "line": 173,
+          "text": "test telemetry_event::tests::frozen_telemetry_calls_preserve_complete_outputs_and_explicit_absence ... ok"
+        },
+        {
+          "line": 139,
+          "text": "test telemetry_event::tests::absent_required_decision_model_and_outcome_status_are_rejected ... ok"
+        }
+      ]
+    },
+    {
+      "id": "test/telemetry-event.test.mjs#8",
+      "name": "outcomes require explicit completion status and preserve confirmed models separately from selection",
+      "original_definition_sha256": "521ce90feceb78bcc15cda47e9fe9960cae508f0ed7b7763eb6d2373fa450ab7",
+      "original_status_preimage": "partial_assertion_mapping",
+      "Root_acceptance": {
+        "id": "test/telemetry-event.test.mjs#8",
+        "status": "accepted_only_for_this_original_definition",
+        "migration_ids": [
+          "optional_undefined"
+        ],
+        "decision": "Accept ownoptionalundefined asabsence. Newactualmissingstatusrejection+restoredpositive retainedwithcompletionmodelseparation; no inferredsuccessfulselectedmodel.",
+        "assertion_sites": 9,
+        "expanded_original_observations_reviewed": 11
+      },
+      "migration_ids": [
+        "optional_undefined"
+      ],
+      "operational_contract": "Captured8-1/2/4/5/6 preserve independent selected/confirmed models, completed/confirmed/pricing provenance, no outcome excerpt, reject invalid200/complete statuses, allow early error without selection, retain86400001 latency. Own-undefined missing status needs exact absent-field Value/document negative and restored-field positive actuals. The exact absent-field/restored-positive controls now pass both entrypoints in focused and unfiltered workspace actuals.",
+      "current_native_tests": [
+        "telemetry_event::tests::frozen_telemetry_calls_preserve_complete_outputs_and_explicit_absence",
+        "telemetry_event::tests::absent_required_decision_model_and_outcome_status_are_rejected"
+      ],
+      "original_Source_actual": {
+        "receipt": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-test-v2.json",
+        "TAP": [
+          {
+            "line": 2785,
+            "text": "ok 547 - outcomes require explicit completion status and preserve confirmed models separately from selection"
+          }
+        ]
+      },
+      "original_capture_cases": [
+        "baseline-normalize_session-8-1",
+        "baseline-normalize_session-8-2",
+        "baseline-normalize_session-8-4",
+        "baseline-normalize_session-8-5",
+        "baseline-normalize_session-8-6"
+      ],
+      "historical_skips_preserved": [
+        {
+          "baseline_test": "test/telemetry-event.test.mjs#8",
+          "call": 3,
+          "op": "normalize_session",
+          "reason": "$[0].status: undefined"
+        }
+      ],
+      "assertions": [
+        {
+          "site": 1,
+          "source_line": 99,
+          "expression_sha256": "38a9f5112bdc828d0160eca12d49af3a3014d4c4087e4ffaeaa6acba14234f7d",
+          "original_expression_ref": "telemetry_original#/mappings/7/direct_assertions/0",
+          "expanded_observations": 1
+        },
+        {
+          "site": 2,
+          "source_line": 100,
+          "expression_sha256": "3f30434f15a70bf76f3da5c3795a4d1005e278c3d7d81d51cf8b5451f717968b",
+          "original_expression_ref": "telemetry_original#/mappings/7/direct_assertions/1",
+          "expanded_observations": 1
+        },
+        {
+          "site": 3,
+          "source_line": 101,
+          "expression_sha256": "202debc2c0a5defb04b37dc4b55e67f5d945dd09b8ff49bb206b3db1bf0cb6e7",
+          "original_expression_ref": "telemetry_original#/mappings/7/direct_assertions/2",
+          "expanded_observations": 1
+        },
+        {
+          "site": 4,
+          "source_line": 102,
+          "expression_sha256": "e4bebfb26154c08268c8683ec8c93b908a306dda139e39368c244b2353712a00",
+          "original_expression_ref": "telemetry_original#/mappings/7/direct_assertions/3",
+          "expanded_observations": 1
+        },
+        {
+          "site": 5,
+          "source_line": 103,
+          "expression_sha256": "8895af11177da988bf431b76c84af3c98f056d594836234462def070e002d611",
+          "original_expression_ref": "telemetry_original#/mappings/7/direct_assertions/4",
+          "expanded_observations": 1
+        },
+        {
+          "site": 6,
+          "source_line": 104,
+          "expression_sha256": "2b48b7401e442d5d21da8a9a59e390a4185c76c8f2ba0d5fa6effb5d1e1711c5",
+          "original_expression_ref": "telemetry_original#/mappings/7/direct_assertions/5",
+          "expanded_observations": 1
+        },
+        {
+          "site": 7,
+          "source_line": 105,
+          "expression_sha256": "92d29b2e40c52168f5a005439a738df9091a7a4c7b8dc9d44f6dc429890b4c95",
+          "original_expression_ref": "telemetry_original#/mappings/7/direct_assertions/6",
+          "expanded_observations": 3
+        },
+        {
+          "site": 8,
+          "source_line": 106,
+          "expression_sha256": "28c1979e8936f640c477090735da627599b43732d34067497e090cb2c2d3472d",
+          "original_expression_ref": "telemetry_original#/mappings/7/direct_assertions/7",
+          "expanded_observations": 1
+        },
+        {
+          "site": 9,
+          "source_line": 107,
+          "expression_sha256": "c1628177d4cf859b932353f1ac7fc3e715f334f1b4bbd90506ee4e0230de6467",
+          "original_expression_ref": "telemetry_original#/mappings/7/direct_assertions/8",
+          "expanded_observations": 1
+        }
+      ],
+      "author_definition_ref": "author_review#/definitions/6",
+      "status": "accepted_only_this_definition",
+      "historical_proposal_status": "HOLD_FOR_UNEXECUTED_NATIVE_CONTROLS",
+      "current_actual_passes": [
+        {
+          "line": 173,
+          "text": "test telemetry_event::tests::frozen_telemetry_calls_preserve_complete_outputs_and_explicit_absence ... ok"
+        },
+        {
+          "line": 139,
+          "text": "test telemetry_event::tests::absent_required_decision_model_and_outcome_status_are_rejected ... ok"
+        }
+      ]
+    },
+    {
+      "id": "test/telemetry-event.test.mjs#10",
+      "name": "malformed inputs cannot throw or traverse arbitrary objects",
+      "original_definition_sha256": "4aa821199d04a66ecf0f2cbd058d73ff56130ca451325012c25bc5aebebba32e",
+      "original_status_preimage": "partial_assertion_mapping",
+      "Root_acceptance": {
+        "id": "test/telemetry-event.test.mjs#10",
+        "status": "accepted_only_for_this_original_definition",
+        "migration_ids": [
+          "optional_undefined",
+          "host_json_input"
+        ],
+        "decision": "AccepttypedJSONtreedomain outsidehostcycles/getters/topundefined. Actualfinitecapture/malformedcases andnewemptyobject4entrypoint noresult/nonmutation controls. No nativecycle/getter executionoruniversalpanicpromise.",
+        "assertion_sites": 3,
+        "expanded_original_observations_reviewed": 13
+      },
+      "migration_ids": [
+        "optional_undefined",
+        "host_json_input"
+      ],
+      "operational_contract": "Actual captured null/array/number cases return None for both normalizers without mutation. Topundefined/cyclic/accessor values are unrepresentable at borrowed JSON entrypoint, not simulated using Null or inert object. Host rejects/converts before calling; native does not execute or catch JS getter code. The executed empty-object4-entrypoint control is additional JSON-data evidence but not replacement for original getter/cycle behavior.",
+      "current_native_tests": [
+        "telemetry_event::tests::frozen_telemetry_calls_preserve_complete_outputs_and_explicit_absence",
+        "telemetry_event::tests::missing_event_json_object_has_no_normalized_result_or_mutation"
+      ],
+      "original_Source_actual": {
+        "receipt": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-test-v2.json",
+        "TAP": [
+          {
+            "line": 2795,
+            "text": "ok 549 - malformed inputs cannot throw or traverse arbitrary objects"
+          }
+        ]
+      },
+      "original_capture_cases": [
+        "baseline-normalize_telemetry-10-3",
+        "baseline-normalize_session-10-4",
+        "baseline-normalize_telemetry-10-5",
+        "baseline-normalize_session-10-6",
+        "baseline-normalize_telemetry-10-7",
+        "baseline-normalize_session-10-8"
+      ],
+      "historical_skips_preserved": [
+        {
+          "baseline_test": "test/telemetry-event.test.mjs#10",
+          "call": 1,
+          "op": "normalize_telemetry",
+          "reason": "$[0]: undefined"
+        },
+        {
+          "baseline_test": "test/telemetry-event.test.mjs#10",
+          "call": 2,
+          "op": "normalize_session",
+          "reason": "$[0]: undefined"
+        },
+        {
+          "baseline_test": "test/telemetry-event.test.mjs#10",
+          "call": 9,
+          "op": "normalize_telemetry",
+          "reason": "$[0].self: circular object"
+        },
+        {
+          "baseline_test": "test/telemetry-event.test.mjs#10",
+          "call": 10,
+          "op": "normalize_session",
+          "reason": "$[0].self: circular object"
+        },
+        {
+          "baseline_test": "test/telemetry-event.test.mjs#10",
+          "call": 11,
+          "op": "normalize_telemetry",
+          "reason": "$[0].event: accessor"
+        },
+        {
+          "baseline_test": "test/telemetry-event.test.mjs#10",
+          "call": 12,
+          "op": "normalize_session",
+          "reason": "$[0].event: accessor"
+        },
+        {
+          "baseline_test": "test/telemetry-event.test.mjs#10",
+          "call": 13,
+          "op": "normalize_telemetry",
+          "reason": "$[0].usage: accessor"
+        }
+      ],
+      "assertions": [
+        {
+          "site": 1,
+          "source_line": 124,
+          "expression_sha256": "ed6a96080e9bd59139f841f1c4ef7f6575850cd294ba24b16ed0f966d825c180",
+          "original_expression_ref": "telemetry_original#/mappings/9/direct_assertions/0",
+          "expanded_observations": 6
+        },
+        {
+          "site": 2,
+          "source_line": 125,
+          "expression_sha256": "bbe027f21873219d72bf3e3238e6ca1012791436c991acc6c0485fbd78208f8d",
+          "original_expression_ref": "telemetry_original#/mappings/9/direct_assertions/1",
+          "expanded_observations": 6
+        },
+        {
+          "site": 3,
+          "source_line": 127,
+          "expression_sha256": "849e7d63f525c6c9b296056481bebc1f33024119f10e24c61fb0089b9243b93d",
+          "original_expression_ref": "telemetry_original#/mappings/9/direct_assertions/2",
+          "expanded_observations": 1
+        }
+      ],
+      "author_definition_ref": "author_review#/definitions/7",
+      "status": "accepted_only_this_definition",
+      "historical_proposal_status": "ELIGIBLE_ONLY_AFTER_INDEPENDENT_AND_ROOT_API_REVIEW",
+      "current_actual_passes": [
+        {
+          "line": 173,
+          "text": "test telemetry_event::tests::frozen_telemetry_calls_preserve_complete_outputs_and_explicit_absence ... ok"
+        },
+        {
+          "line": 143,
+          "text": "test telemetry_event::tests::missing_event_json_object_has_no_normalized_result_or_mutation ... ok"
+        }
+      ]
+    }
+  ],
+  "actuals": "HistoricalunchangedSource596execution and prior1afnativeactuals retained. Current2fe6unfilteredworkspace1477pass/1knowncapfail/11ignoredincludesallnamedoldcontrols+3newtelemetrypasses; focused11pass,fmt/strictClippy0. Complete52originalsites/74expandedobservationsreviewed, not74nativehostguardexecutions.",
+  "native_test_draft": {
+    "path": "artifacts/rust-rewrite/status-telemetry-original-gap-review-20261018-1/native-tests-draft/handoff-v2.json",
+    "bytes": 4484,
+    "sha256": "3e6ec9273e83a7ff73fee2e3a7d0e49411fb7d1fe6ddc8dedb86e984f568596f"
+  },
+  "independent_review": {
+    "path": "artifacts/rust-rewrite/status-telemetry-original-api-draft-20261018-1/v2/independent-eight-definition-review.json",
+    "bytes": 18280,
+    "sha256": "8cf09028e4679c7a8b8c8cebb03f8ec5200d2b3712fdec82469f48b4c8135656"
+  },
+  "missing_historical_paths": [
+    {
+      "mapping": "status",
+      "key": "frozen_capture",
+      "path": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+      "sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+      "original_path": "rust/parity/cases/status-state-contracts.capture.json",
+      "status": "MISSING_NOT_RECHECKED_OR_RECREATED"
+    },
+    {
+      "mapping": "status",
+      "key": "frozen_node_assertions",
+      "path": "artifacts/rust-rewrite/evidence/07f0cd883c71045511645c52a4620f2e0b9f83bcd7da5f2632cca769b955d80f.log",
+      "sha256": "07f0cd883c71045511645c52a4620f2e0b9f83bcd7da5f2632cca769b955d80f",
+      "original_path": "artifacts/rust-rewrite/status-state-capture-3.log",
+      "status": "MISSING_NOT_RECHECKED_OR_RECREATED"
+    },
+    {
+      "mapping": "status",
+      "key": "native_state_tests",
+      "path": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+      "sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+      "original_path": "artifacts/rust-rewrite/status-state-contracts-3.log",
+      "status": "MISSING_NOT_RECHECKED_OR_RECREATED"
+    },
+    {
+      "mapping": "status",
+      "key": "native_storage_tests",
+      "path": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+      "sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+      "original_path": "artifacts/rust-rewrite/status-store-contracts-2.log",
+      "status": "MISSING_NOT_RECHECKED_OR_RECREATED"
+    },
+    {
+      "mapping": "status",
+      "key": "native_clippy",
+      "path": "artifacts/rust-rewrite/evidence/d5ae4c6b4fd105fa6a8f06e377a3f39ff90f6d516f57ad6df093fda18272b3da.log",
+      "sha256": "d5ae4c6b4fd105fa6a8f06e377a3f39ff90f6d516f57ad6df093fda18272b3da",
+      "original_path": "artifacts/rust-rewrite/status-state-clippy-2.log",
+      "status": "MISSING_NOT_RECHECKED_OR_RECREATED"
+    },
+    {
+      "mapping": "status",
+      "key": "original_native_flush_failure",
+      "path": "artifacts/rust-rewrite/evidence/0cec272173a3eaa84bc6259382348641265b71be4edc43bbaf57fff9468a1d91.log",
+      "sha256": "0cec272173a3eaa84bc6259382348641265b71be4edc43bbaf57fff9468a1d91",
+      "original_path": "artifacts/rust-rewrite/status-flush-regression-2.log",
+      "status": "MISSING_NOT_RECHECKED_OR_RECREATED"
+    },
+    {
+      "mapping": "status",
+      "key": "frozen_shared_drain_control",
+      "path": "artifacts/rust-rewrite/evidence/b8c4033750295cc37c39e2f4f76f7567784db95acc26d67246718de1b20e45d2.json",
+      "sha256": "b8c4033750295cc37c39e2f4f76f7567784db95acc26d67246718de1b20e45d2",
+      "original_path": "artifacts/rust-rewrite/status-flush-node-control-2.json",
+      "status": "MISSING_NOT_RECHECKED_OR_RECREATED"
+    },
+    {
+      "mapping": "telemetry",
+      "key": "telemetry_log",
+      "path": "artifacts/rust-rewrite/telemetry-contracts-2.log",
+      "sha256": "67992cfa94e2254a71b79ee944837321d933f0a097a2700d661bc8f6b5fe4aa9",
+      "status": "MISSING_NOT_RECHECKED_OR_RECREATED"
+    },
+    {
+      "mapping": "telemetry",
+      "key": "statusline_log",
+      "path": "artifacts/rust-rewrite/statusline-contracts-2.log",
+      "sha256": "745bd9448fd69daf4406211c4855145da4a24d0bb28e6c405c99afe1ba8f0dd2",
+      "status": "MISSING_NOT_RECHECKED_OR_RECREATED"
+    },
+    {
+      "mapping": "telemetry",
+      "key": "clippy_log",
+      "path": "artifacts/rust-rewrite/telemetry-statusline-clippy-2.log",
+      "sha256": "c456a6fec38fea81e11debc7f086dedfde82e6873238b10e23bcf1dddac7a93d",
+      "status": "MISSING_NOT_RECHECKED_OR_RECREATED"
+    }
+  ],
+  "scope": "Only eight original IDs. Existing maps/corpus bytes/skipped-call records stay intact. No limit/key/area, broad transport/storage/resource/release/platform approval.",
+  "reference_aliases": {
+    "status_original": "rust/parity/assertion-mappings/status-state-contracts.json",
+    "telemetry_original": "rust/parity/assertion-mappings/telemetry-statusline-contracts.json",
+    "author_review": "artifacts/rust-rewrite/status-telemetry-original-gap-review-20261018-1/handoff-v2.json"
+  },
+  "assertion_reference_rule": "For each definition index d and assertion site s: exact prose assessment is author_review#/definitions/d/original_assertion_sites/(s-1). Alias references resolve using reference_aliases; all target source expressions/hashes independently rechecked. No original expression/field/value is removed from the existing pinned public maps.",
+  "current_native_validation": {
+    "path": "artifacts/rust-rewrite/status-telemetry-native-validation-20261018-1/independent-broad-validation-review.json",
+    "bytes": 28266,
+    "sha256": "d1bbcdf7924c260f1701abd2efd306b0b0427c295401cee9709f4ab6f3407452"
+  },
+  "source_snapshot": {
+    "path": "artifacts/rust-rewrite/status-telemetry-native-validation-20261018-1/candidate-source.json",
+    "bytes": 117320,
+    "sha256": "2fe6d26fe54bfaef7413caf73e01baa3acaee916b9c0b03950f04754481b1ae8"
+  },
+  "historical_pretest_assessment": {
+    "conditionally_reviewable_without_new_controls": 5,
+    "required_new_controls": 3
+  }
+}

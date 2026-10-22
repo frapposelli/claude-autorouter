@@ -1,0 +1,341 @@
+{
+  "schema_version": 1,
+  "status": "reviewed_original_onboarding_after_prompt_obligations_and_explicit_private_adapter_migration",
+  "baseline": "test/onboarding.test.mjs#33",
+  "source_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+  "source_statement_sha256": "e422b2c7ecc40c30769b9482a55f2012eb68c8fc4b16962da96ad66d1971bc4d",
+  "source_statement_hash_rule": "Exact frozen AST Statement getText including semicolon; all callback/helper/predicate bytes preserved by observation-only wrapper.",
+  "source_counts": {
+    "callbacks": 1,
+    "setup_calls": 2,
+    "static_assertions": 5,
+    "executed_assertions": 4,
+    "dormant_guard_sites": 1,
+    "prompt_calls": 1,
+    "actual_fetch_calls": 0,
+    "builtin_subprocess_calls": 0
+  },
+  "supplement_source_counts": {
+    "supplemental_calls": 2,
+    "prompts": 2,
+    "fetch_calls": 0,
+    "subprocess_calls": 0,
+    "configuration_files_saved": 0
+  },
+  "native_results": {
+    "new_test_definitions": 1,
+    "new_test_scenarios": 3,
+    "new_exact_test_passed": true,
+    "whole_onboarding_contract_module": {
+      "passed": 8,
+      "failed": 0
+    },
+    "strict_cli_all_target_clippy": "passed",
+    "modified_file_rustfmt": "passed"
+  },
+  "assertion_mapping": [
+    {
+      "id": "test/onboarding.test.mjs#33:assert-1",
+      "line": 628,
+      "expression": "assert.fail('A cancelled operation must do no work')",
+      "sha256": "9e433b2ab9b22d45477e867c0e4498ec30dc7e5d36e88529be2f5392419056cf",
+      "executions": 0,
+      "proof": "accepted actual Source and native behavior with explicitly reviewed cancellation and private prompt-adapter migrations",
+      "native_tests": [
+        "onboarding::contract_tests::pre_cancelled_setup_performs_no_keychain_input_output_or_file_access",
+        "onboarding::contract_tests::cancellation_after_api_key_prompt_stops_local_setup_and_save_before_key_validation"
+      ],
+      "evidence_details": [
+        "Source unexpected guard remains dormant for pre-cancelled write/prompt/fetch and post-prompt fetch. Native actual pre-cancelled public setup returns before config load/prompt/output/HTTP/Keychain. Native NoCalls spy and NoKeychain panic boundaries detect downstream work; malformed existing bytes and absent configuration strengthen first original schedule.",
+        "Post-prompt part now separately proved through actual setup_with_prompt with successful callback return and same cancelled token; no accepted HTTP/Keychain/save."
+      ],
+      "root_review": "accepted_per_assertion"
+    },
+    {
+      "id": "test/onboarding.test.mjs#33:assert-2",
+      "line": 629,
+      "expression": "assert.rejects(setup([], { env, signal: controller.signal, write: unexpected, prompt: unexpected, fetchImpl: unexpected }), /Setup cancelled/)",
+      "sha256": "9c2207a3e6a56abefbf169aada493d24d37e424b01e7741f1462d8cbe14bf9b1",
+      "executions": 1,
+      "proof": "accepted actual Source and native behavior with explicitly reviewed cancellation and private prompt-adapter migrations",
+      "native_tests": [
+        "onboarding::contract_tests::pre_cancelled_setup_performs_no_keychain_input_output_or_file_access"
+      ],
+      "evidence_details": [
+        "Source assert.rejects exact /Setup cancelled/ passes with real already-aborted AbortController. Actual native returns exact Err(String:Setup cancelled), lines empty, malformed original config bytes unchanged."
+      ],
+      "root_review": "accepted_per_assertion"
+    },
+    {
+      "id": "test/onboarding.test.mjs#33:assert-3",
+      "line": 630,
+      "expression": "assert.equal(existsSync(env.AUTOROUTER_CONFIG), false)",
+      "sha256": "8ad95c16113a91237743463df5125c3079a9961f9eef9ba25a2f6214998edde4",
+      "executions": 1,
+      "proof": "accepted actual Source and native behavior with explicitly reviewed cancellation and private prompt-adapter migrations",
+      "native_tests": [
+        "onboarding::contract_tests::pre_cancelled_setup_performs_no_keychain_input_output_or_file_access"
+      ],
+      "evidence_details": [
+        "Source config does not exist after first rejected setup. Actual pre-cancelled native second invocation with absent isolated config leaves it absent; first strengthened malformed-config case preserves exact existing bytes."
+      ],
+      "root_review": "accepted_per_assertion"
+    },
+    {
+      "id": "test/onboarding.test.mjs#33:assert-4",
+      "line": 632,
+      "expression": "assert.rejects(setup(['--auth-mode', 'api-key', '--evaluator', 'ollama'], {\n    env, signal: later.signal, write: () => {}, prompt: async () => { later.abort(); return 'synthetic-key'; }, fetchImpl: unexpected,\n  }), /Setup cancelled/)",
+      "sha256": "8b6b8c03ea3340da7cc835789720762095b2d9b6be14a7e5cadcedbb32c4ba39",
+      "executions": 1,
+      "proof": "accepted actual Source and native behavior with explicitly reviewed cancellation and private prompt-adapter migrations",
+      "native_tests": [
+        "onboarding::contract_tests::cancellation_after_api_key_prompt_stops_local_setup_and_save_before_key_validation"
+      ],
+      "evidence_details": [
+        "Actual original Source async prompt aborts same supplied controller and returns synthetic-key, then rejects with Setup cancelled; callback and helper statement bytes unchanged.",
+        "Actual native existing private SecretPrompt callback records ANTHROPIC_API_KEY, cancels same CancellationToken, successfully returns synthetic-key, and complete setup_with_prompt operation returns exact Setup cancelled. Native expected one local routing disclosure is allowed before prompting, matching raw Source second schedule write count1/bytes.",
+        "Empty and multiline successful returns are two separately predeclared Source/native supplements: cancellation precedes key validation; they are not relabeled as original variants."
+      ],
+      "root_review": "accepted_per_assertion"
+    },
+    {
+      "id": "test/onboarding.test.mjs#33:assert-5",
+      "line": 635,
+      "expression": "assert.equal(existsSync(env.AUTOROUTER_CONFIG), false)",
+      "sha256": "8ad95c16113a91237743463df5125c3079a9961f9eef9ba25a2f6214998edde4",
+      "executions": 1,
+      "proof": "accepted actual Source and native behavior with explicitly reviewed cancellation and private prompt-adapter migrations",
+      "native_tests": [
+        "onboarding::contract_tests::cancellation_after_api_key_prompt_stops_local_setup_and_save_before_key_validation"
+      ],
+      "evidence_details": [
+        "Exact config absence after original Source post-prompt cancellation and native successful/blank/multiline callbacks. Native actual loopback spy remains empty and joined NoCalls Drop closes/drains it before checking any late accepted request. NoKeychain forbids secret storage/removal/read; exact disclosure excludes credentials and later local setup/save output."
+      ],
+      "root_review": "accepted_per_assertion"
+    }
+  ],
+  "bindings": [
+    {
+      "path": "artifacts/rust-rewrite/onboarding-after-prompt-audit-20261014/controls.json",
+      "bytes": 5425,
+      "sha256": "a5d78f3ef2f0663c3b250c5f8f5b38c3018a3a5b8d7e65e179c6dff8ef4dc9aa"
+    },
+    {
+      "path": "artifacts/rust-rewrite/onboarding-after-prompt-audit-20261014/capture-source.draft.mjs",
+      "bytes": 9121,
+      "sha256": "e72d2ca3838ab829cc270874e61dcce02ea24f912a4b6ddb35f042e405ca12a2"
+    },
+    {
+      "path": "artifacts/rust-rewrite/onboarding-after-prompt-audit-20261014/source-1/capture.json",
+      "bytes": 8266,
+      "sha256": "58a5ac4e5c044f8b501f7b1a7e9e2aa92bdc753d2e0710c075d9ab2904ce93ef"
+    },
+    {
+      "path": "artifacts/rust-rewrite/onboarding-after-prompt-audit-20261014/source-1/transformed-source.mjs",
+      "bytes": 1562,
+      "sha256": "550f7adc76ae5e1e816c9a42a224bf71bb75903ffd6f1aa3c187cc2f99101074"
+    },
+    {
+      "path": "artifacts/rust-rewrite/onboarding-after-prompt-audit-20261014/source.log",
+      "bytes": 247,
+      "sha256": "71d83867de9594fb41bae752fda3e29f6fa1f2acc2bcb3d920cd8efdbaedc2fe"
+    },
+    {
+      "path": "artifacts/rust-rewrite/onboarding-after-prompt-audit-20261014/key-precedence-controls.json",
+      "bytes": 1222,
+      "sha256": "0bfc2b8af9ea0aa8d64e4427419e3894869d9969a0ad588272898c2010ba8daf"
+    },
+    {
+      "path": "artifacts/rust-rewrite/onboarding-after-prompt-audit-20261014/capture-key-precedence.draft.mjs",
+      "bytes": 4612,
+      "sha256": "dba92e22a71d1873182e79b00c90511c00a573a6ae441f867732c905cfc7760a"
+    },
+    {
+      "path": "artifacts/rust-rewrite/onboarding-after-prompt-audit-20261014/source-key-precedence-1/capture.json",
+      "bytes": 2560,
+      "sha256": "027a4377ff11c6aa803e937dac2b2eca61d84d87b6994dd89bc6ff304ccd3b8a"
+    },
+    {
+      "path": "artifacts/rust-rewrite/onboarding-after-prompt-audit-20261014/source-key-precedence.log",
+      "bytes": 180,
+      "sha256": "80ff939f162ce4b984384b618f8af2a106d8a67ac8ebb4031ec56faa7e3f72eb"
+    },
+    {
+      "path": "artifacts/rust-rewrite/onboarding-after-prompt-audit-20261014/narrow-regression.patch",
+      "bytes": 2746,
+      "sha256": "d77996b5b9a7bf39d1319d21d67dc32e3185bea01c41d7df5445e73f98161444"
+    },
+    {
+      "path": "artifacts/rust-rewrite/onboarding-after-prompt-audit-20261014/onboarding_contract_tests.candidate.rs",
+      "bytes": 15458,
+      "sha256": "e82e54c709506c4ec8993cc268ac802b4c38da055f08ad08653ec3392c9328d7"
+    },
+    {
+      "path": "artifacts/rust-rewrite/onboarding-after-prompt-audit-20261014/audit-report.json",
+      "bytes": 10893,
+      "sha256": "66443486132236ca69d24881b6958db57081fc90d6c09b5f8bcc2cbda3a8b187"
+    },
+    {
+      "path": "artifacts/rust-rewrite/onboarding-after-prompt-audit-20261014/run-focused-native.draft.py",
+      "bytes": 3356,
+      "sha256": "1165e0a18e9dadfab721647afb104e72408825357799b45482bc7cb9161fc7f8"
+    },
+    {
+      "path": "artifacts/rust-rewrite/onboarding-after-prompt-audit-20261014/native-1/execution-declaration.json",
+      "bytes": 3140,
+      "sha256": "b7a2a971f871dacdcb47feedf7d0a7b3c3054bf6b043abea4b3f0256d941c5e5"
+    },
+    {
+      "path": "artifacts/rust-rewrite/onboarding-after-prompt-audit-20261014/native-1/execution-report.json",
+      "bytes": 4765,
+      "sha256": "614363374bd88c663fc5b352ee4457e163ad913fe02bb578e62716a28c4f46f8"
+    },
+    {
+      "path": "artifacts/rust-rewrite/onboarding-after-prompt-audit-20261014/native-1/exact-after-prompt.log",
+      "bytes": 1106,
+      "sha256": "4a289a33e929fd3b9a5b1caf2277b2b44c45b817694b16201393406531e8d194"
+    },
+    {
+      "path": "artifacts/rust-rewrite/onboarding-after-prompt-audit-20261014/native-1/onboarding-module.log",
+      "bytes": 1648,
+      "sha256": "036c3d9c1c48890921a189b3db7636f8ebe17f0c1d3d971f4db2e48eea792e8a"
+    },
+    {
+      "path": "artifacts/rust-rewrite/onboarding-after-prompt-audit-20261014/native-1/strict-cli-clippy.log",
+      "bytes": 803,
+      "sha256": "05acbbd616da42858cbb84f7459b5c6e736e37dc37156efa604fef527980756a"
+    },
+    {
+      "path": "artifacts/rust-rewrite/onboarding-after-prompt-audit-20261014/native-1/focused-rustfmt.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs",
+      "bytes": 15521,
+      "sha256": "92afa9f4708facc4739166b3890e685f7fc65f8ec8201b924be99d91efa1e0cd"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/onboarding.rs",
+      "bytes": 19983,
+      "sha256": "0166cf662ab3423d009611170c269e9a7b37d71e7def52131984a1b17e065fcb"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/main.rs",
+      "bytes": 10610,
+      "sha256": "826051934b4c1a1763a4b26f40c10e79c01e424ba7cd36c35936da861d3b43ae"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/secret_input.rs",
+      "bytes": 20776,
+      "sha256": "51c15a60f3d215421569c7093659a7dfe61f70db60897a267de1a902f2cb366e"
+    }
+  ],
+  "fragment_anchors": [
+    {
+      "path": "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs",
+      "line": 356,
+      "start": "async fn pre_cancelled_setup_performs_no_keychain_input_output_or_file_access()",
+      "end_exclusive": "#[tokio::test]\nasync fn cancellation_after_api_key_prompt",
+      "bytes": 965,
+      "sha256": "8e6e4c7a4bf0657d8240fe5547ff3bd50338e32575af58bee844606810c4953f",
+      "hash_rule": "Exact UTF-8 substring without trimming/normalization; None ends at EOF."
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs",
+      "line": 379,
+      "start": "async fn cancellation_after_api_key_prompt_stops_local_setup_and_save_before_key_validation()",
+      "end_exclusive": null,
+      "bytes": 2517,
+      "sha256": "864f2e899b462d0929aa390ae6d2a8da3ac7879eec904d6493f01da164defdfa",
+      "hash_rule": "Exact UTF-8 substring without trimming/normalization; None ends at EOF."
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/onboarding.rs",
+      "line": 36,
+      "start": "fn check_cancel(cancellation:",
+      "end_exclusive": "pub fn ollama_deadline_text",
+      "bytes": 185,
+      "sha256": "4a7f6d66fc22b772a694777ef6e1e45c3171875426846aa650375868814fdd5c",
+      "hash_rule": "Exact UTF-8 substring without trimming/normalization; None ends at EOF."
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/onboarding.rs",
+      "line": 65,
+      "start": "pub async fn setup(",
+      "end_exclusive": "trait SecretPrompt",
+      "bytes": 407,
+      "sha256": "ba5c6f2ec6321b1a75729935e35b307d6b000136d074c8de583b42bb029f02b7",
+      "hash_rule": "Exact UTF-8 substring without trimming/normalization; None ends at EOF."
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/onboarding.rs",
+      "line": 84,
+      "start": "trait SecretPrompt",
+      "end_exclusive": "struct SetupDependencies",
+      "bytes": 833,
+      "sha256": "57f9b99dc5d413f70ebde192c5e62280ae4e949562a2b2e9648214a74676bfd7",
+      "hash_rule": "Exact UTF-8 substring without trimming/normalization; None ends at EOF."
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/onboarding.rs",
+      "line": 406,
+      "start": "        let supplied = match supplied {",
+      "end_exclusive": "    let config = read_config(",
+      "bytes": 453,
+      "sha256": "cd1b5fa5f231ae58a6280478b475fc26c25e70d6d30c1b1067b345002d64f202",
+      "hash_rule": "Exact UTF-8 substring without trimming/normalization; None ends at EOF."
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/onboarding.rs",
+      "line": 417,
+      "start": "    let config = read_config(",
+      "end_exclusive": "    let mut saved_store",
+      "bytes": 1203,
+      "sha256": "0eb1cfe6b1baee3f86e080cd97b13cce928916601caeecbd381d76e649043fba",
+      "hash_rule": "Exact UTF-8 substring without trimming/normalization; None ends at EOF."
+    }
+  ],
+  "executed_identity": {
+    "unit_executable": {
+      "path": "rust/target/debug/deps/claude_autorouter-fa2e8546f9cc5680",
+      "bytes": 29628976,
+      "sha256": "aa7e681ffd282da6056b634dda74b01a6b21eced59984f3df2544e840b30399c"
+    },
+    "cargo_test_bin_fingerprint": {
+      "path": "rust/target/debug/.fingerprint/claude-autorouter-fa2e8546f9cc5680/test-bin-claude-autorouter.json",
+      "bytes": 916,
+      "sha256": "0b241c26aa357e2e6b19d8c226e82c4fa2bb0eddcface1c9edf86871566e6db4"
+    },
+    "linkage_limit": "Actual bounded Cargo executions and separately bound test/source/fingerprint files establish local synthetic evidence. No copied debug binary, installed archive, supported-platform or release qualification claimed."
+  },
+  "api_migrations": [
+    "Source receives a public injected async prompt; native keeps SecretPrompt and setup_with_prompt private. The regression uses that existing production dependency and the full setup_with_dependencies operation, not a public Rust callback facade or duplicate mock implementation. Native normal public setup always supplies NativeSecretPrompt; adapter timing is exact successful return+same token cancellation.",
+    "Original Source uses abort() without a supplied reason and setup constructs a new Error with Setup cancelled instead of forwarding AbortSignal.reason. Original #33 predicates require rejection-message match and zero downstream work; they do not require cancellation reason/object identity. Native CancellationToken does not store JavaScript reason objects and existing setup returns Result<(),String>; exact Setup cancelled message and checkpoint/zero-work outcomes are preserved. No Source Error/DOMException identity equivalence or #32 reason-identity predicate is invented.",
+    "Linux-only private macos=false prompt adapter keeps fake keys in file-mode semantics and constructs no real Keychain. The actual policy loader is retained with an observed-absent fixed-path policy precondition, not stubbed policy enforcement.",
+    "Source callback returns real successful String/Promise; wrappers forward its actual Promise and Error. Blank/multiline keys are explicitly separate Source/native supplements; no mocked throwing callback or racing PTY signal substitutes for after-prompt cancellation."
+  ],
+  "warnings_and_failures": [
+    "Focused test raw logs retain pre-existing vendored hyper-util unused timer warning; strict project CLI Clippy passes. No new native test/check failure occurred.",
+    "Private pre-admission report draft once assumed a following test marker after the final existing pre-cancelled function; ValueError was documented in immutable audit report. Its corrected fragment anchor used EOF without altering source/evidence.",
+    "Historical original/content-addressed cli-onboarding-admission-tests log SHA2917fd26ec9744d3d98446de0df4eccfe14fb86dade823c334d64cfe42c51413 is absent locally; no reread claim. Fresh bound full module execution independently runs actual previous pre-cancelled test."
+  ],
+  "handoff_limits": [
+    "The focused new unit and complete onboarding module passed. Final combined-source, installed archive, CI/platform, performance/live and release/cutover gates remain separately pending."
+  ],
+  "draft_revision_note": "V2 explicitly lists both pre-cancelled and post-prompt native tests for original shared unexpected-work guard; all bound source/logs/outcomes remain unchanged. V1 private draft preserved.",
+  "private_draft": {
+    "path": "artifacts/rust-rewrite/onboarding-after-prompt-audit-20261014/per-assertion-supplement-v2.draft.json",
+    "bytes": 18350,
+    "sha256": "957b50e57d85795350c3544726bce4c40e803e8445ba678a784e6fd5b4994669"
+  },
+  "root_review": {
+    "date": "2026-10-14",
+    "accepted": true,
+    "scope": "All five original assertion sites were reviewed separately. The original predicates require the Setup cancelled message and zero downstream work, not arbitrary abort-reason identity. The existing private native prompt adapter runs the full setup operation at the exact post-prompt checkpoint.",
+    "evidence": "Root independently verified23file bindings and7native fragments; independent peer reviewed the original callback/cancellation schedule and test implementation. Actual newtest covers3declared scenarios, fullmodule8/8 and strictCLIClippy/fmt passed.",
+    "implementation_change": "No production change. The cancellation checkpoint already exists immediately after awaiting the API-key prompt; one regression was added.",
+    "migration": "Source injected async prompt and Error/AbortSignal are distinct from private native SecretPrompt, CancellationToken and Result<(),String>. Exact message and no-work obligations are preserved; no public callback/PTY-race or reason-object equivalence is claimed.",
+    "nonqualification": "Installed archive, full platform, performance/live and release/cutover qualification remain separate."
+  }
+}

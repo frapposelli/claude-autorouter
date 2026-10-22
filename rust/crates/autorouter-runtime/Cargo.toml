@@ -1,0 +1,43 @@
+[package]
+name = "autorouter-runtime"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[features]
+default = []
+# Synthetic processing probes only; ordinary shipping builds must exclude this.
+development-probes = []
+
+[dependencies]
+autorouter-core = { path = "../autorouter-core" }
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tokio-util.workspace = true
+hyper.workspace = true
+hyper-util.workspace = true
+hyper-rustls.workspace = true
+rustls.workspace = true
+openssl.workspace = true
+sha2.workspace = true
+getrandom.workspace = true
+subtle.workspace = true
+time.workspace = true
+async-compression.workspace = true
+nix.workspace = true
+regex.workspace = true
+url.workspace = true
+http-body-util.workspace = true
+bytes.workspace = true
+
+[dev-dependencies]
+flate2.workspace = true
+hyper = { workspace = true, features = ["node-http1-body-handoff"] }
+hyper-util = { workspace = true, features = ["node-http1-request-lease", "node-http1-raw-pool"] }
+hyper-openssl = { version = "=0.10.2", default-features = false }
+tower-service = "=0.3.3"
+
+[lints]
+workspace = true

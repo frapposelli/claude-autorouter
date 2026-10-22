@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "kind": "native_typed_contract_resume_checkpoint",
+  "date": "2026-10-13",
+  "head_commit": "da51574ec1a895286c0379db1623d715e986be7e",
+  "source_uncommitted": true,
+  "release_approved": false,
+  "tests": {
+    "core_integration_passed": 5,
+    "compiler_positive": 1,
+    "compiler_negative": 14,
+    "frozen_policy_routes": 263,
+    "frozen_classified_routes": 236,
+    "typed_vs_legacy_lifecycle_mode_ending_combinations": 6,
+    "typed_exact_passthrough_no_io_test_passed": true,
+    "focused_gateway_integration_passed": 9,
+    "original_node_static_checks_passed": 2,
+    "bootstrap_auditor_clippy_passed": true,
+    "production_feature_selftest_accepted": 1,
+    "production_feature_selftest_rejected": 46,
+    "historical_node_native_control_comparison_cases": 37,
+    "new_development_runtime_controls_native_rejected": 11,
+    "new_development_runtime_controls_historical_node_accepted": 11
+  },
+  "mapping": {
+    "path": "rust/parity/assertion-mappings/static-producer-contracts.json",
+    "sha256": "1589064601072c0591bc1ddf9d25919e72de016da73b84363ab135d6ce0e730a"
+  },
+  "numeric_projection": "A typed/legacy lifecycle comparison exposed integer versus IEEE-754 outcome representation drift. The explicit document observation boundary now preserves the original projection; exact wire model identities remain JsString.",
+  "native_auditor_evidence": [
+    {
+      "path": "artifacts/dev-environment/audit-contracts-bootstrap-proof.json",
+      "sha256": "b412ac429181ca46111e31a5506c716cf6c475f9da19185bdba6b7d226760d4b"
+    },
+    {
+      "path": "artifacts/dev-environment/native-production-contracts-audit.json",
+      "sha256": "ddbfd28bef21994e2c655b4b3a5c03cfa67cc233aacd46ea22f0f79c717ad794"
+    },
+    {
+      "path": "artifacts/dev-environment/production-auditor-contracts-differential.json",
+      "sha256": "be7144fc73f3b5f1265b56eeb8d96a2e1c0b4492b54bfaf8c7c55e80f4bab644"
+    },
+    {
+      "path": "artifacts/dev-environment/production-auditor-development-controls.json",
+      "sha256": "72b99a0971f463e217d95fa1028b1de34252adf6ede6fef7ce2b67610538f8ac"
+    }
+  ],
+  "source_inputs": [
+    {
+      "path": "rust/crates/autorouter-core/src/contracts.rs",
+      "sha256": "4e92772071e5a3084c1b0b0cc00466d7f9413aac0cf0f075813e6c5f3f19aa5d"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/router.rs",
+      "sha256": "214b79d2ae347c1fd0aa29eef484bd0a68889f4561a1320ae172e04f2a8807a7"
+    },
+    {
+      "path": "rust/crates/autorouter-core/tests/typed_contracts.rs",
+      "sha256": "1781bfd2f7cc37586bf048e3d9bf3658f848a6f3b797593b6f09c120308c29d5"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/evaluator.rs",
+      "sha256": "61fde01fc4e29420d96369424f8979c8af7025dffcde629fc1925c0f506a18ce"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+      "sha256": "eecb8b2d02909c0ca5dd347d8eafe7a7918fd7f776150faedc40fd813640269c"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/router.rs",
+      "sha256": "70b7a95f566fd6ea320340b44d687f544effe18cafe48a4f8ddafc123fb57f7e"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/server.rs",
+      "sha256": "97afd223b66a581d08a36e291fb2d2ed375f6b093b89a344be5392c836f56d7b"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/server_events.rs",
+      "sha256": "c825a745a3bd5cb86e24730ee981bf2322c10a9d17a7d74f24f4318777ce00ed"
+    },
+    {
+      "path": "rust/docs/embedding.md",
+      "sha256": "7ed3d6b0a7cd3f7775dfdb3bdf61dc447583242e84f16e0cafaad9e65c696161"
+    },
+    {
+      "path": "rust/parity/cases/static-contracts.capture.json",
+      "sha256": "67d76393ec707e72853f99c72eb97b17ed809303f4f13616d3fbd4e28122c875"
+    }
+  ],
+  "limits": [
+    "Dirty-source local evidence only; root owns final union checks and ledger admission.",
+    "Core/runtime strict Clippy passed before concurrent new parity tests; the next union must include their now-fixed warnings.",
+    "Production-feature checks inspected the older retained ordinary release binary, not a release of these source changes.",
+    "No numerical performance, actual provider, local model, platform-matrix, package/release or default-cutover qualification."
+  ]
+}

@@ -1,0 +1,675 @@
+{
+  "schema_version": 1,
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "baseline_test": "test/ollama-evaluator.test.mjs",
+  "baseline_sha256": "5015a563933bc51ffcc8ab88214cb4d972f590548ae8e5c768aa46f24669a371",
+  "generator_sha256": "383adf70421160cc187389defe3c455e567ac771d2c93f37a570698cf73dee3d",
+  "node_version": "v22.14.0",
+  "typescript_version": "6.0.3",
+  "cases_sha256": "d8706e0e48de75f116c70be550105ed6b607451af15eb61454ef62637dcf462e",
+  "selected_definitions": [
+    1,
+    2,
+    3,
+    6,
+    11
+  ],
+  "cases": 15,
+  "state_calls": 24,
+  "requests": 18,
+  "static_assertions": 23,
+  "executed_assertions": 70,
+  "tests": [
+    {
+      "id": "test/ollama-evaluator.test.mjs#1",
+      "number": 1,
+      "name": "local routing excludes Claude executor instructions without changing Jev task extraction",
+      "selected": true,
+      "line": 19,
+      "statement": "test('local routing excludes Claude executor instructions without changing Jev task extraction', () => {\n  for (const prompt of ['What does [].length return?', 'Implement paginated results with tests.',\n    'Prove a lease protocol prevents stale writes across a network partition.']) {\n    const request = body(prompt);\n    const withBackground = { ...request, system: [{ type: 'text',\n      text: 'You are a coding assistant. Inspect repositories, implement features, review code and run tests. '.repeat(200) }],\n    };\n    assert.deepEqual(buildOllamaState(withBackground), buildOllamaState(request));\n    assert.equal(buildOllamaState(withBackground).current_task, prompt);\n    assert.ok(buildState(withBackground).system.includes('coding assistant'));\n  }\n});",
+      "statement_sha256": "b2652a4ff860091e12146442555d646b23e8225df6a0dfadcb8cc8244a5fe61c",
+      "call_sha256": "20061bae5c5f611d18f9cab8bd04bf746e703b92dc6538990848b51ef7860569",
+      "assertions": [
+        {
+          "line": 26,
+          "expression": "assert.deepEqual(buildOllamaState(withBackground), buildOllamaState(request))",
+          "sha256": "51f6b9f99ce1e4fc094b34d9408dd0169d3222cc10eb7c1e5538a09a9d99bfa6"
+        },
+        {
+          "line": 27,
+          "expression": "assert.equal(buildOllamaState(withBackground).current_task, prompt)",
+          "sha256": "42b3e9cc131f3984244b5490c01dfbbdceafa1339bbef2bf11f3578e7b0462b0"
+        },
+        {
+          "line": 28,
+          "expression": "assert.ok(buildState(withBackground).system.includes('coding assistant'))",
+          "sha256": "26d143e8c13ea33ed57e833c2c6ee54d33dcb35c00e83f89c0de87315bba599e"
+        }
+      ],
+      "case_ids": [
+        "baseline-ollama-evaluator-finite-1-1",
+        "baseline-ollama-evaluator-finite-1-2",
+        "baseline-ollama-evaluator-finite-1-3"
+      ],
+      "executed_assertions": 9
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#2",
+      "number": 2,
+      "name": "excluding local executor instructions still retains follow-up evidence and bounded Unicode excerpts",
+      "selected": true,
+      "line": 32,
+      "statement": "test('excluding local executor instructions still retains follow-up evidence and bounded Unicode excerpts', () => {\n  const request = body('Worker A pauses with lease 41; B commits under 42. Storage accepts every issued token.');\n  request.system = 'IRRELEVANT_EXECUTOR_BACKGROUND '.repeat(1000);\n  request.messages.push({ role: 'assistant', content: 'The storage acceptance rule is suspect.' },\n    { role: 'user', content: 'Prove whether both can commit; specify the atomic repair.' },\n    { role: 'assistant', content: [{ type: 'tool_use', name: 'Read', id: 'evidence', input: { secret: 'PRIVATE_TOOL_INPUT' } }] },\n    { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'evidence', is_error: true,\n      content: 'EVIDENCE_START ' + '并发🌍'.repeat(2000) + ' STALE_WRITE_ACCEPTED' }] });\n  const state = buildOllamaState(request);\n  assert.match(state.original_task, /lease 41/);\n  assert.equal(state.current_task, 'Prove whether both can commit; specify the atomic repair.');\n  assert.ok(state.recent_messages.some(message => message.content.includes('STALE_WRITE_ACCEPTED')));\n  assert.ok(Buffer.byteLength(JSON.stringify(state)) <= 3000);\n  assert.doesNotMatch(JSON.stringify(state), /IRRELEVANT_EXECUTOR_BACKGROUND|PRIVATE_TOOL_INPUT/);\n});",
+      "statement_sha256": "ae66647afb3b2cae226fc46abe76faf701fc5f7721cbe3620786befe0bd267bb",
+      "call_sha256": "085f97ca80dc2ffb0126ebf01ca1e1072a35414ea8f4bf8832e07d4bd52d4637",
+      "assertions": [
+        {
+          "line": 41,
+          "expression": "assert.match(state.original_task, /lease 41/)",
+          "sha256": "a7d39fc2308e45f51ba0daee66a60bda9c71d23ddf7ab276adde140fa166cff5"
+        },
+        {
+          "line": 42,
+          "expression": "assert.equal(state.current_task, 'Prove whether both can commit; specify the atomic repair.')",
+          "sha256": "662116b2a34e0a95c0dc460b465827627732765f91ad7d1940966ed2f2657269"
+        },
+        {
+          "line": 43,
+          "expression": "assert.ok(state.recent_messages.some(message => message.content.includes('STALE_WRITE_ACCEPTED')))",
+          "sha256": "830c4032013d5b8ca6e9e54e3e41089e7ba9ee45fb02a5bd8b988abb141d5df5"
+        },
+        {
+          "line": 44,
+          "expression": "assert.ok(Buffer.byteLength(JSON.stringify(state)) <= 3000)",
+          "sha256": "0d767a54d430cf5e510100c2709e9c5bce8331695714e467ff059b26c6393721"
+        },
+        {
+          "line": 45,
+          "expression": "assert.doesNotMatch(JSON.stringify(state), /IRRELEVANT_EXECUTOR_BACKGROUND|PRIVATE_TOOL_INPUT/)",
+          "sha256": "f9524d965eb9b923277aeeb47153d64a33ee636951bb77d8a260ce56494f203e"
+        }
+      ],
+      "case_ids": [
+        "baseline-ollama-evaluator-finite-2-1"
+      ],
+      "executed_assertions": 5
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#3",
+      "number": 3,
+      "name": "Nimble, Tev1, and compatible custom aliases use the same native protocol without chat requests",
+      "selected": true,
+      "line": 48,
+      "statement": "test('Nimble, Tev1, and compatible custom aliases use the same native protocol without chat requests', async () => {\n  for (const model of ['nimble', 'library/nimble:9b-q4_K_M', 'registry.ollama.ai/library/nimble:9b-q4_K_M',\n    'tev1:0.8b', 'tev1:0.8b-q8_0', 'tev1:4b-q4_K_M', 'team/local-decider:v1']) {\n    const calls = [];\n    const result = await evaluateOllama(buildOllamaState(body()), config({ ollamaModel: model }), { fetchImpl: async (url, options) => {\n      calls.push(new URL(url).pathname);\n      const payload = JSON.parse(options.body);\n      assert.equal(payload.model, model);\n      if (url.endsWith('/api/show')) return metadata();\n      assert.equal(new URL(url).pathname, '/v1/systemone');\n      assert.deepEqual(Object.keys(payload).sort(), ['keep_alive', 'model', 'questions', 'state']);\n      return Response.json(decisionPayload('sonnet', model));\n    } });\n    assert.equal(result.choice, 'sonnet');\n    assert.deepEqual(calls, ['/api/show', '/v1/systemone']);\n  }\n});",
+      "statement_sha256": "b8c23eb6b54d3b7cf669bc3c492fbbe0ecc4df17d3d2e25799b9cdc1cb58c146",
+      "call_sha256": "87017e3bad210fdb2562dd99238459b19d117e0184da7bfcf859829b979a1aa2",
+      "assertions": [
+        {
+          "line": 55,
+          "expression": "assert.equal(payload.model, model)",
+          "sha256": "6864a56df3926f5d6d01703a2358ae669099c70fa2abc62b7f4945f805f1e55b"
+        },
+        {
+          "line": 57,
+          "expression": "assert.equal(new URL(url).pathname, '/v1/systemone')",
+          "sha256": "b57aeb910ba8e6abab284102f939f7056087b2c5b92799fb4e16378b1c85850c"
+        },
+        {
+          "line": 58,
+          "expression": "assert.deepEqual(Object.keys(payload).sort(), ['keep_alive', 'model', 'questions', 'state'])",
+          "sha256": "154c818e253db604f049946e43deb79f13f9d6a8e35fb0fcd012267185f75b68"
+        },
+        {
+          "line": 61,
+          "expression": "assert.equal(result.choice, 'sonnet')",
+          "sha256": "3e30084e78c889ee92b2ee3a55521402f82fa310b03a103fd0c2cab57e19bc77"
+        },
+        {
+          "line": 62,
+          "expression": "assert.deepEqual(calls, ['/api/show', '/v1/systemone'])",
+          "sha256": "3e989a7a38bd28aeb9e27fb15132e64d2ebdf3d0bc0f6fd958cebc2fd0d13ed6"
+        }
+      ],
+      "case_ids": [
+        "baseline-ollama-evaluator-finite-3-1",
+        "baseline-ollama-evaluator-finite-3-2",
+        "baseline-ollama-evaluator-finite-3-3",
+        "baseline-ollama-evaluator-finite-3-4",
+        "baseline-ollama-evaluator-finite-3-5",
+        "baseline-ollama-evaluator-finite-3-6",
+        "baseline-ollama-evaluator-finite-3-7"
+      ],
+      "executed_assertions": 42
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#4",
+      "number": 4,
+      "name": "Ollama scores all three tiers natively with the frozen policy and no Jev confidence threshold",
+      "selected": false,
+      "line": 66,
+      "statement": "test('Ollama scores all three tiers natively with the frozen policy and no Jev confidence threshold', async () => {\n  for (const tier of ['haiku', 'sonnet', 'opus']) {\n    const calls = [];\n    const fetchImpl = async (url, options) => {\n      calls.push(url);\n      assert.equal(options.redirect, 'error');\n      assert.deepEqual(options.headers, { 'content-type': 'application/json' });\n      assert.ok(!options.body.includes('PRIVATE_'));\n      if (url.endsWith('/api/show')) return metadata();\n      assert.equal(url, 'http://127.0.0.1:11434/v1/systemone');\n      const payload = JSON.parse(options.body);\n      assert.deepEqual(Object.keys(payload).sort(), ['keep_alive', 'model', 'questions', 'state']);\n      assert.equal(payload.model, DEFAULT_OLLAMA_MODEL);\n      assert.equal(payload.keep_alive, '5m');\n      assert.equal(payload.state.current_task, 'Fix one typo');\n      assert.ok(Buffer.byteLength(JSON.stringify(payload.state)) <= 3000);\n      assert.deepEqual(payload.questions, OLLAMA_QUESTIONS);\n      return Response.json(decisionPayload(tier));\n    };\n    const router = new Router(config({ jevKey: 'PRIVATE_JEV_KEY', anthropicKey: 'PRIVATE_ANTHROPIC_KEY', minConfidence: 1 }), { fetchImpl });\n    const routed = await router.classify(body());\n    assert.equal(routed.tier, tier);\n    assert.equal(routed.source, 'ollama');\n    assert.equal(routed.confidence, undefined);\n    assert.equal(routed.probabilities, undefined);\n    assert.equal((await router.classify(body())).source, 'cache');\n    assert.deepEqual(calls, ['http://127.0.0.1:11434/api/show', 'http://127.0.0.1:11434/v1/systemone']);\n  }\n  const result = await evaluateOllama(buildOllamaState(body()), config(), {\n    fetchImpl: async url => url.endsWith('/show') ? metadata() : Response.json(decisionPayload()),\n  });\n  assert.deepEqual(result, { choice: 'haiku', metrics: { input_tokens: 1234, output_tokens: 1 } });\n});",
+      "statement_sha256": "7360ab6bbc754c1bebcd0eb78d525de711e96f7678d84e15eb113687dcde2dbe",
+      "call_sha256": "d474e00b3505c4e0cc5c75f14122f92822af2884ad98de9461b4f8540878b109",
+      "assertions": [
+        {
+          "line": 71,
+          "expression": "assert.equal(options.redirect, 'error')",
+          "sha256": "8867547a8dffc17a3aa008e64a715fe5a4f24738ba0b79b5257a046a95a1b00a"
+        },
+        {
+          "line": 72,
+          "expression": "assert.deepEqual(options.headers, { 'content-type': 'application/json' })",
+          "sha256": "1eda214956b9fe552cec743bd9bd668bdb23325753faadb6a8cd2f046da70586"
+        },
+        {
+          "line": 73,
+          "expression": "assert.ok(!options.body.includes('PRIVATE_'))",
+          "sha256": "15dc05c4e7101ca378205a1224c82b4611179a18368f858e3722b57cbf4c1989"
+        },
+        {
+          "line": 75,
+          "expression": "assert.equal(url, 'http://127.0.0.1:11434/v1/systemone')",
+          "sha256": "682143d0a9ee26ab79e2c310b5be16f00b49754c6d1d783551436f16995e5428"
+        },
+        {
+          "line": 77,
+          "expression": "assert.deepEqual(Object.keys(payload).sort(), ['keep_alive', 'model', 'questions', 'state'])",
+          "sha256": "154c818e253db604f049946e43deb79f13f9d6a8e35fb0fcd012267185f75b68"
+        },
+        {
+          "line": 78,
+          "expression": "assert.equal(payload.model, DEFAULT_OLLAMA_MODEL)",
+          "sha256": "62413d3c648abf8bffd2048ff2b47ceeee3ea0a6b41452794271c19e3070c429"
+        },
+        {
+          "line": 79,
+          "expression": "assert.equal(payload.keep_alive, '5m')",
+          "sha256": "6beb271098eb1d418b786e8f3a3402436b26c4bf809ab5347b409132330e52b0"
+        },
+        {
+          "line": 80,
+          "expression": "assert.equal(payload.state.current_task, 'Fix one typo')",
+          "sha256": "5a44038b4fa40557991b7dd1d6b7d1151cace211ae43e7b12fe9eb97a355cb41"
+        },
+        {
+          "line": 81,
+          "expression": "assert.ok(Buffer.byteLength(JSON.stringify(payload.state)) <= 3000)",
+          "sha256": "fe7863ce1d03e32c89e0cd7620d66ad911f242891088eca76738294e7696f4e7"
+        },
+        {
+          "line": 82,
+          "expression": "assert.deepEqual(payload.questions, OLLAMA_QUESTIONS)",
+          "sha256": "428f7af0d8f49ec45b83e677ebb3945b1bf50fb68af01a625c0d38341b00e491"
+        },
+        {
+          "line": 87,
+          "expression": "assert.equal(routed.tier, tier)",
+          "sha256": "2c6d3cf0f2ad30b4da824649dfe5d771f0cb330a14054f93c5696b34b23ca26b"
+        },
+        {
+          "line": 88,
+          "expression": "assert.equal(routed.source, 'ollama')",
+          "sha256": "f0c5931162021f57fd899999e7349007f8b351046915d0fe03807b93639fafcc"
+        },
+        {
+          "line": 89,
+          "expression": "assert.equal(routed.confidence, undefined)",
+          "sha256": "7fb796377bd680a2f304ed5d8bd2c178a48168cb6e759165df7377aa59585829"
+        },
+        {
+          "line": 90,
+          "expression": "assert.equal(routed.probabilities, undefined)",
+          "sha256": "992326bcf5cbd613fbd9532fbad5d43289d02b8c8603aadd1c97e1ceb1cec733"
+        },
+        {
+          "line": 91,
+          "expression": "assert.equal((await router.classify(body())).source, 'cache')",
+          "sha256": "91cf91371bcf0e4f9327260cfc2ceb6dd4bc37f1ff5bbcc548d76d13daafeecc"
+        },
+        {
+          "line": 92,
+          "expression": "assert.deepEqual(calls, ['http://127.0.0.1:11434/api/show', 'http://127.0.0.1:11434/v1/systemone'])",
+          "sha256": "9c34b5153f1e64c1e2a6c6a9ac6121ea9bb23e3f6fa267f1ebabfdbd67e32e91"
+        },
+        {
+          "line": 97,
+          "expression": "assert.deepEqual(result, { choice: 'haiku', metrics: { input_tokens: 1234, output_tokens: 1 } })",
+          "sha256": "0dbd45d4af274f2c07c87f9eb57960a00b0ed1d35668de85b08f0da9ec7d9b89"
+        }
+      ],
+      "case_ids": [],
+      "executed_assertions": 0
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#5",
+      "number": 5,
+      "name": "malformed native answers fall back safely without caching or consulting Jev",
+      "selected": false,
+      "line": 100,
+      "statement": "test('malformed native answers fall back safely without caching or consulting Jev', async () => {\n  const mutations = [\n    value => { value.model = 'other-model'; },\n    value => { value.answers.tier.type = 'score'; },\n    value => { value.answers.tier.choice = 'unknown'; },\n    value => { value.answers.tier.choice = 'opus'; },\n    value => { value.answers.tier.confidence = '0.8'; },\n    value => { value.answers.tier.confidence = 1.1; },\n    value => { delete value.answers.tier.probabilities.opus; },\n    value => { value.answers.tier.probabilities.opus = -0.1; },\n    value => { value.answers.tier.probabilities.opus = 0.2; },\n    value => { value.answers.extra = 'PRIVATE_RESPONSE'; },\n    value => { value.usage.input_tokens = -1; },\n    value => { delete value.usage; },\n  ];\n  for (const mutate of mutations) {\n    let classifications = 0;\n    const calls = [];\n    const router = new Router(config(), { fetchImpl: async url => {\n      calls.push(new URL(url).pathname);\n      if (url.endsWith('/show')) return metadata();\n      const value = decisionPayload();\n      if (++classifications === 1) mutate(value);\n      return Response.json(value);\n    } });\n    const request = { ...body(), model: config().models.opus };\n    const failed = await router.classify(request);\n    assert.equal(failed.source, 'fallback');\n    assert.equal(failed.classifier_error, 'invalid_response');\n    assert.equal(failed.tier, 'opus');\n    assert.ok(!JSON.stringify(failed).includes('PRIVATE_'));\n    assert.equal((await router.classify(request)).source, 'ollama');\n    assert.deepEqual(calls, ['/api/show', '/v1/systemone', '/api/show', '/v1/systemone']);\n  }\n});",
+      "statement_sha256": "bca520a08909f0a076719ef7db926e0d95bb4f99ce33639dd787d59bfb46a77d",
+      "call_sha256": "ee285b9a34fff5d298d9e778191380c37802b8fcdfab173ee325957246cccd8c",
+      "assertions": [
+        {
+          "line": 127,
+          "expression": "assert.equal(failed.source, 'fallback')",
+          "sha256": "169fdd66d988a8af3051da97998c5233b7595abdd4ad3ea4b643b450d9edc8d6"
+        },
+        {
+          "line": 128,
+          "expression": "assert.equal(failed.classifier_error, 'invalid_response')",
+          "sha256": "e37e611dd317487200fb244450984f26a2410a67b8f6af29ace6ebce6a49e0df"
+        },
+        {
+          "line": 129,
+          "expression": "assert.equal(failed.tier, 'opus')",
+          "sha256": "0b83819fc17b604b961172c289396958d8045b896f53afe15af0e7d6e4e07f2d"
+        },
+        {
+          "line": 130,
+          "expression": "assert.ok(!JSON.stringify(failed).includes('PRIVATE_'))",
+          "sha256": "8c190615fe9d0a4c908ed5adaffbb4b9df386251ede8c96decc5c7e9eed10a38"
+        },
+        {
+          "line": 131,
+          "expression": "assert.equal((await router.classify(request)).source, 'ollama')",
+          "sha256": "fd667c675f3513af36ed4c31c05f6841e97ecdf2457f902078267910417a9439"
+        },
+        {
+          "line": 132,
+          "expression": "assert.deepEqual(calls, ['/api/show', '/v1/systemone', '/api/show', '/v1/systemone'])",
+          "sha256": "15df415485d06086fab64a5454da0c27dd07c1121d3bf9a146964faa918eac9a"
+        }
+      ],
+      "case_ids": [],
+      "executed_assertions": 0
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#6",
+      "number": 6,
+      "name": "Ollama preserves the local metadata gate and gives safe version guidance only for its missing endpoint",
+      "selected": true,
+      "line": 136,
+      "statement": "test('Ollama preserves the local metadata gate and gives safe version guidance only for its missing endpoint', async () => {\n  const calls = [];\n  await assert.rejects(evaluateOllama(buildOllamaState(body()), config(), { fetchImpl: async url => {\n    calls.push(new URL(url).pathname);\n    return Response.json({ remote_host: 'PRIVATE_HOST', details: { parameter_size: '9B' } });\n  } }), /classifier_invalid_response/);\n  assert.deepEqual(calls, ['/api/show']);\n  for (const missing of ['/api/show', '/v1/systemone']) {\n    await assert.rejects(evaluateOllama(buildOllamaState(body()), config(), { fetchImpl: async url => {\n      if (new URL(url).pathname === missing) return new Response('PRIVATE_PROVIDER_ERROR', { status: 404 });\n      return metadata();\n    } }), error => {\n      assert.equal(error.classifierStatus, 404);\n      assert.equal(error.code, missing === '/v1/systemone' ? 'OLLAMA_VERSION' : undefined);\n      if (missing === '/v1/systemone') assert.match(error.message, /Ollama 0\\.35 or newer/);\n      assert.ok(!error.message.includes('PRIVATE_'));\n      return true;\n    });\n  }\n});",
+      "statement_sha256": "687add055e445a12639cd33214e9f87c2a4760b5f768c06b8ee31f74fcf8b320",
+      "call_sha256": "1fa378e474c6c02eac1cadd1c2e161a7a975066f907ffcb87a154261a43cb9ab",
+      "assertions": [
+        {
+          "line": 138,
+          "expression": "assert.rejects(evaluateOllama(buildOllamaState(body()), config(), { fetchImpl: async url => {\n    calls.push(new URL(url).pathname);\n    return Response.json({ remote_host: 'PRIVATE_HOST', details: { parameter_size: '9B' } });\n  } }), /classifier_invalid_response/)",
+          "sha256": "e46e44e40ba7c4121e16fb2fac9e987bfef1dd29b29c00e0d5df32c9f97786fc"
+        },
+        {
+          "line": 142,
+          "expression": "assert.deepEqual(calls, ['/api/show'])",
+          "sha256": "60003d0f837bf46eae5934a930e8acae297c5ea7208160c484fb77b69b03a809"
+        },
+        {
+          "line": 144,
+          "expression": "assert.rejects(evaluateOllama(buildOllamaState(body()), config(), { fetchImpl: async url => {\n      if (new URL(url).pathname === missing) return new Response('PRIVATE_PROVIDER_ERROR', { status: 404 });\n      return metadata();\n    } }), error => {\n      assert.equal(error.classifierStatus, 404);\n      assert.equal(error.code, missing === '/v1/systemone' ? 'OLLAMA_VERSION' : undefined);\n      if (missing === '/v1/systemone') assert.match(error.message, /Ollama 0\\.35 or newer/);\n      assert.ok(!error.message.includes('PRIVATE_'));\n      return true;\n    })",
+          "sha256": "a6c0534acf31db641d82b71a1d087e54df54bf590f6361a269d9e0f0b2e963d3"
+        },
+        {
+          "line": 148,
+          "expression": "assert.equal(error.classifierStatus, 404)",
+          "sha256": "b3910f3463a6b5554fdb24b1f48df1db31c4ab637a1e93d751e88f178add5c83"
+        },
+        {
+          "line": 149,
+          "expression": "assert.equal(error.code, missing === '/v1/systemone' ? 'OLLAMA_VERSION' : undefined)",
+          "sha256": "bad1e53f13874ab5b58d5557cfc7fd0fa9a447f1289be358ec2663e0eceddafa"
+        },
+        {
+          "line": 150,
+          "expression": "assert.match(error.message, /Ollama 0\\.35 or newer/)",
+          "sha256": "3e3b0dbdfdcdc3da9fcebd4a8f450f02d0833e66672cd4802622c9462d691a53"
+        },
+        {
+          "line": 151,
+          "expression": "assert.ok(!error.message.includes('PRIVATE_'))",
+          "sha256": "8b8f5ba6a28c2525bf5c9f73386c1e1c16ffa458a65089f8e4b0f669c371e1bd"
+        }
+      ],
+      "case_ids": [
+        "baseline-ollama-evaluator-finite-6-1",
+        "baseline-ollama-evaluator-finite-6-2",
+        "baseline-ollama-evaluator-finite-6-3"
+      ],
+      "executed_assertions": 11
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#7",
+      "number": 7,
+      "name": "Ollama shares one deadline across metadata and native response, cancels bodies, and bounds output",
+      "selected": false,
+      "line": 157,
+      "statement": "test('Ollama shares one deadline across metadata and native response, cancels bodies, and bounds output', async () => {\n  for (const mode of ['metadata', 'native', 'oversize']) {\n    let cancelled = false;\n    const signals = [];\n    const paths = [];\n    const router = new Router(config({ ollamaTimeoutMs: 40 }), { fetchImpl: async (url, options) => {\n      paths.push(new URL(url).pathname);\n      signals.push(options.signal);\n      if (url.endsWith('/show') && mode !== 'metadata') {\n        await new Promise(resolve => setTimeout(resolve, 10));\n        return metadata();\n      }\n      return new Response(new ReadableStream({ start(controller) {\n        if (mode === 'oversize') controller.enqueue(new Uint8Array(65537));\n      }, cancel() { cancelled = true; } }));\n    } });\n    const keepAlive = setTimeout(() => {}, 1000);\n    try {\n      const decision = await router.classify(body());\n      assert.equal(decision.source, 'fallback');\n      assert.equal(decision.classifier_error, mode === 'oversize' ? 'invalid_response' : 'timeout');\n      assert.equal(cancelled, true);\n      assert.deepEqual(paths, mode === 'metadata' ? ['/api/show'] : ['/api/show', '/v1/systemone']);\n      assert.ok(signals.every(signal => signal === signals[0]));\n    } finally { clearTimeout(keepAlive); }\n  }\n});",
+      "statement_sha256": "0e704e8c7e8ffeb08352cf95734ef67d87d6a45d2f35b6955ddd2d8f6d1ffcf3",
+      "call_sha256": "47d89406cb72b23b9f22b8577f8ac3bbeb601631a16ff802ef7729645b6d04b7",
+      "assertions": [
+        {
+          "line": 176,
+          "expression": "assert.equal(decision.source, 'fallback')",
+          "sha256": "3ce7af3dbd0598a5f285f280db41fecdfd2239253bdb13ab161b4f803bd3f594"
+        },
+        {
+          "line": 177,
+          "expression": "assert.equal(decision.classifier_error, mode === 'oversize' ? 'invalid_response' : 'timeout')",
+          "sha256": "5e15aaa973170635f15ec8dc839e77a7aee57283fbb4f13922562533352ac6c6"
+        },
+        {
+          "line": 178,
+          "expression": "assert.equal(cancelled, true)",
+          "sha256": "9d31057f08f6678980db9b13aafdf0e260b7d4325f227b62d44b8bd566f219e3"
+        },
+        {
+          "line": 179,
+          "expression": "assert.deepEqual(paths, mode === 'metadata' ? ['/api/show'] : ['/api/show', '/v1/systemone'])",
+          "sha256": "5b7b7e0de6a61d5a4e1e01b246261b31f59f54e8b77d34916108d9e4afbbb828"
+        },
+        {
+          "line": 180,
+          "expression": "assert.ok(signals.every(signal => signal === signals[0]))",
+          "sha256": "5922f5ff383d61fdbae9f5849f443fd5007003f2d92085241ed9c479d67b7fc6"
+        }
+      ],
+      "case_ids": [],
+      "executed_assertions": 0
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#8",
+      "number": 8,
+      "name": "a disabled deadline accepts delayed metadata, inference, and body reads with or without a caller signal",
+      "selected": false,
+      "line": 185,
+      "statement": "test('a disabled deadline accepts delayed metadata, inference, and body reads with or without a caller signal', { timeout: 2000 }, async () => {\n  for (const signal of [undefined, new AbortController().signal]) {\n    const fetchImpl = async (url, options) => {\n      await delay(15, undefined, { signal: options.signal });\n      if (url.endsWith('/show')) return metadata();\n      let timer;\n      return new Response(new ReadableStream({\n        start(controller) {\n          timer = setTimeout(() => {\n            controller.enqueue(new TextEncoder().encode(JSON.stringify(decisionPayload('opus'))));\n            controller.close();\n          }, 30);\n        },\n        cancel() { clearTimeout(timer); },\n      }));\n    };\n    const result = await evaluateOllama(buildOllamaState(body()), config({ ollamaTimeoutMs: 0 }), { signal, fetchImpl });\n    assert.equal(result.choice, 'opus');\n    // The same response still exceeds an explicitly configured positive budget.\n    await assert.rejects(evaluateOllama(buildOllamaState(body()), config({ ollamaTimeoutMs: 20 }), { signal, fetchImpl }),\n      error => error.name === 'AbortError' || error.name === 'TimeoutError');\n  }\n});",
+      "statement_sha256": "d78582b356bdb7827eee0029721bc89d9c5df5d3a9224a3cdf3c84890f433e2e",
+      "call_sha256": "83ed357183803a163eb9b9487ee078451207440ddb69b3f0c6f29131ab1fea32",
+      "assertions": [
+        {
+          "line": 202,
+          "expression": "assert.equal(result.choice, 'opus')",
+          "sha256": "d0fc3aa421b9bf9f420841c49bf08e1233553899a19115a5e9003fad642d9056"
+        },
+        {
+          "line": 204,
+          "expression": "assert.rejects(evaluateOllama(buildOllamaState(body()), config({ ollamaTimeoutMs: 20 }), { signal, fetchImpl }),\n      error => error.name === 'AbortError' || error.name === 'TimeoutError')",
+          "sha256": "0a1e4c0372f4013a42052361c3c0e8e4a86795cfee52e17b04e4006fcc9e4abe"
+        }
+      ],
+      "case_ids": [],
+      "executed_assertions": 0
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#9",
+      "number": 9,
+      "name": "caller cancellation with no deadline stops metadata and inference body reads without caching a fallback",
+      "selected": false,
+      "line": 209,
+      "statement": "test('caller cancellation with no deadline stops metadata and inference body reads without caching a fallback', { timeout: 2000 }, async () => {\n  for (const phase of ['/api/show', '/v1/systemone']) {\n    const controller = new AbortController();\n    const reason = new Error('Caller cancelled local evaluation');\n    let started;\n    const reading = new Promise(resolve => { started = resolve; });\n    let cancelled = false;\n    let attempt = 1;\n    const paths = [];\n    const router = new Router(config({ ollamaTimeoutMs: 0 }), { fetchImpl: async url => {\n      const path = new URL(url).pathname;\n      paths.push(path);\n      if (attempt === 1 && path === phase) {\n        return new Response(new ReadableStream({ pull() { started(); }, cancel() { cancelled = true; } }));\n      }\n      return path === '/api/show' ? metadata() : response('haiku');\n    } });\n    const pending = router.classify(body(), controller.signal);\n    const rejected = assert.rejects(pending, error => error === reason);\n    await reading;\n    await delay(0);\n    controller.abort(reason);\n    await rejected;\n    assert.equal(cancelled, true);\n    assert.deepEqual(paths, phase === '/api/show' ? ['/api/show'] : ['/api/show', '/v1/systemone']);\n    attempt++;\n    const retried = await router.classify(body());\n    assert.equal(retried.source, 'ollama');\n    assert.equal(retried.tier, 'haiku');\n  }\n});",
+      "statement_sha256": "9d0f3d0e5304b58bd231e4e5ec3fa3fa06ed4cdb7c351160ce5d3c90fcbcf0b7",
+      "call_sha256": "8698afc9305a7585c6977e3b6f7410e287c83c8121801bbb70f44fad0689ace5",
+      "assertions": [
+        {
+          "line": 227,
+          "expression": "assert.rejects(pending, error => error === reason)",
+          "sha256": "c0065bee46960438cc173948a907f21ad99186544e72b6304b030d11497a5d0d"
+        },
+        {
+          "line": 232,
+          "expression": "assert.equal(cancelled, true)",
+          "sha256": "9d31057f08f6678980db9b13aafdf0e260b7d4325f227b62d44b8bd566f219e3"
+        },
+        {
+          "line": 233,
+          "expression": "assert.deepEqual(paths, phase === '/api/show' ? ['/api/show'] : ['/api/show', '/v1/systemone'])",
+          "sha256": "cd59f03accaffaae1db1147fd8c0f727e9f29545ffa1f5379f3076b4738b1924"
+        },
+        {
+          "line": 236,
+          "expression": "assert.equal(retried.source, 'ollama')",
+          "sha256": "449b810d31f7af50a9b635966abd17858ef49cc9a0861b092da801e5d8e7a382"
+        },
+        {
+          "line": 237,
+          "expression": "assert.equal(retried.tier, 'haiku')",
+          "sha256": "c328ee50099d22e3639b486cf7723b04d4ed45b14ed66bfddcdbc14395f3e4af"
+        }
+      ],
+      "case_ids": [],
+      "executed_assertions": 0
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#10",
+      "number": 10,
+      "name": "an already cancelled request with no deadline never contacts Ollama",
+      "selected": false,
+      "line": 241,
+      "statement": "test('an already cancelled request with no deadline never contacts Ollama', async () => {\n  const controller = new AbortController();\n  const reason = new Error('Already cancelled');\n  controller.abort(reason);\n  await assert.rejects(evaluateOllama(buildOllamaState(body()), config({ ollamaTimeoutMs: 0 }), {\n    signal: controller.signal, fetchImpl: () => assert.fail('Cancelled evaluation must not send metadata or prompt requests'),\n  }), error => error === reason);\n});",
+      "statement_sha256": "66bb4db22578e32f7cd9f328c371647c75c525d2b3fe97010b51b3485001b41a",
+      "call_sha256": "587f4825678a9b162bcc62cad7f459866fbdd38775f8109459a870ebff960860",
+      "assertions": [
+        {
+          "line": 245,
+          "expression": "assert.rejects(evaluateOllama(buildOllamaState(body()), config({ ollamaTimeoutMs: 0 }), {\n    signal: controller.signal, fetchImpl: () => assert.fail('Cancelled evaluation must not send metadata or prompt requests'),\n  }), error => error === reason)",
+          "sha256": "45f61628bdb7f95118827f124b67ef2d898bf30687db4b282ac6f81bad03fd4b"
+        },
+        {
+          "line": 246,
+          "expression": "assert.fail('Cancelled evaluation must not send metadata or prompt requests')",
+          "sha256": "b8db4cecd81aad2f7a05fd0cafc4a2c5ad23abe686f0041db15ed4ed74f226ad"
+        }
+      ],
+      "case_ids": [],
+      "executed_assertions": 0
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#11",
+      "number": 11,
+      "name": "multibyte local context stays inside the byte budget and excludes private thinking and images",
+      "selected": true,
+      "line": 250,
+      "statement": "test('multibyte local context stays inside the byte budget and excludes private thinking and images', () => {\n  const request = body('你好🌍'.repeat(2000));\n  request.system = '背景'.repeat(5000);\n  request.messages.push({ role: 'assistant', content: [{ type: 'thinking', thinking: 'SECRET_THINKING' }, { type: 'image', source: { data: 'SECRET_BASE64' } }] });\n  const state = buildOllamaState(request);\n  const serialized = JSON.stringify(state);\n  assert.ok(Buffer.byteLength(serialized) <= 3000);\n  assert.ok(state.current_task.length > 0);\n  assert.ok(!serialized.includes('SECRET'));\n});",
+      "statement_sha256": "8210cdc37a8377317672a5d607efa791da1106bcb188cc4a18e17d4ff703f538",
+      "call_sha256": "d5059b98547c5967c8ae78aedbed8a1d4733404dca5037326a22b4f6dd34ee2c",
+      "assertions": [
+        {
+          "line": 256,
+          "expression": "assert.ok(Buffer.byteLength(serialized) <= 3000)",
+          "sha256": "41257f91be7b9145b6bd849929e2355642ebaacc0101a5e4af4ec007d6490dd7"
+        },
+        {
+          "line": 257,
+          "expression": "assert.ok(state.current_task.length > 0)",
+          "sha256": "5165834c55397004ea7aaccc16696cb9c814c2906a814373a5598525e519569b"
+        },
+        {
+          "line": 258,
+          "expression": "assert.ok(!serialized.includes('SECRET'))",
+          "sha256": "f02c8f2b276e5a736c1b9d03feebd02d6ab5e0104001d462f939daa6ec517da8"
+        }
+      ],
+      "case_ids": [
+        "baseline-ollama-evaluator-finite-11-1"
+      ],
+      "executed_assertions": 3
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#12",
+      "number": 12,
+      "name": "a cloud alias or unknown metadata is rejected before any prompt text is sent",
+      "selected": false,
+      "line": 261,
+      "statement": "test('a cloud alias or unknown metadata is rejected before any prompt text is sent', async () => {\n  for (const data of [{ remote_model: 'cloud-model', details: { parameter_size: '1B' } },\n    { remote_host: 'https://ollama.com', details: { parameter_size: '1B' } }, {}, null]) {\n    const calls = [];\n    const router = new Router(config(), { fetchImpl: async (url, options) => {\n      calls.push(url);\n      assert.ok(url.endsWith('/api/show'));\n      assert.ok(!options.body.includes('private-prompt-sentinel'));\n      return Response.json(data);\n    } });\n    const decision = await router.route(body('private-prompt-sentinel'));\n    assert.equal(decision.source, 'fallback');\n    assert.equal(decision.classifier_error, 'invalid_response');\n    assert.equal(decision.evaluator, 'ollama');\n    assert.equal(calls.length, 1);\n  }\n});",
+      "statement_sha256": "fe647902bd4225cb6adf892c5f9b0189a7c9f72237330fa1369ef37265ff904e",
+      "call_sha256": "e40941c840f952f738f814d20dc664dfcfc26fa9a2b135639450b19f7b8599cd",
+      "assertions": [
+        {
+          "line": 267,
+          "expression": "assert.ok(url.endsWith('/api/show'))",
+          "sha256": "5061bd38cab2b017b3b10be7fcbfebd0519292e9a50e449adb37c21d843d9982"
+        },
+        {
+          "line": 268,
+          "expression": "assert.ok(!options.body.includes('private-prompt-sentinel'))",
+          "sha256": "b6ffb27a44882bff0eb9b0f58fe55e7428df7a11ad06e1247e0c85c89f08cee0"
+        },
+        {
+          "line": 272,
+          "expression": "assert.equal(decision.source, 'fallback')",
+          "sha256": "3ce7af3dbd0598a5f285f280db41fecdfd2239253bdb13ab161b4f803bd3f594"
+        },
+        {
+          "line": 273,
+          "expression": "assert.equal(decision.classifier_error, 'invalid_response')",
+          "sha256": "6a3d07d5ac525c61c2c87f8e2081eb24de0e6f41983f83a5e6843df1eaf4bcc2"
+        },
+        {
+          "line": 274,
+          "expression": "assert.equal(decision.evaluator, 'ollama')",
+          "sha256": "eed6256a3fd98ff5dcff298e243223a4da4be28b0f47a409f9521c6721182b1b"
+        },
+        {
+          "line": 275,
+          "expression": "assert.equal(calls.length, 1)",
+          "sha256": "4c49b614c4f4a9cb8242518b9d27739b12bf86ce60d12754117d5dcfb89bdf2e"
+        }
+      ],
+      "case_ids": [],
+      "executed_assertions": 0
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#13",
+      "number": 13,
+      "name": "large local model metadata is accepted within its separate bound while oversized metadata is rejected",
+      "selected": false,
+      "line": 279,
+      "statement": "test('large local model metadata is accepted within its separate bound while oversized metadata is rejected', async () => {\n  for (const [size, expected] of [[80000, 'ollama'], [1024 * 1024 + 1, 'fallback']]) {\n    let decisions = 0;\n    const router = new Router(config(), { fetchImpl: async url => {\n      if (url.endsWith('/show')) return Response.json({ details: { parameter_size: '4B' }, tensors: 'x'.repeat(size) });\n      decisions++;\n      return response('haiku');\n    } });\n    const decision = await router.classify(body());\n    assert.equal(decision.source, expected);\n    assert.equal(decisions, expected === 'ollama' ? 1 : 0);\n  }\n});",
+      "statement_sha256": "9a9adcb6066ba7b3688bda064304c2b1f489ef8fe0b4c81a36b91c23e013425c",
+      "call_sha256": "7aec17f41ea3f4cc34343df6b8aa0402894d57ee571b33838035798d3ac97cf3",
+      "assertions": [
+        {
+          "line": 288,
+          "expression": "assert.equal(decision.source, expected)",
+          "sha256": "3d4356f5493387d0aa46a29b07c557a4ecf1e41d4bd15af9b389c0f38b26af3b"
+        },
+        {
+          "line": 289,
+          "expression": "assert.equal(decisions, expected === 'ollama' ? 1 : 0)",
+          "sha256": "968fca430521dcf5669d58f51e5ca19f55f06612079d809fc1e00ac18cfd5c78"
+        }
+      ],
+      "case_ids": [],
+      "executed_assertions": 0
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#14",
+      "number": 14,
+      "name": "Ollama failures with a disabled deadline never contact Jev, are not cached, and retain an existing Opus request",
+      "selected": false,
+      "line": 293,
+      "statement": "test('Ollama failures with a disabled deadline never contact Jev, are not cached, and retain an existing Opus request', async () => {\n  for (const failure of [() => { throw new Error('private upstream detail'); },\n    () => new Response('private provider error', { status: 503 }),\n    () => new Response('private invalid JSON'),\n    () => Response.json({ error: 'private response detail' })]) {\n    let attempts = 0;\n    const router = new Router(config({ ollamaTimeoutMs: 0 }), { fetchImpl: async url => {\n      assert.ok(url.startsWith(config().ollamaEndpoint));\n      if (url.endsWith('/show')) return metadata();\n      attempts++;\n      return attempts === 1 ? failure() : response('sonnet');\n    } });\n    const request = { ...body(), model: config().models.opus };\n    const first = await router.classify(request);\n    assert.equal(first.source, 'fallback');\n    assert.equal(first.tier, 'opus');\n    assert.equal(first.evaluator, 'ollama');\n    assert.ok(!JSON.stringify(first).includes('private'));\n    assert.equal((await router.classify(request)).source, 'ollama');\n  }\n});",
+      "statement_sha256": "e620bc906cdbf8848c0297be73e15a0995bd5e11dbc95c8b8cd1a878a4bc8f2e",
+      "call_sha256": "f4fadf2311bca6736835f524ca31cd5e5db8da043767b6c469f42382c49cb808",
+      "assertions": [
+        {
+          "line": 300,
+          "expression": "assert.ok(url.startsWith(config().ollamaEndpoint))",
+          "sha256": "960efa2787f068fcf1669b3cd7c3f108ffa0a1d3311adc51c1087a63f7536045"
+        },
+        {
+          "line": 307,
+          "expression": "assert.equal(first.source, 'fallback')",
+          "sha256": "a151b9281427d0dab0ceb3d34711630406dd0510647e36d949aa4c1f249169d4"
+        },
+        {
+          "line": 308,
+          "expression": "assert.equal(first.tier, 'opus')",
+          "sha256": "0dac014b8dd4e71e37fa9df97d5c09cbae6590524d0edeafa4c698457d2f58eb"
+        },
+        {
+          "line": 309,
+          "expression": "assert.equal(first.evaluator, 'ollama')",
+          "sha256": "6c76c470169172f6693b6b672b81772e0f4c5a7bbcea4e46aefc27cc00418e8e"
+        },
+        {
+          "line": 310,
+          "expression": "assert.ok(!JSON.stringify(first).includes('private'))",
+          "sha256": "7f8c4bc8ff49af0da0329cb49cfb764f7c58a49fc7928d77511a0ccb4618708e"
+        },
+        {
+          "line": 311,
+          "expression": "assert.equal((await router.classify(request)).source, 'ollama')",
+          "sha256": "fd667c675f3513af36ed4c31c05f6841e97ecdf2457f902078267910417a9439"
+        }
+      ],
+      "case_ids": [],
+      "executed_assertions": 0
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#15",
+      "number": 15,
+      "name": "caller cancellation propagates and local classifier keeps continuity and capability guards",
+      "selected": false,
+      "line": 315,
+      "statement": "test('caller cancellation propagates and local classifier keeps continuity and capability guards', async () => {\n  const controller = new AbortController();\n  controller.abort(new Error('cancelled'));\n  await assert.rejects(evaluateOllama(buildState(body()), config(), { signal: controller.signal, fetchImpl: async () => metadata() }), /cancelled/);\n  let tier = 'opus';\n  const router = new Router(config(), { fetchImpl: async url => url.endsWith('/show') ? metadata() : response(tier) });\n  assert.equal((await router.route(body('Investigate a difficult race'))).tier, 'opus');\n  tier = 'haiku';\n  const continuation = { ...body('Investigate a difficult race'), messages: [...body('Investigate a difficult race').messages,\n    { role: 'assistant', content: [{ type: 'tool_use', name: 'Read', id: 'a', input: {} }] },\n    { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'a', content: 'Evidence' }] }] };\n  const next = await router.route(continuation);\n  assert.equal(next.reason, 'tool_turn_pinned');\n  assert.equal(next.model, config().models.opus);\n  const guarded = await router.route({ ...body('Fix another typo'), thinking: { type: 'adaptive' } });\n  assert.equal(guarded.model, config().models.sonnet);\n  assert.equal(guarded.classified_tier, 'haiku');\n});",
+      "statement_sha256": "2b8b699d764c198fae0445fcd40e8ac9cfb7b7a7d85a86e05b662a1641dfed11",
+      "call_sha256": "4276b3f15527d495c9bb53abf0c112d9124854289924d4a7961d3a4373041e86",
+      "assertions": [
+        {
+          "line": 318,
+          "expression": "assert.rejects(evaluateOllama(buildState(body()), config(), { signal: controller.signal, fetchImpl: async () => metadata() }), /cancelled/)",
+          "sha256": "5b4b7ae3be29c24c133bde90e1cb051bc043cf89778e088eed2d23f0b5cd9187"
+        },
+        {
+          "line": 321,
+          "expression": "assert.equal((await router.route(body('Investigate a difficult race'))).tier, 'opus')",
+          "sha256": "b50981be27839742d407202de1a7e2fbfb44e8e447a6e84bbc89392118e404dd"
+        },
+        {
+          "line": 327,
+          "expression": "assert.equal(next.reason, 'tool_turn_pinned')",
+          "sha256": "0f4c64fa8a0ecd1d8b042163fb7ac2c92f3d7d7c2dec65cbda7dddcae3c992e9"
+        },
+        {
+          "line": 328,
+          "expression": "assert.equal(next.model, config().models.opus)",
+          "sha256": "d6fe43f1c7eef8e1166bc63c883adc8d028410c24365e8a7126878c288dc0fb9"
+        },
+        {
+          "line": 330,
+          "expression": "assert.equal(guarded.model, config().models.sonnet)",
+          "sha256": "4ccf8884fcb2a8d14631c7729f69dba6f0943b8ca2f7097e9e7d382429ddb257"
+        },
+        {
+          "line": 331,
+          "expression": "assert.equal(guarded.classified_tier, 'haiku')",
+          "sha256": "94bdb1c3fdffcb858c41fe19a6cf1a6a41e2f0124bb77103a78ca71fca80c215"
+        }
+      ],
+      "case_ids": [],
+      "executed_assertions": 0
+    }
+  ],
+  "limits": {
+    "cases": 16,
+    "requests_per_call": 2,
+    "state_calls": 24,
+    "field_bytes": 65536,
+    "response_bytes": 1048576,
+    "aggregate_bytes": 4194304,
+    "snapshot_nodes": 4096,
+    "snapshot_depth": 32
+  },
+  "excluded_fields": [
+    "Error.stack only; no state/request/result/status/code/message/timing fields are masked"
+  ],
+  "boundaries": [
+    "Only static imports are removed. All five selected original callbacks, loops, data constructors, helper functions and assertions execute unchanged in the same realm.",
+    "Response observer forwards finite built-in constructors and returns the identical Response; no clone/tee/read or stream ownership changes.",
+    "All 24 state-function invocations preserve input/output JSON bytes, including twelve invocations across three background-equivalence loops. Ten evaluator operations consume their actual captured state objects.",
+    "Complete raw and parsed HTTP request bodies, headers, status and finite response text are retained. Error predicates receive the same original error; all diagnostic fields and own-property presence except stack are recorded.",
+    "Own undefined and injected function tags remain explicit. Native typed errors/Option omission are reviewed API adaptations, not JS Error/AbortSignal identity claims.",
+    "No classifier cache/routing, deadline/cancellation, response stream, provider/model/download, platform or performance qualification is performed."
+  ]
+}

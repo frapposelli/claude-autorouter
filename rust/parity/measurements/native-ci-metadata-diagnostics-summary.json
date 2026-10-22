@@ -1,0 +1,215 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-10-22",
+  "status": "local_diagnostics_checked_hosted_failure_cause_unresolved",
+  "source_base_commit": "9a1d131b10f17390a059bab3a80dae9fceabd5d1",
+  "change_scope": "Safe contributor build diagnostics only; no runtime, routing, TLS, default, version, dependencies, SDK pins, retries, timeouts, byte limits or admission changes.",
+  "implementation": [
+    {
+      "path": "rust/xtask/src/native_provenance_macos.rs",
+      "bytes": 41807,
+      "sha256": "2e50034932c0c4e74491a8ec3abc008b839a54a7d882aa468c020b5534a0af43"
+    },
+    {
+      "path": "rust/distribution/ci/fetch-musl-apks.mjs",
+      "bytes": 5722,
+      "sha256": "01ab3e9ff6e5cebdcd6a81910fad021fc153356a16fbd8dd9d8ec0a855606cc6"
+    },
+    {
+      "path": "test/musl-sdk.test.mjs",
+      "bytes": 17339,
+      "sha256": "620cc89945a08749aa5045243acc05bf13fe2e42b30c1909baf7edaa39116c0b"
+    }
+  ],
+  "observed_hosted_failures": {
+    "pr_head": "9a1d131b10f17390a059bab3a80dae9fceabd5d1",
+    "last_observed_utc": "2026-10-22T08:47:03.639678+00:00",
+    "checks": {
+      "success": 5,
+      "failure": 3,
+      "in_progress": 6
+    },
+    "review": {
+      "path": "artifacts/rust-rewrite/ci-9a1d131-readonly-audit-20261022-1/final-metadata-review.json",
+      "bytes": 115984,
+      "sha256": "6bbd5296a154582c68366dbc6c52f549b29d47a40faea5082f17603791aeecd7"
+    },
+    "mac": {
+      "run": 39748878615,
+      "jobs": [
+        119724112668,
+        119724112693
+      ],
+      "failing_step": "Build release and verify experimental features are absent",
+      "known": "Metadata subprocess exited 1; original diagnostic omitted tool/arguments.",
+      "unknown": "Which metadata command failed and why; diagnostic patch does not claim to repair it.",
+      "bounded_log_owner": {
+        "path": "artifacts/rust-rewrite/ci-9a1d131-failed-job-logs-20261022-1/mac.json",
+        "bytes": 1295,
+        "sha256": "ef06d5c659b353b9c8cc16fc6578adde98e190bd401c5e740ec4a23776fb0041"
+      }
+    },
+    "musl_arm": {
+      "run": 39748878623,
+      "job": 119724113158,
+      "known": "Locked APK download returned a non-200 status; original code discarded that status.",
+      "unknown": "Historical HTTP status and cause; later bounded HEAD observed 200, not evidence of historical success or permanent removal.",
+      "bounded_log_owner": {
+        "path": "artifacts/rust-rewrite/ci-9a1d131-failed-job-logs-20261022-1/musl-arm.json",
+        "bytes": 1295,
+        "sha256": "900de63dbb59d15411d12b6b5d1d2c88e8058dea92a8eed02210f70b1592d745"
+      },
+      "availability_review": {
+        "path": "artifacts/rust-rewrite/musl-arm-sdk-availability-20261022-1/cause-and-recommendation-v1.json",
+        "bytes": 3626,
+        "sha256": "4a96af1fc2f243bb267e4b921c5ed4fde1debf9da71053db1ea621f46bd9e182"
+      }
+    },
+    "actual_checkout_confirmed_in_metadata_snapshot": false,
+    "log_observed_checkout": {
+      "commit": "2c086053b212be52cb64978e282be41613404a7b",
+      "jobs": [
+        119724112668,
+        119724113158
+      ],
+      "scope": "Retained ARM Mac and ARM musl job checkout logs identify this merge. Intel checkout and complete native-source equivalence have not been verified; API PR head remains separate."
+    }
+  },
+  "diagnostic_policy": [
+    "Mac failures expose only allowlisted public tool basenames and fixed metadata arguments, with sanitized status/deadline details. Paths, environment, stdout and stderr remain absent.",
+    "Non-200 APK failures expose numeric HTTP status and locked public filename; no body, retry, mirror or pin change."
+  ],
+  "local_validation": {
+    "source": {
+      "path": "artifacts/rust-rewrite/ci-metadata-diagnostics-validation-20261022-1/source-candidate-v1.json",
+      "bytes": 125408,
+      "sha256": "5337c0b5128ddf8a75d01e55fa60c89ab6b073c4e7dc07dcebea3cd0f1adbf3a"
+    },
+    "raw_inputs": 739,
+    "frozen_reference_files": 111,
+    "workspace": {
+      "passed": 1730,
+      "failed": 0,
+      "ignored": 11,
+      "groups": 66
+    },
+    "auditor_tests": 86,
+    "sdk_tests": 50,
+    "node_tests": 673,
+    "node_syntax_files": 99,
+    "package_files": 58,
+    "package_mock_scenarios": 17,
+    "optimized_same_artifact_bundle_tests": 3,
+    "lint_format": "passed",
+    "successful_terminal_owners": {
+      "auditor-tests": {
+        "path": "artifacts/rust-rewrite/ci-metadata-diagnostics-validation-20261022-1/auditor-tests.json",
+        "bytes": 1793,
+        "sha256": "8fc1113587a7fb4a6a8eac34c93dd88b978ae88cccbfc8ef3c23c6178326b40e"
+      },
+      "audit-clippy": {
+        "path": "artifacts/rust-rewrite/ci-metadata-diagnostics-validation-20261022-1/audit-clippy.json",
+        "bytes": 1812,
+        "sha256": "04622062f7676769f4aa17fcdbe7e6c9eaed684cde02cd0b5bd07de0454329e0"
+      },
+      "fmt": {
+        "path": "artifacts/rust-rewrite/ci-metadata-diagnostics-validation-20261022-1/fmt.json",
+        "bytes": 1666,
+        "sha256": "312a188eb9c2aa20807e1d6799064e9629dfd6e689ee67aaaef438960f46d92d"
+      },
+      "sdk-tests": {
+        "path": "artifacts/rust-rewrite/ci-metadata-diagnostics-validation-20261022-1/sdk-tests.json",
+        "bytes": 1679,
+        "sha256": "d5a207ec32933bd59556187f3144b7e56457a0002c5f338b04daf267d2dd43f3"
+      },
+      "workspace-clippy": {
+        "path": "artifacts/rust-rewrite/ci-metadata-diagnostics-validation-20261022-1/workspace-clippy.json",
+        "bytes": 1775,
+        "sha256": "a1b09cf2b493d80e1c9ef65f2b303a9c6e267ec6deedf21e9a2783123603e77a"
+      },
+      "workspace": {
+        "path": "artifacts/rust-rewrite/ci-metadata-diagnostics-validation-20261022-1/workspace.json",
+        "bytes": 1738,
+        "sha256": "656fb36dff0b2a5facb232c1475d34f3e69fd1e3fe48a9f13d7dfd9bd30b3a2f"
+      },
+      "node-check": {
+        "path": "artifacts/rust-rewrite/ci-metadata-diagnostics-validation-20261022-1/node-check.json",
+        "bytes": 1657,
+        "sha256": "1d7d4fe446b592480568680c742831b42e4fa1f5a02b9b704a63bc72fa64597f"
+      },
+      "node-tests": {
+        "path": "artifacts/rust-rewrite/ci-metadata-diagnostics-validation-20261022-1/node-tests.json",
+        "bytes": 1648,
+        "sha256": "aeefb4c61d71d5808c93b18fa0dc7a9a9f7cb09b1fc64bc57a0feb1f1b19eaf7"
+      },
+      "node-package": {
+        "path": "artifacts/rust-rewrite/ci-metadata-diagnostics-validation-20261022-1/node-package.json",
+        "bytes": 1666,
+        "sha256": "b3b3d2c7b0e251a3535d7eca7ca86588a68d3cca0cdbc6eff698e8e7d0f00acf"
+      },
+      "bootstrap-build": {
+        "path": "artifacts/rust-rewrite/ci-metadata-diagnostics-validation-20261022-1/bootstrap-build.json",
+        "bytes": 1827,
+        "sha256": "769d4b0e56cdcca878e8319288ad68ca82a72b5c052f1053322c7762f554fba9"
+      },
+      "required-bundles": {
+        "path": "artifacts/rust-rewrite/ci-metadata-diagnostics-validation-20261022-1/required-bundles.json",
+        "bytes": 1867,
+        "sha256": "a8b3804a4bc7a564377085777e7e21f0f595d32427ba2a1c35e69eeb98b1a060"
+      },
+      "bootstrap-proof": {
+        "path": "artifacts/rust-rewrite/ci-metadata-diagnostics-validation-20261022-1/bootstrap-proof.json",
+        "bytes": 1996,
+        "sha256": "08e113ce0a9dade9545642e1fe68b142658c74f921b38e5eeb2769e2069b2a60"
+      },
+      "vendor": {
+        "path": "artifacts/rust-rewrite/ci-metadata-diagnostics-validation-20261022-1/vendor.json",
+        "bytes": 1826,
+        "sha256": "2c8c67714a811337664cff07ee9f5f9d71cd31ab64be4b1d9ece0d85aa0c346f"
+      },
+      "help": {
+        "path": "artifacts/rust-rewrite/ci-metadata-diagnostics-validation-20261022-1/help.json",
+        "bytes": 1850,
+        "sha256": "c3802c2ac28df9ceaebbcc8071c32accf190e258c654e6b565a67d1b812b128f"
+      }
+    },
+    "bootstrap": {
+      "path": "artifacts/rust-rewrite/ci-metadata-diagnostics-validation-20261022-1/bootstrap-proof.stdout",
+      "bytes": 965,
+      "sha256": "e3a1b1a73a4d278df5ec5ee21ec42e1ff15c5d0f29864a091469bbad0fbc1a2f"
+    },
+    "retained_auditor_identity": {
+      "path": "artifacts/rust-rewrite/ci-metadata-diagnostics-validation-20261022-1/retained/identity.json",
+      "bytes": 1682,
+      "sha256": "46e166f922a1c8af27a21dd45bce168ca2de5b34f3613110517b91bd3e008a30"
+    },
+    "conditions": "Pinned Rust 1.99.0, Node 22.14.0; reused existing offline cache; two jobs, debug info/incremental disabled; normal-use 16 GiB Mac. Synthetic fixtures and owned loopback. No cold compilation, hosted Mac or full platform qualification claim.",
+    "independent_reviews": [
+      {
+        "path": "artifacts/rust-rewrite/ci-metadata-diagnostics-validation-20261022-1/independent-diagnostic-correction-review-v1.json",
+        "bytes": 11503,
+        "sha256": "f1b3d54ccb030a6ebf6602eaba7050630413865603838de68d5ade2930785f70"
+      },
+      {
+        "path": "artifacts/rust-rewrite/ci-metadata-diagnostics-validation-20261022-1/independent-nine-phase-review-v1.json",
+        "bytes": 12741,
+        "sha256": "4a709bf891c70c41cb5c2e7dca01f9d370bc9a7f64a5abcaab883c776c0939d9"
+      },
+      {
+        "path": "artifacts/rust-rewrite/ci-metadata-diagnostics-validation-20261022-1/independent-all-phase-review-v1.json",
+        "bytes": 9351,
+        "sha256": "f88c9daf4ca7f8514717061745ab234aabcf0c8cde9e019d51ca2d0552fbb86d"
+      }
+    ]
+  },
+  "retained_previous_results": [
+    "native-macos-provenance-producer-summary.json",
+    "native-gnu-original-provenance-artifacts-summary.json"
+  ],
+  "remaining": [
+    "Fresh hosted execution to identify and repair actual Mac metadata failure.",
+    "Fresh ARM musl execution with numeric HTTP status if download fails.",
+    "Other target provenance, production release integration, transport/TLS/platform gates and full rewrite cutover."
+  ],
+  "release_approved": false
+}

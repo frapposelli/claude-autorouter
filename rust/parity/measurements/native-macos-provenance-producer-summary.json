@@ -1,0 +1,223 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-10-22",
+  "status": "macos_provenance_profiles_implemented_local_controls_pass_hosted_uploads_pending",
+  "source_base_commit": "a43e5daa0702b6bc448a1b14d73069a0390dd5fa",
+  "change_scope": "Contributor auditor, shared Mach-O artifact admission, hosted Mac CI ordering and source documentation only. Runtime/routing/TLS behavior, dependency graph, lockfile, version, package caps and shipping default are unchanged.",
+  "implementation": {
+    "rust/xtask/src/native_provenance.rs": {
+      "path": "rust/xtask/src/native_provenance.rs",
+      "bytes": 44372,
+      "sha256": "5910ed9ca4f5b872def220c55e6f9c946ad1b6e39073f0f85c17937405c1cf1b"
+    },
+    "rust/xtask/src/native_provenance_macos.rs": {
+      "path": "rust/xtask/src/native_provenance_macos.rs",
+      "bytes": 36722,
+      "sha256": "d003a61a4a931112730d28a25f4387f04a2d10a7b455b20afa5a205521260e46"
+    },
+    "rust/xtask/src/package_binary.rs": {
+      "path": "rust/xtask/src/package_binary.rs",
+      "bytes": 53368,
+      "sha256": "6c1057d293176dbcee56dc65030f1385f1ed0236a198b6b1f935343ecdcb00d5"
+    }
+  },
+  "workflow": {
+    "path": ".github/workflows/ci.yml",
+    "bytes": 20573,
+    "sha256": "bcd21ce043e97d2e1747a297284405f111d5ad8535d4f9c58f7d72b6b5920760"
+  },
+  "gnu_workflow_unchanged": {
+    "path": ".github/workflows/rust-portability.yml",
+    "bytes": 25812,
+    "sha256": "3ed0c7e060851fb33c1b617f530c99c75519983249fe8fc76d11e6dbb17e06ba"
+  },
+  "new_profiles": [
+    "aarch64-apple-darwin",
+    "x86_64-apple-darwin"
+  ],
+  "contract": [
+    "Separate hosted-Mac profile, exact original public ci.yml/rust job/runner/host and clean checkout; GNU keeps its standalone toolchain, pinned builder and required builder-report admission.",
+    "Shared begin/finish feature audit, cold release tree, fresh:false compiler-artifact requirement and inode-aware create-only output/cleanup. Mac begin omits builder report; SDK witness is bound through inputs_sha256 and builder_report_sha256 is null.",
+    "Observe Rustup invocation shims and actual installed rustc/Cargo/sysroot/driver, selected Apple SDK/settings and compiler/linker/archiver identities before/after. Preserve clang++ invocation name separately from canonical executable bytes.",
+    "Selected public environment is bounded and rejects unknown effective build overrides. Cargo home/ancestor configs, explicit CPU/SDK/deployment flags and tools are witnessed. Missing toolchains are refused before rustup resolution.",
+    "Separate 512 MiB supplier-tool bound uses fixed 64 KiB streaming reads, preserving all product/report/archive bounds. Compiler/SDK witnesses are not a complete shared-library/header closure or reproducibility proof.",
+    "Mach-O parser bounds every command by sizeofcmds and its own structure, validates version/tool-table fields, refuses ambiguous or foreign platform declarations, LC_RPATH and malformed/non-system dependency names. Generic zero-command synthetic fixtures keep minimum:null; Mac producer requires 11.0.0. ELF implementation and original ELF tests remain unchanged."
+  ],
+  "ci_ordering": {
+    "release_step_before_workspace_consumers": true,
+    "cold_cache_not_deleted": true,
+    "setup_failures_propagate": true,
+    "cxx_alias_preserved": true,
+    "synthetic_shell_cases": 27,
+    "synthetic_shell_report": {
+      "path": "artifacts/rust-rewrite/macos-provenance-validation-20261022-2/workflow-controls-output/report.json",
+      "bytes": 11574,
+      "sha256": "a44c0013dfdaca293b8f040b2382c4aa5c13fb71fa3767dbec5fef343a16d930"
+    },
+    "actual_sdk_or_compiler_in_shell_controls": false,
+    "limits": "Fixed fake normalization/git/Cargo/auditor/xcrun commands verify orchestration and inherited declared values only. No real SDK discovery, toolchain build or hosted runner qualification is implied."
+  },
+  "local_validation": {
+    "source": {
+      "path": "artifacts/rust-rewrite/macos-provenance-validation-20261022-2/source-candidate-v1.json",
+      "bytes": 125313,
+      "sha256": "c5d6262c7eae7c0b2528ef46f9cf67ad94756a9e36206865444526c3a76728d2"
+    },
+    "raw_inputs": 739,
+    "frozen_reference_files": 111,
+    "workspace": {
+      "groups": 66,
+      "passed": 1728,
+      "failed": 0,
+      "ignored": 11
+    },
+    "all_previous_named_status_multiplicities_preserved": true,
+    "new_passing_occurrences": {
+      "mac_provenance": 9,
+      "macho_parser_in_auditor": 10,
+      "macho_parser_in_xtask": 10
+    },
+    "independent_auditor_tests": 84,
+    "provenance_tests_in_auditor": 30,
+    "strict_auditor_workspace_clippy": "passed",
+    "format": "passed",
+    "node_syntax_files": 99,
+    "node_tests": 672,
+    "shipping_javascript_archive_files": 58,
+    "shipping_javascript_mock_lifecycle_scenarios": 17,
+    "optimized_same_artifact_bundle_tests": 3,
+    "successful_terminal_owners": {
+      "auditor-tests": {
+        "path": "artifacts/rust-rewrite/macos-provenance-validation-20261022-2/auditor-tests.json",
+        "bytes": 1698,
+        "sha256": "23518f3371b165cae1a5e62e2f08c28a8cb3d523031574bc5d72173cc164b74e"
+      },
+      "audit-clippy": {
+        "path": "artifacts/rust-rewrite/macos-provenance-validation-20261022-2/audit-clippy.json",
+        "bytes": 1717,
+        "sha256": "1ac02eadc5e31063b2f78bd6018ae7d3de26117ebeb58243441de5e50c6f35f6"
+      },
+      "fmt": {
+        "path": "artifacts/rust-rewrite/macos-provenance-validation-20261022-2/fmt.json",
+        "bytes": 1571,
+        "sha256": "ad7a5f6aa545c8f05db90c3b6b8c7944ef7e6a53d73efcbd5a462ee086b1818d"
+      },
+      "workflow-controls": {
+        "path": "artifacts/rust-rewrite/macos-provenance-validation-20261022-2/workflow-controls.json",
+        "bytes": 1714,
+        "sha256": "31c37ff5b7a1b96a1f964e4acf4d4623a2fd363fd0946008824b80548b4ba6d3"
+      },
+      "workspace-clippy": {
+        "path": "artifacts/rust-rewrite/macos-provenance-validation-20261022-2/workspace-clippy.json",
+        "bytes": 1680,
+        "sha256": "4727bf28fe3c555ac9a0737076e50a4fac3aed44f6756a93b5b5d89256eea033"
+      },
+      "workspace": {
+        "path": "artifacts/rust-rewrite/macos-provenance-validation-20261022-2/workspace.json",
+        "bytes": 1643,
+        "sha256": "dc60672d268b78d723363140d7dfa1bcfef2ecacb766db7ecdf522cc23d0978d"
+      },
+      "node-check": {
+        "path": "artifacts/rust-rewrite/macos-provenance-validation-20261022-2/node-check.json",
+        "bytes": 1563,
+        "sha256": "8daa1188fdafe2cd73317dbb206e5755b20467356e692a93d200ad3dcb8988bd"
+      },
+      "node-tests": {
+        "path": "artifacts/rust-rewrite/macos-provenance-validation-20261022-2/node-tests.json",
+        "bytes": 1553,
+        "sha256": "13a2e53ee3e87b8e449032a7ff363135082193c660f6eb97dc95c9da837d2454"
+      },
+      "node-package": {
+        "path": "artifacts/rust-rewrite/macos-provenance-validation-20261022-2/node-package.json",
+        "bytes": 1571,
+        "sha256": "ae69666b9e97043cb3f447bf8c1dde21eadbd1b1ecb9e99a891587e10c933ee1"
+      },
+      "bootstrap-build": {
+        "path": "artifacts/rust-rewrite/macos-provenance-validation-20261022-2/bootstrap-build.json",
+        "bytes": 1732,
+        "sha256": "a2bc686d4be91731da84d771c2689c0c99edded3023d145844ab6b901ffdd9c9"
+      },
+      "bootstrap-proof": {
+        "path": "artifacts/rust-rewrite/macos-provenance-validation-20261022-2/bootstrap-proof.json",
+        "bytes": 1896,
+        "sha256": "50d5eac3f385ca145a307274b64c0d13714b8f4348fd512cf8e4dd0e146fb5fc"
+      },
+      "vendor": {
+        "path": "artifacts/rust-rewrite/macos-provenance-validation-20261022-2/vendor.json",
+        "bytes": 1733,
+        "sha256": "c39fe99e45e200d598fe941247e3f4848c9fa11b505b2e39363121ecd236738a"
+      },
+      "provenance-help": {
+        "path": "artifacts/rust-rewrite/macos-provenance-validation-20261022-2/provenance-help.json",
+        "bytes": 1767,
+        "sha256": "1864135f3f70d742ae39a676fc92c3028051605ba5ff55f4975c899cea8ca565"
+      },
+      "required-bundles": {
+        "path": "artifacts/rust-rewrite/macos-provenance-validation-20261022-2/required-bundles.json",
+        "bytes": 1772,
+        "sha256": "cf5010fef11d8fb99d573908a2373abf461f674420934f600defca38ad606a72"
+      }
+    },
+    "bootstrap_identity": {
+      "path": "artifacts/rust-rewrite/macos-provenance-validation-20261022-2/bootstrap-build-identity.json",
+      "bytes": 1683,
+      "sha256": "49adc8078bfc84cb0a58c06e31da78f05e374f6a10c428d2273b900301d2961f"
+    },
+    "bootstrap_proof": {
+      "path": "artifacts/rust-rewrite/macos-provenance-validation-20261022-2/bootstrap-proof.stdout",
+      "bytes": 965,
+      "sha256": "9b3d0bdd5165835f21a2b84344e2f904d763d74131950c6a046d4ec068c8aa65"
+    },
+    "bootstrap_fresh_false_executable": true,
+    "runtime_dependencies_excluded_from_bootstrap": true,
+    "conditions": "Normal-use 16 GiB M4/macOS 26.6.2 with existing pinned Rust 1.99.0 / Node 22.14.0, offline dependency cache, two build jobs and debug info/incremental disabled. Synthetic credentials and owned loopback fixtures; no paid providers/evaluators, model download or user-config edits. No real positive Mac collector/SDK execution locally.",
+    "owner_scope": "Finite wall/output owners recheck source/AUX/reference bytes. No universal descendant/crash/outer-cancellation or external-network-instrumentation guarantee.",
+    "ordinary_runtime_artifact_scope": "No new ordinary product build or source-to-binary provenance is claimed here. The code changes are contributor tooling; all product/platform/performance/final-artifact gates remain separate."
+  },
+  "independent_reviews": {
+    "static": {
+      "path": "artifacts/rust-rewrite/macos-provenance-validation-20261022-2/independent-static-review-v1.json",
+      "bytes": 9076,
+      "sha256": "5d81f915b55b95b65bdf920ba3209e166b834899044b8c2071c5e4012be75cb7"
+    },
+    "named_outcomes_and_six_terminal_owners": {
+      "path": "artifacts/rust-rewrite/macos-provenance-validation-20261022-2/independent-named-outcome-review-v1.json",
+      "bytes": 16589,
+      "sha256": "3565b8043638660a3c5eb7d22a8bb93d46b055464dda5f63706b9895c91fe836"
+    },
+    "all_fourteen_terminal_phases": {
+      "path": "artifacts/rust-rewrite/macos-provenance-validation-20261022-2/independent-all-phase-review-v1.json",
+      "bytes": 12978,
+      "sha256": "ff8725a6028ecfccf263a087c96c9ce9de80f68153dcdf88a7b46bd9ac55c872"
+    }
+  },
+  "retained_corrections": {
+    "first_lint_owner": {
+      "path": "artifacts/rust-rewrite/macos-provenance-validation-20261022-1/audit-clippy.json",
+      "bytes": 1720,
+      "sha256": "d227b0c4c95dfa3d8274d1fe032381ef31394b79704c1d232958f141a6c02ba5"
+    },
+    "lint_fix": "Two allocation-free Path comparisons and integer is_multiple_of idiom. Also clarify a stale parser comment and change the unchanged cold-tree guard error label from GNU to Native. Original failed lint owner remains.",
+    "shell_review": "Before execution, separate assignment/export to propagate setup failure and preserve xcrun clang++ argv[0] alias. GNU workflow was not edited.",
+    "bootstrap_declaration_setup": {
+      "path": "artifacts/rust-rewrite/macos-provenance-validation-20261022-2/bootstrap-extension-setup-correction-v1.json",
+      "bytes": 777,
+      "sha256": "74458054c9a43475d005c1f5fbe7cc07fa8bfb8816635781866545cf80dd6c54"
+    }
+  },
+  "previous_actual_gnu_evidence": {
+    "summary": "native-gnu-original-provenance-artifacts-summary.json",
+    "pr_head": "7d6392f7b89a5da3790fcb0ed39d613e2e7cde86",
+    "actual_checkout": "1a5f22986f749b8571cf0cb3e6034022a5014d87",
+    "successful_ci_contexts": 14,
+    "scope": "Actual original GNU artifacts and green CI are from this preceding source. They do not supply actual hosted Mac execution or fresh CI for this patch."
+  },
+  "remaining": [
+    "Hosted Mac CI producer execution and original uploaded run/attempt/source/report/binary association.",
+    "musl and 32-bit producer profiles, broader declared target coverage and production release workflow integration.",
+    "Supported minimum environments/CPU/TLS, paired live task quality, representative hardware, licenses, lifecycle and five source-qualification/final-archive approval envelopes. Larger-Mac validation remains explicitly deferred.",
+    "Full-matrix shipping archive size remains a separate feasibility gate under unchanged caps. No platform was silently dropped.",
+    "Shipping default remains JavaScript 0.5.2 with ordinary native Rustls; private OpenSSL acceptance retains its original scope."
+  ],
+  "release_approved": false
+}

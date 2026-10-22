@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "kind": "original_release_verification_16_post_metadata_deadline_supplement",
+  "status": "one_definition_covered",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "worktree_base_commit": "d6b172aceb4ed227651579f593b90a0dadcde552",
+  "historical_partial_mapping": {
+    "path": "rust/parity/assertion-mappings/release-contracts.json",
+    "bytes": 92442,
+    "sha256": "1c83aaf515642b92af392752d253a486a9bc44f94d8f163fe7c95c75e3a82238"
+  },
+  "original_definition": {
+    "id": "test/release-verification.test.mjs#16",
+    "name": "elapsed metadata checks cannot start a tarball download after the verification deadline",
+    "file": "test/release-verification.test.mjs",
+    "baseline_file_sha256": "09f37e04109d688cc4b43d805935ed862b16323b664949f20045811d67ad7d38",
+    "definition_sha256": "423e54f8394be53875fd9f9561b265230f5f9516ec15d0e393d71e4a4dfa0d9c",
+    "static_assertions": 4,
+    "positive_assertions": 3,
+    "negative_guards": 1
+  },
+  "source_identity": {
+    "frozen_original_matches_baseline_git_blob": true,
+    "test_sha256": "09f37e04109d688cc4b43d805935ed862b16323b664949f20045811d67ad7d38",
+    "relevant_sources_unchanged_during_execution": true,
+    "native_source_snapshots": [
+      {
+        "path": "artifacts/rust-rewrite/release16-promotion-20261015-1/snapshot/rust/xtask/src/release_contracts.rs",
+        "bytes": 31501,
+        "sha256": "03670d54b02bc0b04c2f9baed3d53c5a291ecfbed13bef87bd9bdf896aa59a00"
+      },
+      {
+        "path": "artifacts/rust-rewrite/release16-promotion-20261015-1/snapshot/rust/xtask/src/release_verify.rs",
+        "bytes": 37698,
+        "sha256": "3323d199e74b66e3ac8aa118f845910764eee1d19db16d7850eb6bff0c0dc2d1"
+      }
+    ]
+  },
+  "per_assertion": [
+    {
+      "id": "test/release-verification.test.mjs#16/assert-1",
+      "source_line": 270,
+      "source_expression": "assert.fail('Deadline prevents installation')",
+      "source_expression_sha256": "e01ece6fc9d067a98dc78b4a4e3c174408fd9935ae11148720188bff47c381e5",
+      "status": "represented",
+      "native_test": "release_contracts::metadata_clock_jump_after_replies_preserves_exact_deadline_result",
+      "native_line": 863,
+      "native_predicate": "Installer call count remains zero after completed metadata replies and budget jump; tarball call count is also zero.",
+      "source_execution": "negative guard not triggered in the one passing frozen source run"
+    },
+    {
+      "id": "test/release-verification.test.mjs#16/assert-2",
+      "source_line": 271,
+      "source_expression": "assert.equal(requests, 2, 'Only the concurrent metadata requests should have started')",
+      "source_expression_sha256": "e2d7ec597c239aa2e3c71071234391cd8113c48830815158a7af6a112b3feea0",
+      "status": "represented",
+      "native_test": "release_contracts::metadata_clock_jump_after_replies_preserves_exact_deadline_result",
+      "native_line": 861,
+      "native_predicate": "Exactly two synthetic metadata transport requests were made; no tarball request was made.",
+      "source_execution": "positive assertion executed in the one passing frozen source run"
+    },
+    {
+      "id": "test/release-verification.test.mjs#16/assert-3",
+      "source_line": 272,
+      "source_expression": "assert.equal(result.state, 'validating_unavailable')",
+      "source_expression_sha256": "b39885808301e01183bb7f5d7dc00b665beb513e502144673bd21886afe520a3",
+      "status": "represented",
+      "native_test": "release_contracts::metadata_clock_jump_after_replies_preserves_exact_deadline_result",
+      "native_line": 864,
+      "native_predicate": "Result state is exactly validating_unavailable.",
+      "source_execution": "positive assertion executed in the one passing frozen source run"
+    },
+    {
+      "id": "test/release-verification.test.mjs#16/assert-4",
+      "source_line": 273,
+      "source_expression": "assert.equal(result.reason, 'verification_deadline')",
+      "source_expression_sha256": "5a7a614d30f23ad91deef806019a0ea508183da5ad9feb53c23f57d8b34a8683",
+      "status": "represented",
+      "native_test": "release_contracts::metadata_clock_jump_after_replies_preserves_exact_deadline_result",
+      "native_line": 865,
+      "native_predicate": "Result reason is exactly verification_deadline after the independent elapsed clock reaches 1500 ms.",
+      "source_execution": "positive assertion executed in the one passing frozen source run"
+    }
+  ],
+  "actual_executions": {
+    "manifest": {
+      "path": "artifacts/rust-rewrite/release16-promotion-20261015-1/manifest.json",
+      "bytes": 6779,
+      "sha256": "7f27200b607c679eb27e10736b419164267e79abef76e2fccf07583b81869373"
+    },
+    "original": {
+      "command": "node --test --test-name-pattern='elapsed metadata checks cannot start a tarball download after the verification deadline' artifacts/rust-rewrite/reference/test/release-verification.test.mjs",
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "stdout": {
+        "path": "artifacts/rust-rewrite/release16-promotion-20261015-1/source.stdout",
+        "bytes": 363,
+        "sha256": "f67a1f942b1a56d71ffbdc4e3e748c4fff1fe4876d7b7c054fffcbd4e2dd7db0"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/release16-promotion-20261015-1/source.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "native": {
+      "command": "../artifacts/dev-environment/run cargo test --offline --locked --package xtask --bin xtask metadata_clock_jump_after_replies_preserves_exact_deadline_result",
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "stdout": {
+        "path": "artifacts/rust-rewrite/release16-promotion-20261015-1/native.stdout",
+        "bytes": 211,
+        "sha256": "0135e5e8e28ea3ddb30fe1719a92c4fba088dd4cfbd2300b8b0e1a7252c18929"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/release16-promotion-20261015-1/native.stderr",
+        "bytes": 615,
+        "sha256": "1b22d75e865d9005fe37866975abd982103a3055e2ce308f772814d57ce3d919"
+      },
+      "binary": {
+        "path": "rust/target/debug/deps/xtask-46cd69001c2b7b78",
+        "bytes": 54215648,
+        "sha256": "f3f0ba41616d2b5b8d24b22a29a37a1c62a2bb50eebd1cfab640baea8a4d8073"
+      }
+    }
+  },
+  "native_API_review": {
+    "preserved": "The two metadata requests can finish under their unchanged Tokio transport timers while a separately injected elapsed clock crosses the overall verification budget. The next pre-download check returns verification_deadline; no tarball or installer starts. A no-jump control reaches verified with one tarball and one install.",
+    "migration": "The frozen JavaScript test injects now() while AbortSignal timers run independently. Rust injects Duration only in the focused test; the production verify wrapper still supplies Instant::elapsed. No JavaScript Error, callback or timer object identity is claimed.",
+    "scope_limit": "This is a synthetic registry/installer and paused Tokio test. No real registry, npm install, publication, numerical timing, full platform or release approval follows."
+  },
+  "coverage_change": {
+    "only_definition": "test/release-verification.test.mjs#16",
+    "before": {
+      "covered": 528,
+      "partial": 60
+    },
+    "after": {
+      "covered": 529,
+      "partial": 59
+    },
+    "other_partial_definitions_unchanged": true
+  }
+}

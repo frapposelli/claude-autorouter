@@ -1,0 +1,364 @@
+{
+  "schema_version": 1,
+  "kind": "native_test_only_handshake_egress_and_ci_barrier_checkpoint",
+  "status": "LOCAL_VALIDATED_PARTIAL_PROTOCOL_PARITY_BROADER_TLS_QUALIFICATION_OPEN",
+  "recorded_at_utc": "2026-10-20T08:17:05.673936+00:00",
+  "scope": "Private cfg(test) OpenSSL egress timing and deterministic preheader fixture only. Production Rustls and JavaScript shipping default remain. No auth, permission, model policy, retry or provider-byte change.",
+  "base_commit": "34bb5d691e0a88718255d7700344eee6fcb79d8c",
+  "source_snapshot": {
+    "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/source-candidate-v4.json",
+    "bytes": 120535,
+    "sha256": "87a469463cd5b3060c041a2b14814833fdd99781b6039364ff4d9d78a47d76d6"
+  },
+  "raw_source_inputs": 716,
+  "frozen_inputs": 111,
+  "runtime_test_executable": {
+    "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/retained/autorouter-runtime-libtest-v4",
+    "bytes": 32806288,
+    "sha256": "4f4cb15dc8c1ab3895157b41c83b655a872fd478cd9fdeb39d0ea0ecb1e44f68"
+  },
+  "implementation": [
+    "Hold at most65536 payload bytes in the same owned handshake stream. Drain earlier flights before a nonempty read, retain final egress through existing chain/hostname/DH/offered-session checks, flush before ticket acceptance and connection publication.",
+    "No sleep, retry, earlier hostname matcher or weakened certificate check. Seven controls cover partial/Pending/zero/error/overflow/drop/zero-capacity read and transparent accepted IO. Rejected/cancelled stream owns and drops pending bytes plus its socket.",
+    "HandshakeIo transport shutdown coverage does not establish arbitrary SSL_shutdown behavior. Rejected SslStream Drop does not flush; the private connector never exposes that unaccepted stream.",
+    "The CI fixture now forces exhausted cooperative budget in a spawned task and confirms one poll makes no service progress. At most64 real driver polls/yields reach explicit rejection/error flags before releasing the action. All old two-capability assertions remain; the new schedule does not prove each historical failure had that exact scheduler cause."
+  ],
+  "comparisons": {
+    "sessions-legacy-v4": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/sessions-legacy-v4.json",
+        "bytes": 1219,
+        "sha256": "eeb76524f70b7a64f2070486144380217b36f64018b125c5f07835921eb7ea7a"
+      },
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-b2-sessions-982b78d56ca7b9a3195f810d2b513802045c55ea7a940243f6e718c95d56e04c.json",
+        "bytes": 69535,
+        "sha256": "982b78d56ca7b9a3195f810d2b513802045c55ea7a940243f6e718c95d56e04c"
+      },
+      "reported": {
+        "report": "/Users/fabio.rapposelli/AI/autorouter/artifacts/rust-rewrite/evidence/openssl-b2-sessions-982b78d56ca7b9a3195f810d2b513802045c55ea7a940243f6e718c95d56e04c.json",
+        "passed": false,
+        "matched": 14,
+        "count": 18
+      }
+    },
+    "sessions-buffered-v4": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/sessions-buffered-v4.json",
+        "bytes": 1222,
+        "sha256": "49a59df4ad8abcc02e7f644122855ea71e4c54894c7b6aff935ae845e0c0a1cf"
+      },
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-buffered-sessions-26e8a1be3d4c4149bb6eee634447e976ca1071d084278cd14cf632522bd2d55a.json",
+        "bytes": 127497,
+        "sha256": "26e8a1be3d4c4149bb6eee634447e976ca1071d084278cd14cf632522bd2d55a"
+      },
+      "reported": {
+        "report": "/Users/fabio.rapposelli/AI/autorouter/artifacts/rust-rewrite/evidence/openssl-buffered-sessions-26e8a1be3d4c4149bb6eee634447e976ca1071d084278cd14cf632522bd2d55a.json",
+        "passed": false,
+        "matched": 16,
+        "count": 18
+      }
+    },
+    "idle-close-legacy-v4": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/idle-close-legacy-v4.json",
+        "bytes": 1221,
+        "sha256": "942c425f3cc489b47fa5c4085d636132a6b3df508652f1b17698fa1c04d889b9"
+      },
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-idle-close-34c7b569f9cac08d6caa90c7bd9e0189475f7f90cf1ab67b47c12ecf766cbc94.json",
+        "bytes": 56483,
+        "sha256": "34c7b569f9cac08d6caa90c7bd9e0189475f7f90cf1ab67b47c12ecf766cbc94"
+      },
+      "reported": {
+        "report": "/Users/fabio.rapposelli/AI/autorouter/artifacts/rust-rewrite/evidence/openssl-idle-close-34c7b569f9cac08d6caa90c7bd9e0189475f7f90cf1ab67b47c12ecf766cbc94.json",
+        "passed": false,
+        "matched": 4,
+        "count": 10
+      }
+    },
+    "idle-close-buffered-v4": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/idle-close-buffered-v4.json",
+        "bytes": 1223,
+        "sha256": "986c822411be1bf0eb9b1d813c0f8d754d2d255ae8b300f6c794ef70a1d3b13c"
+      },
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-buffered-idle-close-fe598fb15024fd379111edfd06b181af073f7d2c2cf61ac1888478c1f11025ac.json",
+        "bytes": 74800,
+        "sha256": "fe598fb15024fd379111edfd06b181af073f7d2c2cf61ac1888478c1f11025ac"
+      },
+      "reported": {
+        "report": "/Users/fabio.rapposelli/AI/autorouter/artifacts/rust-rewrite/evidence/openssl-buffered-idle-close-fe598fb15024fd379111edfd06b181af073f7d2c2cf61ac1888478c1f11025ac.json",
+        "passed": false,
+        "matched": 4,
+        "count": 10
+      }
+    },
+    "byte-handoff-v4": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/byte-handoff-v4.json",
+        "bytes": 1168,
+        "sha256": "1054536eb95f4cabf01cb92f01e2de59f81815390b943d9382c23e1b46ba676b"
+      },
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/buffered-response-differential-f1c70dbd3f15784d0a4a73f06aab2785c52274cd4a01eb73e121c28d080afaec.json",
+        "bytes": 5476243,
+        "sha256": "f1c70dbd3f15784d0a4a73f06aab2785c52274cd4a01eb73e121c28d080afaec"
+      },
+      "reported": {
+        "report": "artifacts/rust-rewrite/evidence/buffered-response-differential-f1c70dbd3f15784d0a4a73f06aab2785c52274cd4a01eb73e121c28d080afaec.json",
+        "passed": false,
+        "completed": true,
+        "passed_cases": 160,
+        "selected_cases": 162,
+        "declared_cases": 162,
+        "pending_families": 7
+      }
+    },
+    "byte-handoff-v4-rerun": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/byte-handoff-v4-rerun.json",
+        "bytes": 1220,
+        "sha256": "da97081c1789105a8021bfe7569d1361dd69391a85092fc330c94ff6d4d5db95"
+      },
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/buffered-response-differential-654538834b7e3d240307cdb882d05dd9862c364bd407c8e94dda0ee796e7858d.json",
+        "bytes": 5477497,
+        "sha256": "654538834b7e3d240307cdb882d05dd9862c364bd407c8e94dda0ee796e7858d"
+      },
+      "reported": {
+        "report": "artifacts/rust-rewrite/evidence/buffered-response-differential-654538834b7e3d240307cdb882d05dd9862c364bd407c8e94dda0ee796e7858d.json",
+        "passed": true,
+        "completed": true,
+        "passed_cases": 162,
+        "selected_cases": 162,
+        "declared_cases": 162,
+        "pending_families": 7
+      }
+    }
+  },
+  "interpretation": [
+    "Buffered sessions15/18\u219216/18; legacy13/18\u219214/18. Only TLS1.3 rejected-host handshake observation changes from H; all other complete Node/native observed session objects remain. Two buffered abrupt-after-complete comparisons still fail.",
+    "Both idle inventories remain4/10; all six unbarriered failures per constructor remain. Application contracts, exits, cleanup and shutdown-attempt conservation are checked separately from strict observation equality.",
+    "First final-v4 byte run160/162 fails on two reference-owner outer deadlines. One declared full unchanged rerun passes162/162 across324 executions, with identical source/binary/deadlines/bounds/oracles. Both trials and all leaf evidence remain."
+  ],
+  "validation": {
+    "checks": {
+      "workspace-ci-v4": {
+        "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/workspace-ci-v4.json",
+        "bytes": 1146,
+        "sha256": "1cd2827fb2c1092c1a61d5f2e8cccc23e1ef2f8e3e358b66c7baae16c7b9de4a"
+      },
+      "clippy-v4": {
+        "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/clippy-v4.json",
+        "bytes": 1171,
+        "sha256": "3fce9a02c94a82d613583c6e1b754bc5d59c2926ee572172f548e9308cc9064d"
+      },
+      "fmt-v4": {
+        "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/fmt-v4.json",
+        "bytes": 934,
+        "sha256": "b0e40569d1d2a00ebe36490b040364119dcc8017b4512c493f9dad3459e3dc3f"
+      },
+      "node-check-v4": {
+        "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/node-check-v4.json",
+        "bytes": 916,
+        "sha256": "863a75841eba265518f75822e397998e319c90bb18e3fafdc29eb863b34c4558"
+      },
+      "node-tests-022-v4": {
+        "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/node-tests-022-v4.json",
+        "bytes": 975,
+        "sha256": "edacff27be3125e6b0029c7a96d15d58a41005a82985ac830c33ddb134e35971"
+      },
+      "node-package-022-v4": {
+        "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/node-package-022-v4.json",
+        "bytes": 993,
+        "sha256": "48b47ed66e2239920a50397cc163e35a2498a76320dd62d0fa313b28d63e731d"
+      },
+      "cli-roundtrip-i-v4": {
+        "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/cli-roundtrip-i-v4.json",
+        "bytes": 1035,
+        "sha256": "92305df852f422abef9b3c6d594a37cf26b59e48d949c011986b53a48937013a"
+      },
+      "ci-regression-v4": {
+        "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/ci-regression-v4.json",
+        "bytes": 1197,
+        "sha256": "5a045842c130dbea2ee725f590264909adfa3080ca63a85b9254444145e5e75e"
+      },
+      "handshake-units-v4": {
+        "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/handshake-units-v4.json",
+        "bytes": 1055,
+        "sha256": "a1486ef5a3b9c018c2408f3d139120d8d1c8fc60976f966a257f712d003da640"
+      }
+    },
+    "rust": {
+      "passed": 1583,
+      "failed": 0,
+      "ignored": 11,
+      "groups": 66,
+      "filtered": 0,
+      "H_named_status_occurrences_preserved": 1587,
+      "added_passes": 7
+    },
+    "node": {
+      "passed": 645,
+      "failed": 0,
+      "child_umask": "022"
+    },
+    "package": {
+      "safe_archive_files": 58,
+      "synthetic_lifecycle_scenarios": 17,
+      "child_umask": "022"
+    },
+    "supplier_warning": "Unchanged hyper-util unused timer warning remains; no vendor change.",
+    "workspace_review": {
+      "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/independent-current-v4-workspace-review.json",
+      "bytes": 8351,
+      "sha256": "292761eb2fb396bfdf4687f7db6200422f07aed9f8f5d0e28a437150546e51b3"
+    },
+    "failed_replay_review": {
+      "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/independent-current-v4-failed-replay-batch-review.json",
+      "bytes": 20137,
+      "sha256": "1300a30a2d0224841f8b19233c12f0bce22af200f5326b15ec737ef4f2f0d374"
+    },
+    "single_rerun_review": {
+      "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/independent-current-v4-single-rerun-handoff-review.json",
+      "bytes": 6695,
+      "sha256": "69f85773c1edb399490a5e5210a129a3ae01f5a376a0c2a44a8f07845ba6464a"
+    },
+    "composition_review": {
+      "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/independent-final-v4-correctness-replay-composition.json",
+      "bytes": 8998,
+      "sha256": "8ea0b87d64c5370786dfd9df3cd41c99c6671a4d6e8384f77bc9f469a9ef3d36"
+    },
+    "node_archive_review": {
+      "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/independent-final-v4-and-cli-review.json",
+      "bytes": 9893,
+      "sha256": "f1903b3d1446b52e3a8e1b761e23ef48df15eed328dc22a4ef14ce0699210513"
+    },
+    "composition_peer_binding": {
+      "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/independent-final-v4-composition-peer-binding.json",
+      "bytes": 1663,
+      "sha256": "86b8fc377069f706bdd0d4885927c945178ad3a09dafa73e91a6eda202e27dac"
+    }
+  },
+  "source_archive": {
+    "result": {
+      "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/cli-roundtrip-current716-v4/cli-roundtrip-result.json",
+      "bytes": 1227,
+      "sha256": "c0e0a8d089a4d8fc724097b9e8712955cfba25791c4042edfda434d98674dedb"
+    },
+    "native_source": {
+      "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/cli-roundtrip-current716-v4/transfer/native-source.cpio.gz",
+      "bytes": 3102523,
+      "sha256": "463fadf5135434d37e928abb7f8f901c28bb92fd8ff7849bafcac337f0360f99"
+    },
+    "raw_inputs": 716,
+    "native_members": 718,
+    "restored_reference_files": 113,
+    "stored_delta_files": 109,
+    "native_expanded_bytes": 33231360,
+    "source_limit_bytes": 33554432,
+    "source_expansion_headroom_bytes": 323072,
+    "joint_expanded_bytes": 34566656,
+    "joint_logical_bytes": 34589579,
+    "joint_limit_bytes": 41943040,
+    "default_and_explicit_schema7_equal": true,
+    "explicit_schema6_refuses_before_destination": true,
+    "helper_scope": "Historical data-only helper f1848153; same reconstructed106 codec inputs. Original97 selector unavailable. No fresh helper, restored-code execution or shipping artifact qualification."
+  },
+  "wide_tls_policy_limit": {
+    "scope": "Sourcev2/runtime386cbd historical trials, separate from finalv4 artifact. No third policy run and no current full-policy pass.",
+    "runs": [
+      {
+        "owner": {
+          "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/tls-options.json",
+          "bytes": 1252,
+          "sha256": "4329c594d954158935316a6bb6d075fdf9f42f2acf7337cefbbbbf6ad701e68d"
+        },
+        "report": {
+          "path": "artifacts/rust-rewrite/evidence/openssl-spike-ba8c7ab91ada6405b93655b50fdf34aa137a77a07e30dc1ab30fe7a8e29afab9.json",
+          "bytes": 105594,
+          "sha256": "ba8c7ab91ada6405b93655b50fdf34aa137a77a07e30dc1ab30fe7a8e29afab9"
+        },
+        "matched": 222,
+        "count": 223,
+        "passed": false
+      },
+      {
+        "owner": {
+          "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/tls-options-v2.json",
+          "bytes": 1232,
+          "sha256": "38255a46cb59695bc632574f55c11ca61ae8c27d3b5dbbbd9dae5f8b49946864"
+        },
+        "report": {
+          "path": "artifacts/rust-rewrite/evidence/openssl-spike-c430f7d9b6645e76a28b2990fa90adc57ee63b157196f06a2acc0706faf4290d.json",
+          "bytes": 105937,
+          "sha256": "c430f7d9b6645e76a28b2990fa90adc57ee63b157196f06a2acc0706faf4290d"
+        },
+        "matched": 220,
+        "count": 223,
+        "passed": false
+      }
+    ],
+    "review": {
+      "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/independent-tls223-two-run-review.json",
+      "bytes": 20300,
+      "sha256": "4f0fb6341087f56c469d84bbf1d4aa5c7adb9f0af1f7bd11ed4ea44a85b4d39c"
+    },
+    "interpretation": "Three Node startup SIGKILL observations across both runs and one Node request error prevent clean full-policy comparison. All223 Rust normalized outcomes are identical between trials. Do not combine runs into a pass or attribute host/sleep/SIGKILL cause. Historical223 raw reports/snapshots named by old summaries are unavailable locally; no historical row-level equivalence claim. All three B3 configuration modes remain unsupported/unqualified."
+  },
+  "parent_ci": {
+    "commit": "34bb5d691e0a88718255d7700344eee6fcb79d8c",
+    "checks_success": 10,
+    "checks_failure": 4,
+    "metadata_review": {
+      "path": "artifacts/rust-rewrite/ci-34bb5d6-readonly-audit-20261019-1/sample2-review.json",
+      "bytes": 26695,
+      "sha256": "f87108d1974ada4b236de90da4dc291863a1686f0067578ff4f89ccf8bcfbad3"
+    },
+    "failure_log_review": {
+      "path": "artifacts/rust-rewrite/ci-34bb5d6-readonly-audit-20261019-1/sample2-four-failure-log-review.json",
+      "bytes": 9051,
+      "sha256": "c451513966e60a183dad91ae50ed69772c91af89d82f25b464c4a3fcbff2aa1c"
+    },
+    "repair_review": {
+      "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/independent-ci-preheader-repair-static-review.json",
+      "bytes": 4505,
+      "sha256": "f14fa396ce7eedd5eae4c7773177f8f9168661149021acd1ffbf4772972d78ac"
+    },
+    "scope": "All four failures identify the same new preheader fixture assertion. Local repair does not turn historical failed jobs into passes; fresh current-head CI required."
+  },
+  "memory_policy": "User-approved0.8 peak ratio unchanged. Retained0.7719731197084172 interval0.7487595349181664..0.7906352171882298 meets recorded normal-use16GiB M4 large-catalog workload only. Original0.7 reports and earlier failures preserved; all other thresholds unchanged. Future0.8 measurements need distinct protocol plus fresh paired Node baseline.",
+  "remaining": [
+    "Two buffered abrupt-after-complete comparisons and six unbarriered idle failures per constructor.",
+    "Seven complete protocol/resource families, B3 config loading, wider workloads/metrics/hardware, evaluator/task evidence and supported/minimum platforms/WSL.",
+    "Shipping source/build/license/exact artifact/provenance, stabilization and separately authorized cutover. All588 definitions/53limits/27keys individually accepted; thirteen broader areas remain open."
+  ],
+  "approval_boundary": "No version, release, npm publication, merge or default backend cutover.",
+  "cleanup": {
+    "removed_allocated_bytes": 2069483520,
+    "protected_files_verified_before_and_after": 2121,
+    "terminal_owner_records_verified": 28,
+    "receipt": {
+      "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/cleanup-own-cache-receipt.json",
+      "bytes": 1263,
+      "sha256": "2bbc06690d586a7347f1ac4b0e1e04f5f1327eab3c757548bd7040949a78258a"
+    },
+    "scope": "Only newly generated exact correctness cache after every owned compiler/test/probe consumer completed. Retained binaries, source, frozen data, reports, archives, helper/toolchains/models and older caches preserved. Inventory allocation is not cumulative/net filesystem savings; no independent global-process absence claim."
+  },
+  "source_review": {
+    "official_node_source_and_initial_prototype": {
+      "path": "artifacts/rust-rewrite/qualified-abort-hostname-timing-source-review-20261019-1/independent-source-and-prototype-review.json",
+      "bytes": 16272,
+      "sha256": "2da0b0406bce4fba94f2fe7b4c226ded9c1768c58fec07030fb6bcc72d1ae485"
+    },
+    "bounded_handshake_v2_review": {
+      "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/independent-handshake-egress-v2-source-review.json",
+      "bytes": 8341,
+      "sha256": "8dbf2cf526bc3f1487652976c31673314f0b74f83dcc3d226dcd18027bee9c21"
+    },
+    "scope": "Primary Node22.14 JS/C++ source supports acceptance-before-final-egress ordering. V2 handshake four-file bytes remain identical in v4; whole-v4 executable proof is separate."
+  }
+}

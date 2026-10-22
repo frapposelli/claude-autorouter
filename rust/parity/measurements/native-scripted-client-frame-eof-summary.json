@@ -1,0 +1,409 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-10-21",
+  "status": "private_scripted_frame_eof_boundary_checked_original_parity_failures_retained",
+  "source_snapshot": {
+    "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-3/source-candidate-v1.json",
+    "bytes": 124562,
+    "sha256": "9f97676ac7b174b4a77e01142b288a9e6ebdfd13ab4f8d69d06e3db0c346b1b8"
+  },
+  "source_inputs": 736,
+  "frozen_reference_inputs": 111,
+  "change_scope": "Test-only scripted HTTP/1 IO module and cfg(test) module hook; no production, vendor, policy or original comparison-driver changes.",
+  "observations": [
+    "With complete body and EOF ready together, actual Incoming is Pending inside the scripted EOF read; after the same driver poll it yields exact final data x with ended=true and then End.",
+    "Positive controls observe final data before EOF is enabled, or observe already-published unconsumed final data using the same EOF sampler.",
+    "Both short-content-length controls retain exact partial data and a real Incoming error after EOF or ConnectionReset. Driver completion is distinct from successful body completion.",
+    "Dropping Incoming while body and EOF are unavailable terminates the driver with zero terminal reads. Every normal finish verifies actual IO Drop, closed dispatch receiver and sole fixture ownership."
+  ],
+  "mock_intervention": "The IO boundary samples and consumes a ready Incoming frame, retaining its exact synthetic bytes. Response head readiness is a scripted peer stimulus released only after actual accepted request-header completion. This is not passive real-TLS instrumentation.",
+  "fixed_bounds": {
+    "cases": 6,
+    "setup_driver_polls": 2,
+    "driver_polls_per_case_max": 4,
+    "body_polls_max": 5,
+    "positive_capacity_read_polls_max": 24,
+    "terminal_reads_max": 1,
+    "aggregate_wake_calls_max": 128,
+    "rows_max": 64,
+    "whole_json_line_bytes_max": 16384,
+    "request_write_bytes_max": 16384,
+    "retained_frames_max": 2,
+    "retained_frame_bytes_max": 1
+  },
+  "actual_final_source_mock_records": [
+    {
+      "short_content_length": false,
+      "terminal_kind": "eof",
+      "rows": 11,
+      "encoded_line_bytes": 1178,
+      "wake_calls": 2,
+      "driver_phases": [
+        "write_request_before_response_head",
+        "head_only",
+        "cancel_before_body"
+      ],
+      "body_samples": [],
+      "actual_io_drop_count": 1
+    },
+    {
+      "short_content_length": false,
+      "terminal_kind": "eof",
+      "rows": 18,
+      "encoded_line_bytes": 1788,
+      "wake_calls": 4,
+      "driver_phases": [
+        "write_request_before_response_head",
+        "head_only",
+        "complete_body_and_eof"
+      ],
+      "body_samples": [
+        {
+          "stage": "inside_actual_terminal_read",
+          "outcome": "Pending"
+        },
+        {
+          "stage": "after_driver_final_frame",
+          "outcome": {
+            "Data": {
+              "bytes": 1,
+              "ended": true
+            }
+          }
+        },
+        {
+          "stage": "after_driver_body_end",
+          "outcome": "End"
+        }
+      ],
+      "actual_io_drop_count": 1
+    },
+    {
+      "short_content_length": false,
+      "terminal_kind": "eof",
+      "rows": 19,
+      "encoded_line_bytes": 1886,
+      "wake_calls": 4,
+      "driver_phases": [
+        "write_request_before_response_head",
+        "head_only",
+        "complete_body_without_eof",
+        "later_eof"
+      ],
+      "body_samples": [
+        {
+          "stage": "before_enabling_eof",
+          "outcome": {
+            "Data": {
+              "bytes": 1,
+              "ended": true
+            }
+          }
+        },
+        {
+          "stage": "inside_actual_terminal_read",
+          "outcome": "End"
+        }
+      ],
+      "actual_io_drop_count": 1
+    },
+    {
+      "short_content_length": false,
+      "terminal_kind": "eof",
+      "rows": 19,
+      "encoded_line_bytes": 1943,
+      "wake_calls": 4,
+      "driver_phases": [
+        "write_request_before_response_head",
+        "head_only",
+        "complete_body_without_eof",
+        "later_eof_with_unconsumed_frame"
+      ],
+      "body_samples": [
+        {
+          "stage": "inside_actual_terminal_read",
+          "outcome": {
+            "Data": {
+              "bytes": 1,
+              "ended": true
+            }
+          }
+        },
+        {
+          "stage": "after_sample_consumed_data",
+          "outcome": "End"
+        }
+      ],
+      "actual_io_drop_count": 1
+    },
+    {
+      "short_content_length": true,
+      "terminal_kind": "eof",
+      "rows": 19,
+      "encoded_line_bytes": 1938,
+      "wake_calls": 5,
+      "driver_phases": [
+        "write_request_before_response_head",
+        "head_only",
+        "partial_body",
+        "terminal_on_incomplete_body"
+      ],
+      "body_samples": [
+        {
+          "stage": "drain_exact_partial_body",
+          "outcome": {
+            "Data": {
+              "bytes": 1,
+              "ended": false
+            }
+          }
+        },
+        {
+          "stage": "inside_actual_terminal_read",
+          "outcome": "Pending"
+        },
+        {
+          "stage": "after_incomplete_source_terminal",
+          "outcome": "Error"
+        }
+      ],
+      "actual_io_drop_count": 1
+    },
+    {
+      "short_content_length": true,
+      "terminal_kind": "read_error",
+      "rows": 19,
+      "encoded_line_bytes": 1957,
+      "wake_calls": 5,
+      "driver_phases": [
+        "write_request_before_response_head",
+        "head_only",
+        "partial_body",
+        "terminal_on_incomplete_body"
+      ],
+      "body_samples": [
+        {
+          "stage": "drain_exact_partial_body",
+          "outcome": {
+            "Data": {
+              "bytes": 1,
+              "ended": false
+            }
+          }
+        },
+        {
+          "stage": "inside_actual_terminal_read",
+          "outcome": "Pending"
+        },
+        {
+          "stage": "after_incomplete_source_terminal",
+          "outcome": "Error"
+        }
+      ],
+      "actual_io_drop_count": 1
+    }
+  ],
+  "final_local_checks": {
+    "workspace": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-3/workspace.json",
+        "bytes": 1420,
+        "sha256": "bc258a46a1ce7f32360a8b3641ace2fd626cf11f278a7417eeaf22add45fae9c"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-3/workspace.stdout",
+        "bytes": 178764,
+        "sha256": "0123b4af081e0534052b9ab691860c9228d8fedd4d14425e4532d8e26d745876"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-3/workspace.stderr",
+        "bytes": 26052,
+        "sha256": "a25b0cd08e2d90ad6c1b2271f782e79b0e4813d1c5e9da08f242c7e8cd5ef69e"
+      }
+    },
+    "clippy": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-3/clippy.json",
+        "bytes": 1446,
+        "sha256": "217d4bfa72842c2eb1d07d090f2a6b2cc38f91112f4f65c55fb1921138d2480f"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-3/clippy.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-3/clippy.stderr",
+        "bytes": 670,
+        "sha256": "b30504273a8e17f716cd3e3c3cf8db5e46af42f0858de07af93537fc26eee385"
+      }
+    },
+    "fmt": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-3/fmt.json",
+        "bytes": 1165,
+        "sha256": "cc36b4c74b543c230b806180ff61a4a429cb86db61b0a9d2022c4c0dd9e28955"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-3/fmt.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-3/fmt.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "node-check": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-3/node-check.json",
+        "bytes": 1184,
+        "sha256": "aeba2a2c887fbf7c2d81ee3c0642d13e962dbbc2619bbf9e6a5c9b240455e6c9"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-3/node-check.stdout",
+        "bytes": 153,
+        "sha256": "1f0d9e6a264f9c0e814c14b603f22173f0da68516f9f51afbc4cf02014277cf2"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-3/node-check.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "node-tests": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-3/node-tests.json",
+        "bytes": 1239,
+        "sha256": "8fc050b3724fe3cfe85f1ce0f1394046df7aff551d2b52eb636e8c4e6c5f15b9"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-3/node-tests.stdout",
+        "bytes": 150235,
+        "sha256": "ca8df45bbe87354f734f2b5534b750210d7717fa77e3e5bc4682f06d2da2f085"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-3/node-tests.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "node-package": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-3/node-package.json",
+        "bytes": 1257,
+        "sha256": "27b8b22e55e16e67575e647ed49b576495ffb60331b43ffa6519fcc3daf79c37"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-3/node-package.stdout",
+        "bytes": 883,
+        "sha256": "408dda1986455d23da9211810f1953791037415bb4db1c1cb06d8a0e8707c750"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-3/node-package.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  },
+  "final_local_counts": {
+    "rust": {
+      "groups": 66,
+      "passed": 1669,
+      "failed": 0,
+      "ignored": 11
+    },
+    "node_tests": 672,
+    "node_syntax_files": 99,
+    "package_files": 58,
+    "installed_mock_lifecycle_scenarios": 17
+  },
+  "preserved_failures_and_corrections": {
+    "initial_setup": {
+      "source": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-1/source-candidate-v1.json",
+        "bytes": 124677,
+        "sha256": "db5f6aa31cd57cc09ae394fcd1ab5318ac96ec27c14c62854024979e8a7188ae"
+      },
+      "owner": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-1/focused.json",
+        "bytes": 1649,
+        "sha256": "1213254b33b6ddf811c3630b0f32b456b2a48745c488e5df5497aa1e666c6e6b"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-1/focused.stderr",
+        "bytes": 5427,
+        "sha256": "a228c86a57a45d581e8ee7fd61def12b9a6d91034477d72e29d3c3c5ba9e84d3"
+      },
+      "result": "All six failed before body acquisition: an unsolicited mock response reached the idle-client read before request dispatch."
+    },
+    "corrected_focused": {
+      "source": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-2/source-candidate-v1.json",
+        "bytes": 124698,
+        "sha256": "53fe1ecc9e84e107a3187ff3a639255fcdf68c621f9ce93ea4c2128438f04aa6"
+      },
+      "owner": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-2/focused.json",
+        "bytes": 1669,
+        "sha256": "21ffe7165d532d0dfccba9b9612942a5f38b6ad4e7c033667a598fde245cbf1f"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-2/focused.stderr",
+        "bytes": 11549,
+        "sha256": "66e6666e20d12be01938b77c3605140be5497b013218828a8e96ae96ba9a875e"
+      },
+      "result": "Six controls pass after actual request-write and explicit response-head readiness phases; original target assertions unchanged."
+    },
+    "strict_clippy": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-2/clippy.json",
+        "bytes": 1354,
+        "sha256": "f63423ae65ef0bb2bab31db0179ff033174c84c2ce90c348d4bed650144ca33d"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-2/clippy.stderr",
+        "bytes": 1330,
+        "sha256": "851ba02b23fdd3492306a092c6d32e6bd4afe3c1c9c1c8648edcd114b88abc99"
+      },
+      "correction": "One equivalent ClientDriver alias fixes type_complexity; expanding it restores the exact prior passing source."
+    }
+  },
+  "prior_checkpoint_ci": {
+    "commit": "0cb7e0ef77efa5b8b5a9d33c6e17996173b33854",
+    "checks": 14,
+    "jobs": 14,
+    "workflows": 5,
+    "attempt": 1,
+    "all_successful": true,
+    "receipt": {
+      "path": "artifacts/rust-rewrite/ci-0cb7e0e-readonly-audit-20261021-1/continuation-1/final-metadata-review.json",
+      "bytes": 17767,
+      "sha256": "cc1849f6037c9a8a5a64f68db60e2a0ccdd58f6fa6ff9b0159fc91fd059e8ec0"
+    },
+    "scope": "Fresh exact-head check list; eight completed jobs/two workflows rolled forward and ID-correlated with six/three freshly terminal records. One earlier failed metadata GET is retained. Later local mock source requires its own CI."
+  },
+  "original_real_tls_results": {
+    "summary": {
+      "path": "rust/parity/measurements/native-passive-lifecycle-summary.json",
+      "bytes": 19698,
+      "sha256": "194ef3a8d89a0eb4d543dde59a877278bab103efab58ff2aafbe715130f10374"
+    },
+    "sessions_legacy": "14/18",
+    "sessions_buffered": "16/18",
+    "idle_legacy": "4/10",
+    "idle_buffered": "4/10",
+    "fresh_rerun": false,
+    "original_equality": "failed",
+    "acceptance_changed": false
+  },
+  "limits": [
+    "Mock frame/EOF ordering does not establish real TLS decoder scheduling or repair Node closing-socket selection after EOF and writable end.",
+    "The mock keeps the completed driver future until explicit disposal; sender closed flags are not interchangeable with the actual task-owned driver retirement.",
+    "No retry, synthetic response/error, delayed close, relaxed pool guard, production TLS backend switch, performance, platform, provider or shipping qualification.",
+    "The eight-case conservative-retirement proposal remains unaccepted; original oracles and failed reports are unchanged. Legacy cancellation differences are separate."
+  ],
+  "full_rewrite_complete": false,
+  "production_eligible": false
+}

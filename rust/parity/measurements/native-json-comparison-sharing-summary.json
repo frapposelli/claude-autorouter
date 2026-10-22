@@ -1,0 +1,331 @@
+{
+  "kind": "native_private_json_comparison_source_sharing_checkpoint",
+  "recorded_at_utc": "2026-10-18T00:51:43.772226+00:00",
+  "root_decision": "Retain genuine source sharing of existing JSON contract/report equality. All original comparator names, visibility, numeric policies and assertions remain. This is a source-maintenance change with measured source-size reduction, not broader behavior or release acceptance.",
+  "source_snapshot": {
+    "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/candidate-source.json",
+    "bytes": 116787,
+    "sha256": "c4def5e6a57efa4bd7da24524c7123e8a11bc32351a1925048378902918ff7ee"
+  },
+  "root_pre_apply_review": {
+    "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/root-pre-apply-admission.json",
+    "bytes": 1476,
+    "sha256": "5c2c508e0d535503f53cb19bcd86baf5e165de0c4ee29e05b84e7a70358c26d7"
+  },
+  "author_review": {
+    "path": "artifacts/rust-rewrite/json-comparison-sharing-draft-20261018-1/review.json",
+    "bytes": 29645,
+    "sha256": "bca596fdaac97e998214486ccdbad31c643f6ca6225c23ae58bc0bc477e7ad04"
+  },
+  "patch": {
+    "path": "artifacts/rust-rewrite/json-comparison-sharing-draft-20261018-1/v2-formatted.patch",
+    "bytes": 24265,
+    "sha256": "980df40f8e4c071b0b9b5805e0c345e300ca4011076147a31fbe6faaad8eb605"
+  },
+  "assertion_preservation": {
+    "path": "artifacts/rust-rewrite/json-comparison-sharing-draft-20261018-1/assertion-preservation.json",
+    "bytes": 7456,
+    "sha256": "422e619d10b0808c72b4244c4c540f7126ebe9248296634159819af5a669ecb8"
+  },
+  "semantics": [
+    "One private source macro shares array/object recursion while each caller supplies its unchanged raw f64 or finite-f64 comparison expression. The separate guarded comparator preserves equal-Number fast path, unequal integer rejection and exact mixed integer/float round trips under unchanged open cast bounds.",
+    "All510 existing assertion token sequences and existing test names/fixture includes remain intact. Two added controls exercise7numeric pairs in both directions under3policies and nested shape/primitive differences; they pass in current core unit group.",
+    "Fifteen existing files change and one2310-byte macro source is added. No public core runtime API, feature or dependency is introduced. Ordinary shipping core does not compile its cfg(test) helper; developer xtask comparison consumers privately include the shared source. Production core prefix is unchanged.",
+    "No fixtures, vendor sources, licenses, workloads, archive allowlist/schema/manifest format or cap is reduced or changed."
+  ],
+  "checks": {
+    "fmt": {
+      "record": {
+        "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/fmt.json",
+        "bytes": 383,
+        "sha256": "b55dd426a080ebb1e8b7e3ee046b207db63e57e932e11579df882da7730434fe"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/fmt.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/fmt.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "clippy": {
+      "record": {
+        "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/clippy.json",
+        "bytes": 477,
+        "sha256": "d9e14244438f80a67e3a988797c67c4d41ccf48cc4d03793d82bd85ffc8c9291"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/clippy.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/clippy.stderr",
+        "bytes": 960,
+        "sha256": "062aa5db0f8d9cd9a3e47a0f6f6076bea3eebb1fe093af4d2bbe7625141f6013"
+      }
+    },
+    "workspace": {
+      "record": {
+        "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/workspace.json",
+        "bytes": 453,
+        "sha256": "17c36504a00ea514598d0dc8f338301aabdd6f6c64208915ade0ae353be895e4"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/workspace.stdout",
+        "bytes": 144684,
+        "sha256": "3accc040532d9daaa2b1065db50a452b5ed751b8b39f0d21dbe5dc215bcd880c"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/workspace.stderr",
+        "bytes": 2474,
+        "sha256": "f5c667f2e3bdca4b176033cd3ce7bc6b6a04c64ca44a1cb904da791e2d380657"
+      }
+    },
+    "workspace-loopback": {
+      "record": {
+        "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/workspace-loopback.json",
+        "bytes": 453,
+        "sha256": "c8e29f2c6b5fd108c32b3d477b091ab57c9a0046e80e7d3550fcc9ae2782786e"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/workspace-loopback.stdout",
+        "bytes": 145896,
+        "sha256": "e653bb104224a5e5274222f33715e6cea261789c2dc83ae05694741ba02e5bea"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/workspace-loopback.stderr",
+        "bytes": 7226,
+        "sha256": "451c448bf9fd7c900e34ce9308f7d804420cf8ea0ceb36aaced43dae9c21f260"
+      }
+    },
+    "remaining-xtask": {
+      "record": {
+        "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/remaining-xtask.json",
+        "bytes": 591,
+        "sha256": "7598c90a1faf4fa96c4c16ce80bcce54f212fc1984091aca07c01669981ef3eb"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/remaining-xtask.stdout",
+        "bytes": 1298,
+        "sha256": "37f3836e94d0824b59e044adb96b01811cd77126b04b85acc01b8892379497f4"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/remaining-xtask.stderr",
+        "bytes": 1001,
+        "sha256": "027514846c8d072eebb23c40a12a11a9b7b11b6baf9bcd5bfe468d054c746825"
+      }
+    },
+    "minimal-bootstrap": {
+      "record": {
+        "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/minimal-bootstrap.json",
+        "bytes": 522,
+        "sha256": "d3de9d03170060a29e09c502c5df4d0b1a706ad6d3ff20ebad422ed95aa1dbd4"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/minimal-bootstrap.stdout",
+        "bytes": 2949,
+        "sha256": "88a4b946951ebe275e9ad4a0671a62a102c4ed05083ec5946b5be7bbc96922bd"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/minimal-bootstrap.stderr",
+        "bytes": 156,
+        "sha256": "4b429b90ff1c4e16998b0c55291dae75f0f313b9c2a7a0f7da3a5d6247ae49ac"
+      }
+    }
+  },
+  "actual_counts": {
+    "workspace_loopback": {
+      "groups": 61,
+      "passed": 1387,
+      "failed": 1,
+      "ignored": 10,
+      "failed_names": [
+        "bundle::transfer::tests::transfer_has_only_verified_sources_a_shared_budget_and_create_only_evidence"
+      ]
+    },
+    "three_deferred_xtask_suites": {
+      "groups": 3,
+      "passed": 11,
+      "failed": 0,
+      "ignored": 1,
+      "failed_names": []
+    },
+    "same_source_aggregate": {
+      "groups": 64,
+      "passed": 1398,
+      "failed": 1,
+      "ignored": 11
+    },
+    "minimal_bootstrap_separate": {
+      "groups": 1,
+      "passed": 29,
+      "failed": 0,
+      "ignored": 0
+    },
+    "scope": "The primary workspace command stops on the cap failure;3remaining integration groups run separately on the same696inputs. The separately rebuilt no-default-feature29pass bootstrap is not added again to the1398aggregate. No overall green workspace claim."
+  },
+  "failed_sandbox_run": {
+    "counts": {
+      "groups": 14,
+      "passed": 653,
+      "failed": 120,
+      "ignored": 2,
+      "failed_names": [
+        "http_client::tests::chunked_provider_trailers_and_extensions_keep_node_bounds_and_grammar",
+        "http_client::tests::local_http_reuses_connections_preserves_credentials_and_never_decodes_or_redirects",
+        "http_client::tests::raw_provider_response_policy_checks_framing_bounds_and_retained_headers",
+        "router::shutdown_contracts::cancelling_consuming_gateway_close_keeps_listener_drain_ownership",
+        "router::shutdown_contracts::gateway_close_must_join_retired_classifier_request_and_body",
+        "server::credential_contracts::credential_errors_preserve_six_earlier_gateway_rejections",
+        "server::credential_contracts::credential_forwarding_failure_retains_previously_confirmed_opus_tool_owner",
+        "server::credential_contracts::observed_node_http_wire_fields",
+        "server::credential_contracts::production_router_keeps_unavailable_count_callback_and_missing_key_fetch_conversion",
+        "server::credential_contracts::valid_inference_routes_before_rejecting_forwarding_credentials",
+        "server::deadline_contracts::stalled_final_write_expires_without_reviving_old_deadlines_or_confirming_continuity",
+        "server::failed_flush_contracts::buffered_raw_bodyless_cancellation_during_final_flush_preserves_confirmed_tool_owner",
+        "server::failed_flush_contracts::buffered_raw_bodyless_delivery_deadline_during_final_flush_preserves_confirmed_tool_owner",
+        "server::failed_flush_contracts::buffered_raw_bodyless_final_flush_error_preserves_confirmed_tool_owner",
+        "server::failed_flush_contracts::buffered_raw_bodyless_success_releases_without_confirming_execution",
+        "server::failed_flush_contracts::buffered_raw_cancellation_during_final_flush_preserves_confirmed_tool_owner",
+        "server::failed_flush_contracts::buffered_raw_delivery_deadline_during_final_flush_preserves_confirmed_tool_owner",
+        "server::failed_flush_contracts::buffered_raw_final_flush_error_preserves_confirmed_tool_owner",
+        "server::failed_flush_contracts::buffered_raw_success_confirms_continuity_only_after_final_flush",
+        "tls_roots::openssl_spike::abort::tests::explicit_abort_precedes_error_drop_and_repeated_intent_without_double_eviction",
+        "tls_roots::openssl_spike::abort::tests::ordinary_close_rejects_late_explicit_abort_but_preserves_late_io_error",
+        "tls_roots::openssl_spike::abort::tests::physical_error_precedes_explicit_intent_and_only_evicts_once",
+        "tls_roots::openssl_spike::abort_tests::http_abort_closes_pool_winner_and_preserves_held_losing_dial",
+        "tls_roots::openssl_spike::abort_tests::http_backpressured_abort_closes_peer_before_body_repoll",
+        "tls_roots::openssl_spike::abort_tests::http_claimed_abort_preserves_sibling",
+        "tls_roots::openssl_spike::abort_tests::http_delayed_claim_cannot_retain_or_abort_dropped_io",
+        "tls_roots::openssl_spike::abort_tests::http_old_body_cannot_abort_reassigned_socket",
+        "tls_roots::openssl_spike::abort_tests::http_ordinary_body_drop_never_arms_abort",
+        "tls_roots::openssl_spike::abort_tests::tls12_abort_closes_pool_winner_and_preserves_held_losing_dial",
+        "tls_roots::openssl_spike::abort_tests::tls12_backpressured_abort_closes_peer_before_body_repoll",
+        "tls_roots::openssl_spike::abort_tests::tls12_claimed_abort_preserves_sibling",
+        "tls_roots::openssl_spike::abort_tests::tls12_delayed_claim_cannot_retain_or_abort_dropped_io",
+        "tls_roots::openssl_spike::abort_tests::tls12_old_body_cannot_abort_reassigned_socket",
+        "tls_roots::openssl_spike::abort_tests::tls12_ordinary_body_drop_preserves_session",
+        "tls_roots::openssl_spike::abort_tests::tls13_abort_closes_pool_winner_and_preserves_held_losing_dial",
+        "tls_roots::openssl_spike::abort_tests::tls13_backpressured_abort_closes_peer_before_body_repoll",
+        "tls_roots::openssl_spike::abort_tests::tls13_claimed_abort_preserves_sibling",
+        "tls_roots::openssl_spike::abort_tests::tls13_delayed_claim_cannot_retain_or_abort_dropped_io",
+        "tls_roots::openssl_spike::abort_tests::tls13_old_body_cannot_abort_reassigned_socket",
+        "tls_roots::openssl_spike::abort_tests::tls13_ordinary_body_drop_preserves_session",
+        "tls_roots::openssl_spike::gateway_intent_tests::get_cancel_then_upstream_failure",
+        "tls_roots::openssl_spike::gateway_intent_tests::get_cancellation_preserves_same_origin_sibling",
+        "tls_roots::openssl_spike::gateway_intent_tests::get_complete_then_fin",
+        "tls_roots::openssl_spike::gateway_intent_tests::get_deadline_after_headers",
+        "tls_roots::openssl_spike::gateway_intent_tests::get_deadline_before_headers",
+        "tls_roots::openssl_spike::gateway_intent_tests::get_fin_before_headers",
+        "tls_roots::openssl_spike::gateway_intent_tests::get_fin_mid_body",
+        "tls_roots::openssl_spike::gateway_intent_tests::get_no_body_delivery_then_fin",
+        "tls_roots::openssl_spike::gateway_intent_tests::get_old_buffered_body_cannot_abort_reassigned_socket",
+        "tls_roots::openssl_spike::gateway_intent_tests::get_paused_read_reset_write",
+        "tls_roots::openssl_spike::gateway_intent_tests::get_reset_before_headers",
+        "tls_roots::openssl_spike::gateway_intent_tests::get_reset_mid_body",
+        "tls_roots::openssl_spike::gateway_intent_tests::get_unpolled_body_defers_eof_until_released",
+        "tls_roots::openssl_spike::gateway_intent_tests::get_upstream_failure_then_reset",
+        "tls_roots::openssl_spike::gateway_intent_tests::get_upstream_invalid_head",
+        "tls_roots::openssl_spike::gateway_intent_tests::get_upstream_reset_before_headers",
+        "tls_roots::openssl_spike::gateway_intent_tests::get_upstream_short_body",
+        "tls_roots::openssl_spike::gateway_intent_tests::tls12_gateway_abort_preserves_sibling",
+        "tls_roots::openssl_spike::gateway_intent_tests::tls12_gateway_cancel_full_full_resumed",
+        "tls_roots::openssl_spike::gateway_intent_tests::tls12_gateway_old_body_cannot_abort_reassigned_socket",
+        "tls_roots::openssl_spike::gateway_intent_tests::tls13_gateway_abort_preserves_sibling",
+        "tls_roots::openssl_spike::gateway_intent_tests::tls13_gateway_cancel_full_full_resumed",
+        "tls_roots::openssl_spike::gateway_intent_tests::tls13_gateway_old_body_cannot_abort_reassigned_socket",
+        "tls_roots::openssl_spike::idle_close_tests::observed_http_close_before_next_request",
+        "tls_roots::openssl_spike::idle_close_tests::observed_tls12_close_before_next_request",
+        "tls_roots::openssl_spike::idle_close_tests::observed_tls13_close_before_next_request",
+        "tls_roots::openssl_spike::idle_close_tests::selected_http_connection_before_close_observation",
+        "tls_roots::openssl_spike::idle_close_tests::selected_tls12_connection_before_close_observation",
+        "tls_roots::openssl_spike::idle_close_tests::selected_tls13_connection_before_close_observation",
+        "tls_roots::openssl_spike::lifecycle_tests::failed_assertion_still_releases_client_tasks_sockets_and_cache",
+        "tls_roots::openssl_spike::lifecycle_tests::http_dropping_old_buffered_incoming_cannot_close_new_request",
+        "tls_roots::openssl_spike::lifecycle_tests::http_reuse_precedes_old_incoming_and_capture_retirement",
+        "tls_roots::openssl_spike::lifecycle_tests::http_same_origin_pending_responses_have_distinct_selected_connections",
+        "tls_roots::openssl_spike::lifecycle_tests::tls12_dropping_old_buffered_incoming_cannot_close_new_request",
+        "tls_roots::openssl_spike::lifecycle_tests::tls12_reuse_precedes_old_incoming_and_capture_retirement",
+        "tls_roots::openssl_spike::lifecycle_tests::tls12_same_origin_pending_responses_have_distinct_selected_connections",
+        "tls_roots::openssl_spike::lifecycle_tests::tls13_dropping_old_buffered_incoming_cannot_close_new_request",
+        "tls_roots::openssl_spike::lifecycle_tests::tls13_reuse_precedes_old_incoming_and_capture_retirement",
+        "tls_roots::openssl_spike::lifecycle_tests::tls13_same_origin_pending_responses_have_distinct_selected_connections",
+        "tls_roots::openssl_spike::raw_pool::adversarial::actual_driver_close_between_ready_and_idle_insertion_is_rejected",
+        "tls_roots::openssl_spike::raw_pool::adversarial::cancelled_old_idle_timer_cannot_close_reassigned_request",
+        "tls_roots::openssl_spike::raw_pool::adversarial::decoder_error_never_returns_its_connection_to_pool",
+        "tls_roots::openssl_spike::raw_pool::adversarial::hinted_idle_expiry_closes_without_explicit_abort",
+        "tls_roots::openssl_spike::raw_pool::adversarial::http_held_consumer_reserves_exact_connection",
+        "tls_roots::openssl_spike::raw_pool::adversarial::http_raw_fetch_and_refreshed_headers_are_separate",
+        "tls_roots::openssl_spike::raw_pool::adversarial::http_selected_cancel_preserves_sibling_and_vetoes_reuse",
+        "tls_roots::openssl_spike::raw_pool::adversarial::http_subscription_gateway_forwards_refreshed_credential_on_reused_socket",
+        "tls_roots::openssl_spike::raw_pool::adversarial::http_two_origin_pool_entries_are_separate",
+        "tls_roots::openssl_spike::raw_pool::adversarial::tls12_held_consumer_reserves_exact_connection",
+        "tls_roots::openssl_spike::raw_pool::adversarial::tls12_raw_fetch_and_refreshed_headers_are_separate",
+        "tls_roots::openssl_spike::raw_pool::adversarial::tls12_selected_cancel_preserves_sibling_and_vetoes_reuse",
+        "tls_roots::openssl_spike::raw_pool::adversarial::tls12_subscription_gateway_forwards_refreshed_credential_on_reused_socket",
+        "tls_roots::openssl_spike::raw_pool::adversarial::tls12_two_origin_pool_entries_are_separate",
+        "tls_roots::openssl_spike::raw_pool::adversarial::tls13_held_consumer_reserves_exact_connection",
+        "tls_roots::openssl_spike::raw_pool::adversarial::tls13_raw_fetch_and_refreshed_headers_are_separate",
+        "tls_roots::openssl_spike::raw_pool::adversarial::tls13_selected_cancel_preserves_sibling_and_vetoes_reuse",
+        "tls_roots::openssl_spike::raw_pool::adversarial::tls13_subscription_gateway_forwards_refreshed_credential_on_reused_socket",
+        "tls_roots::openssl_spike::raw_pool::adversarial::tls13_two_origin_pool_entries_are_separate",
+        "tls_roots::openssl_spike::raw_pool::adversarial::unpolled_cancel_and_abandoned_dial_cannot_consume_sibling_connection",
+        "tls_roots::openssl_spike::raw_pool::adversarial::wire_host_normalizes_numeric_port_and_preserves_explicit_override",
+        "tls_roots::openssl_spike::raw_pool::buffered::tests::actual_constructor_abandoned_prefetch_retires_peer_before_replacement",
+        "tls_roots::openssl_spike::raw_pool::buffered::tests::actual_constructor_empty_handoff_needs_no_consumer_body_poll",
+        "tls_roots::openssl_spike::raw_pool::buffered::tests::actual_constructor_final_data_returns_pool_and_reuses_peer_with_retained_bytes",
+        "tls_roots::openssl_spike::raw_pool::buffered::tests::http_body_error_before_response_attachment",
+        "tls_roots::openssl_spike::raw_pool::buffered::tests::original_http_large_cancel",
+        "tls_roots::openssl_spike::raw_pool::buffered::tests::original_http_large_release_error",
+        "tls_roots::openssl_spike::raw_pool::buffered::tests::original_http_small_held_error",
+        "tls_roots::openssl_spike::raw_pool::buffered::tests::original_tls12_large_cancel",
+        "tls_roots::openssl_spike::raw_pool::buffered::tests::original_tls12_large_release_error",
+        "tls_roots::openssl_spike::raw_pool::buffered::tests::original_tls12_small_held_error",
+        "tls_roots::openssl_spike::raw_pool::buffered::tests::original_tls13_large_cancel",
+        "tls_roots::openssl_spike::raw_pool::buffered::tests::original_tls13_large_release_error",
+        "tls_roots::openssl_spike::raw_pool::buffered::tests::original_tls13_small_held_error",
+        "tls_roots::openssl_spike::raw_pool::buffered::tests::tls12_body_error_before_response_attachment",
+        "tls_roots::openssl_spike::raw_pool::buffered::tests::tls13_body_error_before_response_attachment",
+        "tls_roots::openssl_spike::request_lease_tests::http_old_body_cannot_claim_reassigned_connection",
+        "tls_roots::openssl_spike::request_lease_tests::tls12_old_body_cannot_claim_reassigned_connection",
+        "tls_roots::openssl_spike::request_lease_tests::tls13_old_body_cannot_claim_reassigned_connection",
+        "tls_roots::openssl_spike::stalled_handshake_cancellation_releases_owned_socket_and_preserves_sibling",
+        "token_counter::tests::native_count_transport_rejects_redirect_without_following_location"
+      ]
+    },
+    "scope": "First sandboxed run stops in runtime with120failed local-listener tests;114explicit Operation not permitted and6gateway listen failures. It is retained as failed environment-limited execution, not accepted qualification or silently replaced. The same suite then executes with authorized loopback access."
+  },
+  "provenance": "Each current command rehashes all696native source inputs before/after and has no mismatch. Frozen111 files are independently rehashed now and in census8; the Cargo runner does not record111per-stage pins. No new frozen JavaScript configuration/evaluator probe is claimed. Existing vendored unused timer warning remains in successful strict Clippy.",
+  "size": {
+    "census": {
+      "path": "artifacts/rust-rewrite/source-transfer-census-20261018-8/census.json",
+      "bytes": 13939,
+      "sha256": "ab8eddc4fd715a010d7e3e878fb65814566e8bb6bdcf1929f2d4ad7c964ee4ca"
+    },
+    "separate_inventory_review": {
+      "path": "artifacts/rust-rewrite/source-transfer-census-20261018-8/review.json",
+      "bytes": 11593,
+      "sha256": "03519454503db5162c7d1caef0e59483defd1baadb8a150054cac410a809b1b4"
+    },
+    "formatted_file_bytes_saved": 5036,
+    "new_manifest_slot_bytes": 32,
+    "logical_bytes_saved": 5004,
+    "carrier_bytes_saved": 5120,
+    "logical_total": 33627770,
+    "logical_overage": 73338,
+    "expanded_carrier_total": 33602560,
+    "expanded_carrier_overage": 48128,
+    "both_unchanged_caps": 33554432,
+    "status": "both caps still fail; arithmetic is not a successful export/restore/archive-fit result"
+  },
+  "coverage_effect": "No original-definition, configuration-key, resource-limit or area row is promoted by this refactor. ToolSearch acceptance remains independently scoped. Current totals before later reviews:539covered/49partial definitions,12covered/15pending keys,12covered/41pending limits,13partial areas.",
+  "limits": [
+    "Local mock and deterministic contract evidence only; no real evaluator/Claude/Keychain/user-configuration, hardware performance, supported-platform or current CI qualification.",
+    "No stack-space, allocation-count, binary-size or processing-performance equivalence measured.",
+    "Current-source bundle fit, remaining parity/configuration/resource/protocol/TLS/platform/performance/provider/release provenance/rollback/stabilization/cutover gates remain open. JavaScript0.5.2 remains shippingdefault; no commit/push/version/release/cutover action."
+  ]
+}

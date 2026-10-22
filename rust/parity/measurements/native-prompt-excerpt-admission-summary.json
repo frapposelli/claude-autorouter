@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_prompt_excerpt_public_bounds_and_lazy_collection_correction",
+  "date": "2026-10-14",
+  "mapping": {
+    "path": "rust/parity/assertion-mappings/prompt-excerpt-admission-contracts.json",
+    "bytes": 40163,
+    "sha256": "f10ac77963d6edb5f95babf47bade1063d5fa29b882fca9f2b9edac2e7dfad6c"
+  },
+  "counts": {
+    "source": {
+      "callbacks": 3,
+      "static_assertions": 17,
+      "expanded_assertions": 27,
+      "dormant_getter_guards": 7,
+      "configured_getters": 18,
+      "original_prompt_calls": 21,
+      "supplemental_prompt_calls": 10
+    },
+    "native_focus": {
+      "prompt_units": 8,
+      "new_units": 3,
+      "original_prompt_contracts": 16,
+      "redaction_contracts": 2,
+      "total_passed": 26,
+      "clippy": "strict_core_all_targets_passed"
+    },
+    "typed_compiler_consumers": {
+      "declared": 16,
+      "legal": 2,
+      "rejected_E0308": 14,
+      "final_matched": 16,
+      "initial_stale_library_run_matched": 12
+    }
+  },
+  "root_review": {
+    "date": "2026-10-14",
+    "accepted": true,
+    "scope": "Each of the17original assertion sites was reviewed separately against actual Source and native/consumer evidence. Parsed-input/getter, primitive-parameter and String-to-Result differences are explicit native API migrations; no live getter replay or arbitrary JavaScript error identity equivalence is claimed.",
+    "independent_peer_review": "Verified17Source assertion records,48file/diagnostic bindings,12native fragments,26actual passing focused tests and16actual compiler outcomes against the exact executed dependency fingerprint. Root independently revalidated48bindings and12fragments.",
+    "runtime_integration": "Combined workspace at this production-source checkpoint passed1209tests,0failed,9defaultignored; strictworkspacealltargetClippy andfmtpassed. Later test additions remain separately validated.",
+    "facade_conversion_scope": "The serde Value convenience facade serializes the complete supplied value after limit validation. Actual lazy text lookup proof applies to excerpt collection from parsed JsDocument; it does not prove that facade conversion skips older or opaque input fields.",
+    "nonqualification": "Platform, controlled hardware, performance, full release and final cutover gates remain open."
+  },
+  "actual_defects_before_correction": [
+    "Both public APIs accepted the first unsafe integer (2^53) and usize::MAX on the 64-bit host, while Source and fixture admission rejected those arguments.",
+    "Native excerpt collection eagerly built all text-block references before applying its redaction window."
+  ],
+  "implemented_behavior": [
+    "Both public APIs return Result<String, PromptExcerptError>, with the exact Source safe-limit display text. Validation precedes document access or Value serialization.",
+    "The actual private production iterator reads only the first long text in the bounded lookup test. A separate late-tool_result control preserves the full candidate-turn type scan.",
+    "Both runtime callers use the known safe bound of 501. The combined 1,209-test workspace run verifies their integration."
+  ],
+  "explicit_api_migrations": [
+    "Live host accessors are not representable as parsed JsDocument or serde_json::Value inputs. Actual host-object consumers are rejected by the compiler; the Source accessor operations remain distinct.",
+    "Negative, fractional, nonfinite and string arguments cannot be usize values. Source failures retain the genuine primitives; native compiler rejection is a separate migration.",
+    "The native String return changes to Result<String, PromptExcerptError>. Legal Result consumers compile; old unchecked String consumers fail.",
+    "The Value convenience facade serializes its complete input after validation. Lazy document lookup does not exclude that conversion work."
+  ],
+  "failed_attempts_retained": [
+    {
+      "path": "artifacts/rust-rewrite/prompt-excerpt-admission-audit-20261014/postfix-compiler-1/execution-report.json",
+      "description": "First isolated compiler runner reused hardcoded pre-fix core04rlib. LegalResult imports failed E0432 and legacyString consumers compiled. All16results retained; runner corrected to actual executed prompt_state_contracts Cargo dependency fingerprint3944023063353378053 resolving coreb3; no product code change/relabel."
+    }
+  ],
+  "allocator_caveat": "Raw native-prefixed report field tracked_sample_valid and allocator_peak_live_bytes are retained raw harness spellings only. No pointer membership accounting was collected; negative flag cannot certify true live/peak. Only actual scoped alloc/realloc event counts/net observations are reported. Native actual late text lookup behavior is proved by private production iterator witness.",
+  "full_platform_or_performance_or_release_or_cutover_qualified": false,
+  "paid_provider_calls": 0,
+  "model_downloads": 0
+}

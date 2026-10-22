@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "kind": "native_original_response_usage_future_assertion",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "status": "one_definition_covered_with_reviewed_native_adapter_migration",
+  "definition": "test/response-observer.test.mjs#10",
+  "mapping": {
+    "path": "rust/parity/assertion-mappings/response-usage-future-contracts.json",
+    "bytes": 21347,
+    "sha256": "b230f224683b7a2ca11fdb6d3b13e02667930f5d9dc4c888390221991696cc8b"
+  },
+  "root_API_review": {
+    "path": "artifacts/rust-rewrite/response-usage-future-promotion-20261014-2/root-API-review.json",
+    "bytes": 2113,
+    "sha256": "df6c84c1ce1f26de42d25ddd82bb9e73b9a1a7e3003edd4ae3fd21bce4abc662"
+  },
+  "independent_static_peer": {
+    "path": "artifacts/rust-rewrite/response-usage-future-draft-20261014/peer-review-performance-1.json",
+    "bytes": 8269,
+    "sha256": "d40f864ae0cd3edbc22ec35b849445d2532526f2e7d048b42fb987fc460788ee"
+  },
+  "native_execution": {
+    "path": "artifacts/rust-rewrite/newc-and-usage-native-20261014-2/response-observer-execution.json",
+    "bytes": 763,
+    "sha256": "993439304cc0208bff2818318b163e63a3e2208f483ca2ff31747548d3df5f75"
+  },
+  "native_module_tests": {
+    "passed": 23,
+    "failed": 0,
+    "ignored": 0,
+    "old_tests_retained": 22
+  },
+  "source_direct_assertion_executions": 3,
+  "source_inherited_byte_assertion_executions": 4,
+  "actual_source_schedules": 4,
+  "actual_owned_future_factory_poll_drop_rejection": 1,
+  "strict_workspace_clippy": {
+    "path": "artifacts/rust-rewrite/newc-and-usage-native-20261014-2/clippy-execution.json",
+    "bytes": 718,
+    "sha256": "eb19825abe967444992c02c2c37d732889357255b8c8dab0097bc66b6df97cd1"
+  },
+  "source_execution": {
+    "path": "artifacts/rust-rewrite/response-usage-future-draft-20261014/source-execution-1.json",
+    "bytes": 5255,
+    "sha256": "42ce0fea8ff43d0ab4d612f48d250c58338c302a5c63a1bf240dbe975ec53084"
+  },
+  "API_migration": {
+    "bridge": "Synchronous FnMut(Observation) dispatches Usage into public ObserverHandle::submit with exact serialized callback metadata charge. Its owned Send + static Future actually polls to Err(ObserverRejected); the owner is explicitly closed and joined.",
+    "proof_against_false_positive": "Before EOF no metadata or work; actual shared Bytes allocation forwards. Async accepted work starts1 with pending1/polls0/drops0; exact pre-close rejected1 with all other counters0 distinguishes rejection from panic/cancellation. Actual joined receipts report start/poll/drop/reject1 and no charged/pending/factory work. Other schedules report all observer counters0.",
+    "language_difference": "Source default push returns1, typed sink returns unit and Source ignores that return value. Synchronous Error throw maps to ordinary contained unwind; payload-free ObserverRejected replaces private Error details. Promise/Error identity, aliases and microtask scheduling are not claimed equivalent.",
+    "privacy_boundary": "Raw194-byte provider output contains synthetic PRIVATE_CONTENT and remains exact. Sanitized metadata and callback arguments exclude the marker. This test does not redact provider bodies."
+  },
+  "coverage": {
+    "before": {
+      "covered": 524,
+      "partial": 64
+    },
+    "after": {
+      "covered": 525,
+      "partial": 63,
+      "definitions": 588
+    },
+    "other_rows_unchanged": 587
+  },
+  "prepromotion_coverage_snapshot": {
+    "path": "artifacts/rust-rewrite/evidence/3ec8f0d506a33ec01f9daea3c21c900733017c64d0868ca21575ea6f2b8079a7.json",
+    "bytes": 1757661,
+    "sha256": "3ec8f0d506a33ec01f9daea3c21c900733017c64d0868ca21575ea6f2b8079a7"
+  },
+  "provider_calls": 0,
+  "model_downloads": 0,
+  "scope": "Original callback schedules/byte predicates and explicit native owned-future adapter only; no final downstream-flush, whole-workspace, platform, performance, live or release approval."
+}

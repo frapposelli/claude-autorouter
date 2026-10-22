@@ -1,0 +1,225 @@
+{
+  "schema_version": 1,
+  "kind": "native_evaluator_state_default_limits",
+  "recorded_at": "2026-10-18T08:00:10.458635+00:00",
+  "scope": "Only the operational fixed defaults ollama_state_chars_bytes=3000 and jev_state_chars=12000. Full frozen Source Router.classify and native public Classifier::classify consumer observations over one identical predeclared synthetic input, evaluated once and then cached for each backend. No production or durable test change.",
+  "only_resource_limit_rows": [
+    {
+      "id": "ollama_state_chars_bytes",
+      "baseline_value": 3000,
+      "unit": "UTF-8 bytes of the complete serialized state JSON",
+      "accepted_scope": "Default admitted operational requests. The Ollama adapter excludes system and shrinks the shared extraction budget against serialized UTF-8 bytes. The mandatory envelope and existing 200-unit floor remain unchanged.",
+      "actual_state_utf8_bytes": 2969,
+      "actual_state_utf16_units": 1747
+    },
+    {
+      "id": "jev_state_chars",
+      "baseline_value": 12000,
+      "unit": "UTF-16 code units of the complete serialized state JSON, including JSON escaping",
+      "accepted_scope": "Default admitted operational requests. The shared builder counts JSON.stringify serialized units, preserves current-task head/tail and accounts for escaping. This is not a 12000-byte cap.",
+      "actual_state_utf16_units": 11999,
+      "actual_state_utf8_bytes": 20733
+    }
+  ],
+  "decision_basis": {
+    "independent_result": "PASS; both rows eligible for individual Root acceptance",
+    "complete_comparison": "Both complete serialized state texts, all three full request bodies and headers per engine, full config JSON with scalar kinds, full first/cache decisions and all21 common output fields match. UTF-8 and UTF-16LE lengths/hashes independently recomputed; raw input and canonical parsed object nonmutation hashes checked separately.",
+    "counts": {
+      "cases_per_engine": 2,
+      "classifier_calls_per_engine": 4,
+      "classifier_calls_both_engines": 8,
+      "transport_requests_per_engine": 3,
+      "transport_requests_both_engines": 6,
+      "Source_true_predicates": 32,
+      "native_true_predicates": 40,
+      "Source_response_EOF_released": 3,
+      "native_response_EOF_dropped": 3
+    },
+    "cache": "First Ollama classification performs metadata+evaluation requests; first Jev classification performs one evaluation request. The identical second classification per backend returns the cached decision and adds zero requests.",
+    "normal_ownership": "Source3 response bodies reached EOF, were used and unlocked, with0 pending evaluations/subscribers. Native3 bodies reached EOF and were dropped, active bodies0; public shutdown/close returned, the classifier released its transport owner and the final transport Weak could not upgrade. These observations concern settled successful work.",
+    "metrics": [
+      {
+        "id": "default-ollama-mixed-UTF16-escaping-consumer-state",
+        "backend": "ollama",
+        "state_utf8_bytes": 2969,
+        "state_utf16_units": 1747,
+        "state_sha256": "d9051bee5611e3e362713b346c315a3e0ff605ece047ce831248fd834f99a228",
+        "requests_per_engine": 2,
+        "cache_extra_requests": 0,
+        "whole_21_common_fields_equal": true,
+        "request_body_hashes": [
+          "02f9f5f453e7f364a3ee9ee38fde1a42ab2014338479dfe8a95247b8844f2f66",
+          "75cf9230cb678c5c851ff991de4de58c03378c921ebf2dc42070ca4503fe7fe8"
+        ]
+      },
+      {
+        "id": "default-jev-mixed-UTF16-escaping-consumer-state",
+        "backend": "jev",
+        "state_utf8_bytes": 20733,
+        "state_utf16_units": 11999,
+        "state_sha256": "b4b43748118f8897d8f6f6bdf91ce25003fd14d4ce281ba4729bba93e03c5295",
+        "requests_per_engine": 1,
+        "cache_extra_requests": 0,
+        "whole_21_common_fields_equal": true,
+        "request_body_hashes": [
+          "1637295db7c01f149438150cc07f5f8025db7ac76f57859391b9cd507f2df7cc"
+        ]
+      }
+    ]
+  },
+  "provenance": {
+    "source_snapshot": {
+      "path": "artifacts/rust-rewrite/local-token-wire-validation-20261018-1/candidate-source.json",
+      "bytes": 116959,
+      "sha256": "1af44b2a5aa884b5749587e54d519fcc449fd0eb7076c5ba04e890590d879c2f"
+    },
+    "current_native_inputs": 697,
+    "frozen_Source_inputs": 111,
+    "fresh_consumer_binary": {
+      "path": "artifacts/rust-rewrite/evaluator-state-limits-validation-20261018-1/native-probe",
+      "bytes": 12758480,
+      "sha256": "ba5b8f9083b569ea6e62e594d79931ea13e0f3004f6823660b0908880669fb78"
+    },
+    "build": "A fresh standalone Rust consumer compiled successfully against the exact retained prior Cargo graph: runtime features[default],core[],9externs,143lib/proc-macro rows/278unique files plus5native archives. All cached inputs were pinned before/after compile and independently rehashed. This is not a fresh Cargo/library/ordinary CLI build.",
+    "owners": "Source, compiler and native actual receipts exit0, owner_failure=null and post_execution_mismatches=[]; each records697native+111frozen checks. Complete stdout and stderr retained.",
+    "production_defaults": "Jev1500ms/Ollama30000ms timers and state12000/3000 defaults are unchanged. Source5s classification/2s cleanup/20s cooperative and120s outer; native35s classification/5s close/180s outer are separate harness guards. No timing/performance claim.",
+    "historical_composition": "Retained historical3092/3092 pure fixture report includes12 named default Unicode/escaping cases. Individual historical output streams are absent and are not fabricated. Frozen original Ollama default full-state captures2678/2993 UTF-8 bytes plus six named current native workspace passes support the builder policy. The new actual pair closes the former complete default consumer/wire evidence gap."
+  },
+  "explicit_limits": [
+    "Only these two numeric fixed-default rows; no other resource limits, baseline definitions, configuration keys or area completion follows.",
+    "Budgeted excerpts may underfill. No exact saturation, input-length rejection, arbitrary tiny direct override or malformed/arbitrary-body universal cap is asserted. Full request size and evaluator response size are separate limits.",
+    "Injected finite Source fetch responses and native synthetic HttpTransport only: no OS sockets, provider, local model, hardware benchmark, live task-quality or paid use.",
+    "No active cancellation schedule, exceptional-worker cleanup, crash/descendant guarantee, global filesystem sandbox or inferred zero-signal owner claim. Ordinary finite outer monitoring and direct-child wait apply to these successful declared runs.",
+    "No allocation/RSS, latency, HTTP/TLS, platform, production transport, full Router/Gateway, release provenance, SDK, rollback or cutover qualification.",
+    "No new broad checks were run for this artifact-only increment. The retained current broad1474pass/1source-transfer-cap-failure/11ignored result is not fully green; both source-transfer caps remain33554432bytes and no40MiB approval is assumed."
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/rust-rewrite/evaluator-state-limits-validation-20261018-1/independent-actual-paired-state-limit-review.json",
+      "bytes": 10488,
+      "sha256": "99c5edff94e582a7517fb563dd559bc70778a825d4495ea62551beb2867fdc89"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-state-limits-validation-20261018-1/independent-actual-source-two-state-review.json",
+      "bytes": 4954,
+      "sha256": "15e8ae9758073644586fc3b24edf566cccc2b999838cb381187b8816ba11ac7a"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-state-limits-validation-20261018-1/paired-comparison.json",
+      "bytes": 3664,
+      "sha256": "d0529b220c4ae6396c16a779a5b666e7c07d379bbdf7417501519b88f268702c"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-state-limits-validation-20261018-1/compare-two-state.py",
+      "bytes": 5769,
+      "sha256": "fef8402a5f4dc250c22d42f7f437ac10cedc9d138f3682c520e5310bf678c501"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-state-limits-validation-20261018-1/source.json",
+      "bytes": 1669,
+      "sha256": "67a2da4d7621736d45f06872e0127b160eee4ecde02fb7b53dcef48dec76af09"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-state-limits-validation-20261018-1/source.stdout",
+      "bytes": 59825,
+      "sha256": "a0dd74f98e2dda7bd0ec0b58ee8a8e59a38852a49d7b5d209666610e9b29d073"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-state-limits-validation-20261018-1/source.stderr",
+      "bytes": 610,
+      "sha256": "8c02d856669ce462281ef6e1a1ad3681b46c7ff0e4f01bf34c7353673ce2f951"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-state-limits-validation-20261018-1/source-execution-binding.json",
+      "bytes": 1130,
+      "sha256": "263218bb220246473313897b88a9affc7ec4cecaa8e4beb556c969289e8815a4"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-state-limits-validation-20261018-1/native.json",
+      "bytes": 1644,
+      "sha256": "8ffd4620eceac0a226451c4fc3e464754cecb4001454ab5af43ff77a98e592f0"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-state-limits-validation-20261018-1/native.stdout",
+      "bytes": 60476,
+      "sha256": "34abed9072209b1c2954b59a775cbc36b0b937d06cb151ac7aaf68c42dbae031"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-state-limits-validation-20261018-1/native.stderr",
+      "bytes": 399,
+      "sha256": "8423a311b9a9eb87ee823ab4c74d92c4868d69d43da911ffa1ceee89f7e75e4e"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-state-limits-validation-20261018-1/native-execution-binding.json",
+      "bytes": 1714,
+      "sha256": "46d7f3cb8902ef6cb27356ee512c606befce28b5e3b273a81e5477ceab3b222f"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-state-limits-validation-20261018-1/compile-native.json",
+      "bytes": 3308,
+      "sha256": "60f7926be1d0a9513870fd884809e1e2a86f9d815f797a62271f0fbacd84c27e"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-state-limits-validation-20261018-1/compile-native-binding.json",
+      "bytes": 1306,
+      "sha256": "db3d2f394c0e9a0f94bfc96d22abbe2f2d6fd809ca39cb9bb004312ee05ca494"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-state-limits-validation-20261018-1/run-bounded.py",
+      "bytes": 6102,
+      "sha256": "c519b69d649f8f1d2d8a6200553c237a0a3a55f0267dc6e5f75f087d5032bf32"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-state-two-consumer-source-handoff-20261018-1/declaration.json",
+      "bytes": 10102,
+      "sha256": "1a3377c0b72f0b8d8d45f826df0d8c45ff4a1a654898d7d499f69ec4677a210b"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-state-two-consumer-source-handoff-20261018-1/output-codec.json",
+      "bytes": 3244,
+      "sha256": "608c6a3e762d85ca89f097d60fb46736563e559f0191fac80af701ad5c0ebc1f"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-state-two-consumer-source-handoff-20261018-1/shared-input.json",
+      "bytes": 228616,
+      "sha256": "c81658a61b163c234047e0900184d72efae8368750c7d3d316ba0ed1dcd0e936"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-state-two-consumer-native-handoff-20261018-1/handoff.json",
+      "bytes": 10097,
+      "sha256": "e8118cd5dd42d13b3b0b2dd5f346131cb2caff9abcb00e996346ed4582423f9d"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-state-two-consumer-native-handoff-20261018-1/independent-native-prerun-review.json",
+      "bytes": 9386,
+      "sha256": "1b0c11ee65c5af1a35e5d1d3537ddd16cc2537215f4fc4614d942d942c8dcce2"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-state-limits-scout-20261018-1/inventory.json",
+      "bytes": 20824,
+      "sha256": "37e172d9cf137dfcbe5fee72de3508832669a57e153876916e7aee96610e162f"
+    },
+    {
+      "path": "artifacts/rust-rewrite/local-token-wire-validation-20261018-1/cached-library-graph-v2.json",
+      "bytes": 112584,
+      "sha256": "e2a21f5b751b50ac11adf0ab7932f6770d8583dfa47b263f845a60b921a9cf51"
+    }
+  ],
+  "status": "ROOT_ACCEPTED_TWO_INDIVIDUAL_FIXED_DEFAULT_LIMIT_ROWS",
+  "Root_acceptance": {
+    "path": "artifacts/rust-rewrite/evaluator-state-limits-validation-20261018-1/root-three-limit-acceptance.json",
+    "bytes": 2787,
+    "sha256": "ba035694b8912d4409b9ceb754af237e89bf6b8d22c620c947fc8f07dbfc460d"
+  },
+  "review_method_amendment": {
+    "path": "artifacts/rust-rewrite/evaluator-state-limits-validation-20261018-1/independent-verification-method-amendment.json",
+    "bytes": 1815,
+    "sha256": "7b23ed981707c74e1f5d9cf56ff6daf4dea110066d82a4f948075c000d9f55f6"
+  },
+  "review_method_note": "An initial offline reviewer conflated raw escape spelling with parsed canonical JSON and report schema. The preserved v2 analysis corrected only the review method; actual products, comparator, inputs, outcomes and gates were not rerun or changed.",
+  "adopted_draft": {
+    "path": "artifacts/rust-rewrite/evaluator-state-limits-validation-20261018-1/native-evaluator-state-default-limits-summary.draft.json",
+    "bytes": 12091,
+    "sha256": "6068d2fd733615ee9eef25e242d56252b17d06a9d132e1f940dc78ba91fe0277"
+  }
+}

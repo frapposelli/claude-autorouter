@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "kind": "actual_musl_rust_archive_extraction_failure_and_reviewed_tool_correction",
+  "date": "2026-10-14",
+  "failed_source_commit": "2887f2cfd5aecc2bb17f970358386a3cfc8d8c33",
+  "run_url": "https://github.com/frapposelli/claude-autorouter/actions/runs/38549931597",
+  "run_conclusion": "failure",
+  "actual_run_record": {
+    "path": "artifacts/rust-rewrite/2887f2c-host-20261014-1/musl-run-1.json",
+    "bytes": 5461,
+    "sha256": "f6b793227f8bda1c2ef696e38238e1513f2ab7e46d4e848d9a398742e0af6974"
+  },
+  "actual_failed_setup_log": {
+    "path": "artifacts/rust-rewrite/2887f2c-host-20261014-1/musl-failure-1.log",
+    "bytes": 195712,
+    "sha256": "49e81b7b7003686f5a4fdd8cdd00f79a5315257a5797ba7995c75684f47431ef"
+  },
+  "observed_progress": [
+    "Both fixed signed index checks and package installation completed.",
+    "All eleven unchanged installed-version guards and Perl-module checks completed.",
+    "Both downloaded official Rust1.99 archives passed their unchanged SHA256 checks.",
+    "Both BusyBox tar extractions immediately reported corrupted data and short read before the SDK installed Rust or compiled AutoRouter."
+  ],
+  "precise_decoder_failure_cause_proven": false,
+  "correction": "Pin GNU tar1.35-r2 as one additional build-only dependency and assert its exact version. Use GNU tar with the already-pinned /usr/bin/xz5.8.4 explicitly; retain the Rust archive SHA256 checks and APK signed-index checks, with streaming extraction without an extra full tar materialization.",
+  "reviewed_correction": {
+    "path": "artifacts/rust-rewrite/musl-tar-diagnosis-20261014/correction-manifest-1.json",
+    "bytes": 2701,
+    "sha256": "7782e91f91f55d02b063aa4c99f1e0fc0b67f0e5701ec77107d7ae3214a0d647"
+  },
+  "root_admission": {
+    "path": "artifacts/rust-rewrite/musl-tar-diagnosis-20261014/root-admission.json",
+    "bytes": 759,
+    "sha256": "e64fba55b01decb924581f4d09abd65c04eba9650a5c525e6ac941b74e767320"
+  },
+  "exact_retained_signed_index_tar_records": {
+    "path": "artifacts/rust-rewrite/musl-tar-diagnosis-20261014/tar-index-evidence.json",
+    "bytes": 2230,
+    "sha256": "168fc7992479d57e7acf4e233a273a858998c01788f0c18422c2f58a4fd02ae8"
+  },
+  "dated_primary_source_observations": [
+    {
+      "path": "artifacts/rust-rewrite/musl-tar-diagnosis-20261014/primary-source-observations-1.json",
+      "bytes": 1612,
+      "sha256": "1d38f23b8a39ec84618033229e480c25cb9c597249ac9b547f857d4845b10b07"
+    },
+    {
+      "path": "artifacts/rust-rewrite/musl-tar-diagnosis-20261014/primary-source-observations-2.json",
+      "bytes": 1560,
+      "sha256": "0c825b2bb4f3d31bcac79166f3c8d495c1fb417357d7ed50931c1a3e06cc104f"
+    }
+  ],
+  "corrected_files": [
+    {
+      "path": "rust/distribution/ci/musl.Dockerfile",
+      "bytes": 3014,
+      "sha256": "c69f6f3fe735d6526a1472aee2d876165c443341633863a371c61006657c37cc"
+    },
+    {
+      "path": "rust/distribution/ci/check-musl.sh",
+      "bytes": 7467,
+      "sha256": "c37e1a358928d3b032070abc99327bd75ae32b22815011d6dcd33a6f0fd4c443"
+    },
+    {
+      "path": "rust/distribution/musl-builder-pins.json",
+      "bytes": 3452,
+      "sha256": "2b68bedf001c22c507089f59edca10889ad879a508be7e04ebf8659b3141e0ee"
+    }
+  ],
+  "metadata_schema_migration": {
+    "kind": "musl_ci_builder_inputs",
+    "from": 1,
+    "to": 2,
+    "added_fields": [
+      "tar",
+      "xz"
+    ],
+    "runtime_config_and_session_schemas_changed": false
+  },
+  "existing_eleven_package_versions_changed": false,
+  "rust_archive_or_index_or_image_hashes_changed": false,
+  "correction_ci_execution_qualified": false,
+  "actual_musl_product_compilation_or_test_qualification": false,
+  "provider_calls": 0,
+  "model_downloads": 0,
+  "release_approved": false,
+  "default_cutover_approved": false,
+  "scope_limits": [
+    "The official archive checksums are actual successful CI evidence; the precise failed embedded decoder/filter/dictionary mechanism remains unproven.",
+    "Tool preparation and local shell checks do not establish successful archive extraction or Linux product execution; a fresh CI attempt remains required.",
+    "GNU tar is a build-only SDK tool and is not linked into or shipped in AutoRouter. No runtime dependency or package cap changes.",
+    "Failed attempts and their inputs remain separately retained; neither previous setup success nor another platform approves musl or minimum environments."
+  ],
+  "independent_diagnosis": {
+    "path": "artifacts/rust-rewrite/musl-tar-diagnosis-20261014/diagnosis-report-1.json",
+    "bytes": 8116,
+    "sha256": "f0f2220f4e5302e21f6994e567b52552213f6986ffa3837ad142eee186b4cb2d"
+  }
+}

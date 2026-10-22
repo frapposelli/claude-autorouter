@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_original_hidden_prompt_order_mapping",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "baseline_test": "test/onboarding.test.mjs#1",
+  "status": "covered",
+  "source_definition": {
+    "file": {
+      "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+      "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "bytes": 42063
+    },
+    "sha256": "1d6e9c8ad645012dd784b14e4917b726c74fffd2df03b8eea922cd199fa5ac94",
+    "statement": "test('hidden key prompt disables terminal echo before inviting input and restores it afterward', async () => {\n  const input = new PassThrough();\n  input.isTTY = true;\n  input.isRaw = false;\n  input.setRawMode = value => { input.isRaw = value; };\n  let visible = '';\n  const output = { isTTY: true, write(text) {\n    visible += text;\n    if (text.includes('(hidden)')) {\n      assert.equal(input.isRaw, true, 'No prompt may be shown before terminal echo is disabled');\n      queueMicrotask(() => input.write('hidden-key-sentinel\\r'));\n    }\n  } };\n  assert.equal(await askSecret('TYPESAFE_API_KEY', { input, output }), 'hidden-key-sentinel');\n  assert.equal(input.isRaw, false);\n  assert.ok(!visible.includes('hidden-key-sentinel'));\n  input.destroy();\n});"
+  },
+  "original_assertions": [
+    {
+      "expression": "assert.equal(input.isRaw, true, 'No prompt may be shown before terminal echo is disabled')",
+      "sha256": "653473c793665e2af07be6a8c5eec637bda0694ea3a9ccd5a8b23b67d9012856",
+      "line": 35,
+      "executions": 1
+    },
+    {
+      "expression": "assert.equal(await askSecret('TYPESAFE_API_KEY', { input, output }), 'hidden-key-sentinel')",
+      "sha256": "ac52579b882787fe2468591546b1801752ea2e556df29a5b6398402047fe7dde",
+      "line": 39,
+      "executions": 1
+    },
+    {
+      "expression": "assert.equal(input.isRaw, false)",
+      "sha256": "7a49ebd5bcf81b30e42b58959fdb363537511270ad0549b137f77b9be0623d14",
+      "line": 40,
+      "executions": 1
+    },
+    {
+      "expression": "assert.ok(!visible.includes('hidden-key-sentinel'))",
+      "sha256": "547b01c91bfd60f6657d3ad80edf9023775219382c228e9aa19021153dfb2a43",
+      "line": 41,
+      "executions": 1
+    }
+  ],
+  "source_check": {
+    "path": "artifacts/dev-environment/logs/hidden-prompt-order-source-20261013-1.log",
+    "sha256": "6b14a4f62647b78d9ff52733ed4b13545b4bd7ee65f27b28c43e59bf2269d3e1",
+    "bytes": 349
+  },
+  "native_source": {
+    "path": "rust/crates/claude-autorouter/src/secret_input.rs",
+    "sha256": "51c15a60f3d215421569c7093659a7dfe61f70db60897a267de1a902f2cb366e",
+    "bytes": 20776
+  },
+  "native_anchors": [
+    {
+      "name": "prompt_writer_observes_hidden_terminal_before_inviting_secret_input",
+      "path": "rust/crates/claude-autorouter/src/secret_input.rs",
+      "line": 237,
+      "sha256": "98680f2e0a851132f228ecada50f83e4b0db7956902952a78ebea753c523d2db",
+      "fragment": "    async fn prompt_writer_observes_hidden_terminal_before_inviting_secret_input() {\n        let pair = openpty(None, None).unwrap();\n        let mut master = File::from(pair.master);\n        let slave = File::from(pair.slave);\n        let terminal = tcgetattr(&slave).unwrap();\n        let flags = OFlag::from_bits_truncate(fcntl(&slave, FcntlArg::F_GETFL).unwrap());\n        assert!(terminal.local_flags.contains(LocalFlags::ECHO));\n        let input = prepare_input(\n            Input {\n                file: slave.try_clone().unwrap(),\n                flags,\n                terminal: Some(terminal.clone()),\n            },\n            || {\n                let actual = tcgetattr(&slave).unwrap();\n                assert!(\n                    !actual\n                        .local_flags\n                        .intersects(LocalFlags::ECHO | LocalFlags::ECHONL | LocalFlags::ICANON)\n                );\n                assert!(\n                    OFlag::from_bits_truncate(fcntl(&slave, FcntlArg::F_GETFL).unwrap())\n                        .contains(OFlag::O_NONBLOCK)\n                );\n                let mut output = &slave;\n                output.write_all(b\"TYPESAFE_API_KEY (hidden): \").unwrap();\n                output.flush().unwrap();\n                master.write_all(b\"hidden-key-sentinel\\r\").unwrap();\n            },\n        )\n        .unwrap();\n        let secret = tokio::time::timeout(Duration::from_secs(2), collect_hidden(&input))\n            .await\n            .unwrap()\n            .unwrap();\n        assert_eq!(secret, \"hidden-key-sentinel\");\n        let mut input = input.into_inner();\n        input.restore_terminal().unwrap();\n        drop(input);\n        let restored = tcgetattr(&slave).unwrap();\n        assert_eq!(\n            restored.local_flags.difference(LocalFlags::PENDIN),\n            terminal.local_flags.difference(LocalFlags::PENDIN)\n        );\n        // Darwin adds its kernel-only FWASWRITTEN marker after the prompt\n        // write; F_SETFL cannot clear it. Compare all public status flags,\n        // including the restored O_NONBLOCK bit, rather than that write fact.\n        assert_eq!(\n            OFlag::from_bits_truncate(fcntl(&slave, FcntlArg::F_GETFL).unwrap()),\n            flags\n        );\n        let master_flags = OFlag::from_bits_truncate(fcntl(&master, FcntlArg::F_GETFL).unwrap());\n        fcntl(&master, FcntlArg::F_SETFL(master_flags | OFlag::O_NONBLOCK)).unwrap();\n        let mut visible = Vec::new();\n        let mut bytes = [0; 1024];\n        loop {\n            match master.read(&mut bytes) {\n                Ok(0) => break,\n                Ok(count) => {\n                    visible.extend_from_slice(&bytes[..count]);\n                    assert!(visible.len() <= 1024);\n                }\n                Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => break,\n                Err(error) => panic!(\"Cannot inspect synthetic terminal output: {error}\"),\n            }\n        }\n        let visible = String::from_utf8(visible).unwrap();\n        assert_eq!(visible, \"TYPESAFE_API_KEY (hidden): \");\n        assert!(!visible.contains(\"hidden-key-sentinel\"));\n    }\n"
+    },
+    {
+      "name": "invitation_panic_restores_terminal_and_descriptor_flags",
+      "path": "rust/crates/claude-autorouter/src/secret_input.rs",
+      "line": 309,
+      "sha256": "4428dbbdfd1b0cfb6be9309de0236b62ef3c7abd2d932274851da9c788a650e3",
+      "fragment": "    async fn invitation_panic_restores_terminal_and_descriptor_flags() {\n        let pair = openpty(None, None).unwrap();\n        let _master = File::from(pair.master);\n        let slave = File::from(pair.slave);\n        let terminal = tcgetattr(&slave).unwrap();\n        let flags = OFlag::from_bits_truncate(fcntl(&slave, FcntlArg::F_GETFL).unwrap());\n        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {\n            prepare_input(\n                Input {\n                    file: slave.try_clone().unwrap(),\n                    flags,\n                    terminal: Some(terminal.clone()),\n                },\n                || panic!(\"synthetic invitation failed\"),\n            )\n        }));\n        assert!(result.is_err());\n        let restored = tcgetattr(&slave).unwrap();\n        assert_eq!(\n            restored.local_flags.difference(LocalFlags::PENDIN),\n            terminal.local_flags.difference(LocalFlags::PENDIN)\n        );\n        assert_eq!(restored.input_flags, terminal.input_flags);\n        assert_eq!(restored.output_flags, terminal.output_flags);\n        assert_eq!(restored.control_flags, terminal.control_flags);\n        assert_eq!(restored.control_chars, terminal.control_chars);\n        assert_eq!(fcntl(&slave, FcntlArg::F_GETFL).unwrap(), flags.bits());\n    }\n"
+    }
+  ],
+  "native_check": {
+    "result": {
+      "path": "artifacts/rust-rewrite/completion-20261013-portable-local-focused-1/secret-input-2.json",
+      "bytes": 539,
+      "sha256": "e3720381ec21b6d234620d8cf840c6ffdad9927958a340b6829d092ff97f5630"
+    },
+    "record": {
+      "command": [
+        "../artifacts/dev-environment/run",
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "claude-autorouter",
+        "secret_input::",
+        "--",
+        "--nocapture"
+      ],
+      "exit_code": 0,
+      "scope": "deterministic_owned_real_pty_only",
+      "sandbox": "pty_control_escalation",
+      "provider_calls": 0,
+      "production_behavior_changed": false,
+      "initial_failure_retained": "secret-input-1.json",
+      "correction_evidence": "artifacts/rust-rewrite/hidden-prompt-write-marker-20261013-1.json",
+      "numerical_measurements": false
+    },
+    "log": {
+      "path": "artifacts/rust-rewrite/completion-20261013-portable-local-focused-1/secret-input-2.log",
+      "bytes": 3095,
+      "sha256": "d957f72820f8322d3c35b96af1ea74753e1c0cd8e3b0c00f8f2edcaa13982556"
+    }
+  },
+  "initial_failed_check": {
+    "result": {
+      "path": "artifacts/rust-rewrite/completion-20261013-portable-local-focused-1/secret-input-1.json",
+      "bytes": 313,
+      "sha256": "a13dfd90ead259e0fb97b1bda4d709aae8bbe5b96909332248addb6192e6b587"
+    },
+    "record": {
+      "command": [
+        "../artifacts/dev-environment/run",
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "claude-autorouter",
+        "secret_input",
+        "--",
+        "--nocapture"
+      ],
+      "exit_code": 101,
+      "scope": "deterministic_real_owned_pty_only",
+      "provider_calls": 0,
+      "numerical_measurements": false
+    },
+    "log": {
+      "path": "artifacts/rust-rewrite/completion-20261013-portable-local-focused-1/secret-input-1.log",
+      "bytes": 3192,
+      "sha256": "8da544d814ab165a177632a0489c7885e72919ce65f2111d2e97f682149d2152"
+    }
+  },
+  "test_correction": {
+    "control": {
+      "path": "artifacts/rust-rewrite/hidden-prompt-write-marker-20261013-1.json",
+      "sha256": "a3b89f0e1467a64bcd2aa4940b7e7749b231712c3928388e41aba2f31e2a768a",
+      "bytes": 308
+    },
+    "primary_source": "https://github.com/apple/darwin-xnu/blob/main/bsd/sys/fcntl.h",
+    "meaning": "Writing the actual PTY invitation sets the Darwin kernel-only FWASWRITTEN bit. The write-only control reproduces2->65538 without Tokio/kqueue and proves F_SETFL cannot clear that marker. Compare all public OFlag values including O_NONBLOCK, with exact termios restoration and real output unchanged."
+  },
+  "implementation_change": "Move the unchanged terminal preparation syscalls and invitation into a private shared operation. Production uses the same invitation, stdin modes, signal handling, bounded editor and restoration. No public callback API or settings change.",
+  "native_interface_adaptation": "Source uses a mock PassThrough isRaw property and writer; native exercises actual owned PTY/file attributes inside the invitation callback of the ordinary private preparation operation. Its real master output must be exactly the invitation and contain no synthetic secret.",
+  "independent_review": "Distribution reviewer checked ordering, actual PTY output and invitation-panic Input/AsyncFd Drop restoration.",
+  "remaining": [],
+  "scope_limits": [
+    "Focused current-host synthetic PTYs and frozen source callback only; shipping/archive and broader platform qualification remain separate.",
+    "Retained earlier broad-filter failures include sandbox loopback denials and the raw kernel-marker comparison; subsequent exact six tests and strict CLI Clippy pass."
+  ]
+}

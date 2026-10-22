@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "kind": "original_router51_count_start_qualification",
+  "date": "2026-10-15",
+  "only_definition": "test/router.test.mjs#51",
+  "mapping": {
+    "path": "rust/parity/assertion-mappings/router-count-start-contracts.json",
+    "bytes": 9013,
+    "sha256": "e1d6e34fa7b9ff1e41cd4d40b90b1b090a92672c24faf01fafcaf0c5c3df1e21"
+  },
+  "source_original": {
+    "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+    "frozen_test_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+    "node_version": "v22.14.0",
+    "focused_test_passed": true,
+    "assertion_sites": 3,
+    "negative_no_count_variants": 2,
+    "stderr_empty": true,
+    "execution": {
+      "path": "artifacts/rust-rewrite/router51-promotion-20261015-1/source-execution.json",
+      "bytes": 1080,
+      "sha256": "667f2c3ee2c3ed5292a438ee4e3074243706bd1850fa12786b075cb44a3db179"
+    }
+  },
+  "native": {
+    "router_source": {
+      "path": "rust/crates/autorouter-runtime/src/router.rs",
+      "bytes": 38436,
+      "sha256": "39b425d6e624f5d0787ea388b6d2bec3ee06c99f7d1d2a932f8757d6ce6138f8"
+    },
+    "workspace_log": {
+      "path": "artifacts/rust-rewrite/router-count-full-workspace-20261015-1/cargo-test.log",
+      "bytes": 141612,
+      "sha256": "50f528b55b0070fb3669f0be434612292d525f504d55a388737ebc02d4592a45"
+    },
+    "workspace_test_groups": 63,
+    "workspace_passed": 1274,
+    "workspace_failed": 0,
+    "workspace_ignored": 9,
+    "named_tests_passed": [
+      "router::tests::count_starts_before_evaluator_and_keeps_both_responses_concurrent",
+      "router::tests::cancellation_before_count_first_poll_never_starts_evaluator_and_releases_slot",
+      "router::contracts::small_and_large_hard_locked_requests_never_start_count_transport",
+      "frozen_router_instances_match_complete_policy_schedules_and_pure_calls"
+    ],
+    "scope": "Actual native Router with synthetic transport, original-shaped160K system text, Haiku source model and40000 count response; count request is admitted before evaluator and both responses overlap. Existing original replay checks tiny and enabled-thinking hard lock issue no count transport."
+  },
+  "native_API_review": {
+    "preserved": "For the admitted suspicious input, count starts before evaluation; the Haiku result is retained. Tiny and hard-locked requests skip count.",
+    "migration": "Source immediately invokes caller-owned countTokens callback before fetchImpl. Rust polls its owned TokenCounter future before Classifier::classify, using a one-shot start acknowledgement. No callback/Promise object identity is claimed.",
+    "capacity_limit": "Bounded advisory-capacity exhaustion may skip speculative count and classify first; the original definition does not exercise saturation. No universal order claim is made.",
+    "performance_limit": "This handshake places first-poll serialization/cache work before evaluator admission. The unchanged speed gates remain unmeasured for this source."
+  },
+  "coverage_effect": {
+    "before": {
+      "covered": 527,
+      "partial": 61,
+      "pending": 0
+    },
+    "after": {
+      "covered": 528,
+      "partial": 60,
+      "pending": 0
+    }
+  },
+  "release_platform_performance_or_full_goal_approved": false
+}

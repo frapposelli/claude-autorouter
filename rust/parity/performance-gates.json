@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "source_plan": "docs/rust-rewrite-plan.md",
+  "status": "declared_unmeasured",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "rules": [
+    "Freeze the workload, hardware, noise floor and measurement settings before recording Rust candidates.",
+    "Retain all reports, source and fixture hashes, failing outcomes and unchanged thresholds.",
+    "These investment targets are local opt-in measurements, not ordinary CI timing gates.",
+    "Do not substitute V8 heap for whole-process RSS or compare Rust pure calls against Node HTTP/process latency.",
+    "No model downloads, real evaluator calls or live Claude requests are part of the deterministic driver.",
+    "Model inference time and completed-task quality remain separate from local gateway overhead."
+  ],
+  "measurement_settings": {
+    "repetitions_minimum": 5,
+    "ordering": "paired alternating Node/Rust",
+    "concurrency": [
+      1,
+      8,
+      32,
+      128
+    ],
+    "warmup_samples": 200,
+    "measured_samples": 2000,
+    "absolute_noise_floor_ms": 0.5,
+    "power_and_load_conditions": "Record observed power source, low-power settings and load before/after each round. Uncontrolled developer-host runs are exploratory, cannot approve representative-hardware gate.",
+    "required_environment": [
+      "source_commit",
+      "fixture_sha256",
+      "runtime_or_compiler",
+      "build_profile",
+      "cpu",
+      "os",
+      "architecture",
+      "memory_bytes",
+      "power_mode",
+      "worker_count",
+      "background_load"
+    ],
+    "null_means": "Not yet measured or ratified; a comparison must refuse to claim acceptance until specified.",
+    "startup_warmup_samples": 10,
+    "startup_measured_samples": 100,
+    "http_percentiles": "nearest rank independently per round; 2000 observations include 20 observations in upper one percent",
+    "uncertainty": "5000 deterministic paired bootstrap resamples over five matched rounds; report 95% interval of median paired metric difference or ratio; no removal of outliers",
+    "rss_sampling_ms": 100,
+    "idle_settle_ms": 200,
+    "note": "Frozen before first Rust implementation timing on 2026-10-09; changes require a new protocol version and new Node baseline."
+  },
+  "gates": [
+    {
+      "id": "functional_resource_parity",
+      "metric": "unexplained_differential_mismatches",
+      "maximum": 0,
+      "status": "pending"
+    },
+    {
+      "id": "help_version_status_startup",
+      "metric": "cold_process_median_ms",
+      "candidate_over_baseline_maximum": 0.5,
+      "status": "unmeasured"
+    },
+    {
+      "id": "gateway_idle_memory",
+      "metric": "idle_rss_bytes",
+      "candidate_over_baseline_maximum": 0.6,
+      "status": "unmeasured"
+    },
+    {
+      "id": "gateway_peak_memory",
+      "metric": "large_request_concurrent_peak_rss_bytes",
+      "candidate_over_baseline_maximum": 0.7,
+      "status": "unmeasured"
+    },
+    {
+      "id": "local_cpu",
+      "metric": "cpu_time_per_request_ms",
+      "candidate_over_baseline_maximum": 0.7,
+      "status": "unmeasured"
+    },
+    {
+      "id": "large_catalog_processing",
+      "metric": "gateway_processing_p95_ms_immediate_mocks",
+      "candidate_over_baseline_maximum": 0.5,
+      "status": "unmeasured"
+    },
+    {
+      "id": "latency_nonregression",
+      "metric": "declared_workload_p95_and_p99_ms",
+      "candidate_over_baseline_maximum": 1.1,
+      "outside_measurement_uncertainty": true,
+      "requires_absolute_noise_floor": true,
+      "status": "unmeasured"
+    },
+    {
+      "id": "throughput_nonregression",
+      "metric": "sustained_requests_per_second_at_fixed_load",
+      "candidate_over_baseline_minimum": 0.9,
+      "outside_measurement_uncertainty": true,
+      "status": "unmeasured"
+    },
+    {
+      "id": "evaluator_policy_parity",
+      "metric": "mocked_input_rubric_policy_and_required_call_counts",
+      "maximum_mismatches": 0,
+      "status": "pending"
+    }
+  ],
+  "real_evaluator_policy": {
+    "status": "unmeasured_opt_in",
+    "preserve": [
+      "fixture_hashes",
+      "rubric",
+      "model_identity",
+      "input_contract",
+      "absolute_quality_thresholds"
+    ],
+    "report_separately": [
+      "availability",
+      "rubric_agreement",
+      "under_routing",
+      "policy",
+      "tier_coverage",
+      "transport",
+      "independently_verified_task_completion"
+    ],
+    "inherited_failures": "Existing experimental Ollama absolute quality failures remain failed and visible; matching them does not require relabeling fixtures or changing the model/rubric to complete the language port.",
+    "candidate_gate": "No unexplained regression under a comparison policy declared before matched real runs. No current-provider claim follows from synthetic parity."
+  }
+}

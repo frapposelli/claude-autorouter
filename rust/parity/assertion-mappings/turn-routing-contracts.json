@@ -1,0 +1,754 @@
+{
+  "schema_version": 1,
+  "kind": "turn_routing_contracts_assertion_mapping",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "source_head": "2166cdf4c845354cdd0e0a24079f8d6cc68b399a",
+  "status": "reviewed_complete_definitions_5_6_15_16",
+  "scope": "Complete async Router counterparts of frozen turn-state definitions5,6,15,16. Actual classifier, routing and completion implementations with original synthetic transport answers.",
+  "counts": {
+    "definitions": 4,
+    "static_assertions": 19,
+    "expanded_original_assertions": 19,
+    "native_tests_passed": 4,
+    "unchanged_frozen_tests_passed": 4,
+    "original_router_instances": 4,
+    "original_routes": 13,
+    "original_completions": 11,
+    "original_evaluator_requests": 9,
+    "core_regression_tests_passed": 177
+  },
+  "current_sources": [
+    {
+      "path": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs",
+      "sha256": "596825a2835e186321c22bc27f3bd7f3fc7cd6a184f66e0aeee3875d2bd79edc",
+      "bytes": 8740
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/router.rs",
+      "sha256": "0e631096ab7fc92fc6325aa04ee0ae06c873bee5a1ce4fec73f865f3da3225e3",
+      "bytes": 18716
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+      "sha256": "f5e9bf5f36969ec89ddf1a9b91b7e83d4b4a74b460f60f8ddddd576dbfaad899",
+      "bytes": 32670
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/evaluator.rs",
+      "sha256": "a44198f1c62c7b4d45d1427bf67b673f8b0b252f97244354a0cfc66eb9933527",
+      "bytes": 44305
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/router.rs",
+      "sha256": "b8a711cb54812620b9ff79f928f95546b34fb34901574e6b564b7bb058e684aa",
+      "bytes": 46202
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/turn_state.rs",
+      "sha256": "167f4f1907bda193015293472611e3b4e7eebabb7b5c9cc75080e4d82ef76978",
+      "bytes": 27407
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/config.rs",
+      "sha256": "2b0987bf04315f2c505a26a14ecee9a38509f8ce9f68d4438db9b9ce4b9e91be",
+      "bytes": 25747
+    },
+    {
+      "path": "rust/Cargo.toml",
+      "sha256": "b6c2f0616a99a80ccb980b338bf42a0cf5210c2f16356c0231c8277db0fa33bb",
+      "bytes": 1942
+    },
+    {
+      "path": "rust/Cargo.lock",
+      "sha256": "35b5acfe78c08826cdc247c91b61ef079eba0d4c6a020a600d491fbaffa80bc3",
+      "bytes": 38341
+    },
+    {
+      "path": "rust/rust-toolchain.toml",
+      "sha256": "2ad6f15416572b4836585087f1d4abc53b8fa2dbd616f8dacfaa587ed6714228",
+      "bytes": 86
+    },
+    {
+      "path": "rust/docs/embedding.md",
+      "sha256": "0209affa0aa70d291c8074d2244b5341c76e9b96adda67d60cef981df0613d70",
+      "bytes": 5648
+    },
+    {
+      "path": "rust/parity/capture-turn-routing-contracts.mjs",
+      "sha256": "8797380eec0c955b4834d0b0ea6ee26ba11b89865e6df7268d992a66d4e16d7e",
+      "bytes": 18380
+    },
+    {
+      "path": "rust/parity/cases/turn-routing-contracts.capture.json",
+      "sha256": "071ed1b1ba22c54021e61d0bca931fa8ad0baf9eac2ed1bc41c490c06db3fe18",
+      "bytes": 188769
+    }
+  ],
+  "retained_sources": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/596825a2835e186321c22bc27f3bd7f3fc7cd6a184f66e0aeee3875d2bd79edc.rs",
+      "sha256": "596825a2835e186321c22bc27f3bd7f3fc7cd6a184f66e0aeee3875d2bd79edc",
+      "bytes": 8740,
+      "original_path": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/0e631096ab7fc92fc6325aa04ee0ae06c873bee5a1ce4fec73f865f3da3225e3.rs",
+      "sha256": "0e631096ab7fc92fc6325aa04ee0ae06c873bee5a1ce4fec73f865f3da3225e3",
+      "bytes": 18716,
+      "original_path": "rust/crates/autorouter-runtime/src/router.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/f5e9bf5f36969ec89ddf1a9b91b7e83d4b4a74b460f60f8ddddd576dbfaad899.rs",
+      "sha256": "f5e9bf5f36969ec89ddf1a9b91b7e83d4b4a74b460f60f8ddddd576dbfaad899",
+      "bytes": 32670,
+      "original_path": "rust/crates/autorouter-runtime/src/classifier.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/a44198f1c62c7b4d45d1427bf67b673f8b0b252f97244354a0cfc66eb9933527.rs",
+      "sha256": "a44198f1c62c7b4d45d1427bf67b673f8b0b252f97244354a0cfc66eb9933527",
+      "bytes": 44305,
+      "original_path": "rust/crates/autorouter-runtime/src/evaluator.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/b8a711cb54812620b9ff79f928f95546b34fb34901574e6b564b7bb058e684aa.rs",
+      "sha256": "b8a711cb54812620b9ff79f928f95546b34fb34901574e6b564b7bb058e684aa",
+      "bytes": 46202,
+      "original_path": "rust/crates/autorouter-core/src/router.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/167f4f1907bda193015293472611e3b4e7eebabb7b5c9cc75080e4d82ef76978.rs",
+      "sha256": "167f4f1907bda193015293472611e3b4e7eebabb7b5c9cc75080e4d82ef76978",
+      "bytes": 27407,
+      "original_path": "rust/crates/autorouter-core/src/turn_state.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/2b0987bf04315f2c505a26a14ecee9a38509f8ce9f68d4438db9b9ce4b9e91be.rs",
+      "sha256": "2b0987bf04315f2c505a26a14ecee9a38509f8ce9f68d4438db9b9ce4b9e91be",
+      "bytes": 25747,
+      "original_path": "rust/crates/autorouter-core/src/config.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/b6c2f0616a99a80ccb980b338bf42a0cf5210c2f16356c0231c8277db0fa33bb.toml",
+      "sha256": "b6c2f0616a99a80ccb980b338bf42a0cf5210c2f16356c0231c8277db0fa33bb",
+      "bytes": 1942,
+      "original_path": "rust/Cargo.toml"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/35b5acfe78c08826cdc247c91b61ef079eba0d4c6a020a600d491fbaffa80bc3.lock",
+      "sha256": "35b5acfe78c08826cdc247c91b61ef079eba0d4c6a020a600d491fbaffa80bc3",
+      "bytes": 38341,
+      "original_path": "rust/Cargo.lock"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/2ad6f15416572b4836585087f1d4abc53b8fa2dbd616f8dacfaa587ed6714228.toml",
+      "sha256": "2ad6f15416572b4836585087f1d4abc53b8fa2dbd616f8dacfaa587ed6714228",
+      "bytes": 86,
+      "original_path": "rust/rust-toolchain.toml"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/0209affa0aa70d291c8074d2244b5341c76e9b96adda67d60cef981df0613d70.md",
+      "sha256": "0209affa0aa70d291c8074d2244b5341c76e9b96adda67d60cef981df0613d70",
+      "bytes": 5648,
+      "original_path": "rust/docs/embedding.md"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/8797380eec0c955b4834d0b0ea6ee26ba11b89865e6df7268d992a66d4e16d7e.mjs",
+      "sha256": "8797380eec0c955b4834d0b0ea6ee26ba11b89865e6df7268d992a66d4e16d7e",
+      "bytes": 18380,
+      "original_path": "rust/parity/capture-turn-routing-contracts.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/071ed1b1ba22c54021e61d0bca931fa8ad0baf9eac2ed1bc41c490c06db3fe18.json",
+      "sha256": "071ed1b1ba22c54021e61d0bca931fa8ad0baf9eac2ed1bc41c490c06db3fe18",
+      "bytes": 188769,
+      "original_path": "rust/parity/cases/turn-routing-contracts.capture.json"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/ca12a7fb0f7de06a7c92b9491fc6922dabae001097c2c5d79d27886fb5b53485.json",
+      "sha256": "ca12a7fb0f7de06a7c92b9491fc6922dabae001097c2c5d79d27886fb5b53485",
+      "bytes": 1637,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-1/native-1-inputs.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/295cbeb5a32d1bd818d0306d1a377d67b22c9d00606a757739eb1f7953b7abaf.json",
+      "sha256": "295cbeb5a32d1bd818d0306d1a377d67b22c9d00606a757739eb1f7953b7abaf",
+      "bytes": 2196,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-1/native-1.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/f83bcfcde918960f2fe397b855e9b9970bba77126406e8394e369e9cd2055be4.log",
+      "sha256": "f83bcfcde918960f2fe397b855e9b9970bba77126406e8394e369e9cd2055be4",
+      "bytes": 1381,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-1/native-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/c7d8968c0fee0eb71fb440015fcd65c4c43bdb6b481908e46f16dc7432c9bf36.log",
+      "sha256": "c7d8968c0fee0eb71fb440015fcd65c4c43bdb6b481908e46f16dc7432c9bf36",
+      "bytes": 17717,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-1/core-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/f6580f08f29e5538eebbea963e6ec0de77a1ea7c5937eec01f69f6e6c4bf3dd3.log",
+      "sha256": "f6580f08f29e5538eebbea963e6ec0de77a1ea7c5937eec01f69f6e6c4bf3dd3",
+      "bytes": 2688,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-1/clippy-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/31b5a71b938f6e793a06a85ed2b33011d3f6ae6a4cd5865a7de0e6a2434e080b.json",
+      "sha256": "31b5a71b938f6e793a06a85ed2b33011d3f6ae6a4cd5865a7de0e6a2434e080b",
+      "bytes": 925,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-1/checks-1.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/170bb6e1ae27e6122a5d37a68f99b6693bfcf6918d25605451c6899dc8c1c88e.log",
+      "sha256": "170bb6e1ae27e6122a5d37a68f99b6693bfcf6918d25605451c6899dc8c1c88e",
+      "bytes": 678,
+      "original_path": "artifacts/rust-rewrite/buffered-clippy-draft-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/fa433ee04405fe8c31897ae3850a7d358ca18adddd976c9b881a19a74c1ba3f3.json",
+      "sha256": "fa433ee04405fe8c31897ae3850a7d358ca18adddd976c9b881a19a74c1ba3f3",
+      "bytes": 5333,
+      "original_path": "/private/tmp/autorouter-turn-routing-capture-report.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/cf0a5f31d510e011496765d1a9797c66f2564a63ed78016475516b9df3f8f82b.json",
+      "sha256": "cf0a5f31d510e011496765d1a9797c66f2564a63ed78016475516b9df3f8f82b",
+      "bytes": 2662,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-controls-1/report.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/3fb3c14630755b68cbe78fbdf03846c963fb423309016ab7fe5d3e62ae03d4a5.log",
+      "sha256": "3fb3c14630755b68cbe78fbdf03846c963fb423309016ab7fe5d3e62ae03d4a5",
+      "bytes": 1073,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-controls-1/stdout.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-controls-1/stderr.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/e6cd8ad39a194fca7ac99e9f8942a6cce74be7de495b59ef59d90baaae075523.mjs",
+      "sha256": "e6cd8ad39a194fca7ac99e9f8942a6cce74be7de495b59ef59d90baaae075523",
+      "bytes": 18083,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-capture-1/capture-source.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/9c8fc49349de331c05d4ddff025f45e17d3e557519f81a72b7955d197f9ffd91.json",
+      "sha256": "9c8fc49349de331c05d4ddff025f45e17d3e557519f81a72b7955d197f9ffd91",
+      "bytes": 188769,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-capture-1/turn-routing-contracts.capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/1717b48d2d0426f2ba2bcac513a239a33267ab90e2896a4050dafd4bb5913423.json",
+      "sha256": "1717b48d2d0426f2ba2bcac513a239a33267ab90e2896a4050dafd4bb5913423",
+      "bytes": 5096,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-capture-1/turn-routing-contracts.observations.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/8797380eec0c955b4834d0b0ea6ee26ba11b89865e6df7268d992a66d4e16d7e.mjs",
+      "sha256": "8797380eec0c955b4834d0b0ea6ee26ba11b89865e6df7268d992a66d4e16d7e",
+      "bytes": 18380,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-capture-2/capture-source.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/071ed1b1ba22c54021e61d0bca931fa8ad0baf9eac2ed1bc41c490c06db3fe18.json",
+      "sha256": "071ed1b1ba22c54021e61d0bca931fa8ad0baf9eac2ed1bc41c490c06db3fe18",
+      "bytes": 188769,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-capture-2/turn-routing-contracts.capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/96a61ab1952ac36fc17500b2afb51f6ceda96ef080fcbfb08348fbfa97a5c282.json",
+      "sha256": "96a61ab1952ac36fc17500b2afb51f6ceda96ef080fcbfb08348fbfa97a5c282",
+      "bytes": 5100,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-capture-2/turn-routing-contracts.observations.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/8797380eec0c955b4834d0b0ea6ee26ba11b89865e6df7268d992a66d4e16d7e.mjs",
+      "sha256": "8797380eec0c955b4834d0b0ea6ee26ba11b89865e6df7268d992a66d4e16d7e",
+      "bytes": 18380,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-capture-3/capture-source.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/071ed1b1ba22c54021e61d0bca931fa8ad0baf9eac2ed1bc41c490c06db3fe18.json",
+      "sha256": "071ed1b1ba22c54021e61d0bca931fa8ad0baf9eac2ed1bc41c490c06db3fe18",
+      "bytes": 188769,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-capture-3/turn-routing-contracts.capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/361c52cef1be8716ac1d13e16da10e22cd88745f36ca6326b4302faf68353128.json",
+      "sha256": "361c52cef1be8716ac1d13e16da10e22cd88745f36ca6326b4302faf68353128",
+      "bytes": 5099,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-capture-3/turn-routing-contracts.observations.json"
+    }
+  ],
+  "native_binary": {
+    "path": "artifacts/rust-rewrite/turn-routing-contracts-1/native-tests",
+    "sha256": "9df8e0e3197eeed3b87a9342e456557bb911a016ca4136e18e91ddec2a55c812",
+    "bytes": 95580960,
+    "compiled_path": "rust/target/debug/deps/autorouter_runtime-ad757a078c452f8d",
+    "scope": "Copied focused unit-test executable; full unrelated source provenance not claimed."
+  },
+  "review": {
+    "capture_author": {
+      "path": "artifacts/rust-rewrite/evidence/fa433ee04405fe8c31897ae3850a7d358ca18adddd976c9b881a19a74c1ba3f3.json",
+      "sha256": "fa433ee04405fe8c31897ae3850a7d358ca18adddd976c9b881a19a74c1ba3f3",
+      "bytes": 5333,
+      "original_path": "/private/tmp/autorouter-turn-routing-capture-report.json"
+    },
+    "independent": {
+      "path": "artifacts/rust-rewrite/evidence/60028931e70daa82563a1cc14cdce5ea38225dddb89e45767b0444a63eaf42a8.json",
+      "sha256": "60028931e70daa82563a1cc14cdce5ea38225dddb89e45767b0444a63eaf42a8",
+      "bytes": 16212,
+      "original_path": "/private/tmp/autorouter-turn-routing-independent-review.json"
+    },
+    "reviewed_draft": {
+      "path": "artifacts/rust-rewrite/evidence/a610c92a245ff00a6849228ca4403734d5885a32ad544d1c7a63ec1f4ebbbc45.json",
+      "sha256": "a610c92a245ff00a6849228ca4403734d5885a32ad544d1c7a63ec1f4ebbbc45",
+      "bytes": 44467,
+      "original_path": "rust/parity/assertion-mappings/turn-routing-contracts.json"
+    }
+  },
+  "production_change": {
+    "contract": "RouterConfig::turn_entries: Option<usize>, the native equivalent of the existing optional JavaScript RouterConfig.turnEntries.",
+    "constructor": "PolicyRouter::new applies Some(limit) to actual task and pending-attempt capacity; None retains1000.",
+    "serialization": "None is omitted; Some uses camelCase turnEntries. CLI read_config initializes None and adds no environment/file setting.",
+    "regression": "Definition6 configures capacity1 through the actual RouterConfig and checks rejected admission, unchanged counters and retained confirmed tool owner."
+  },
+  "adaptations": [
+    "Native cancellation-free route options use owned strings and Option request IDs; absent prompt IDs use the same empty-string identity and omitted completion evidence uses Value::Null.",
+    "Original JavaScript undefined configuration fields remain absent optional Rust fields. Default serialized configurations are checked by the existing core router-contract corpus.",
+    "The advanced clock value in definition5 is retained. The frozen Node schedule actually reads its injected clock zero times because tasks remain active or pending; native boundary clock-read counts differ and are not asserted equivalent.",
+    "Native mock implements the typed HTTP transport and returns the unchanged original confidence/tier JSON. No provider network calls, token-count function or classifier verdict stubs are used.",
+    "Original internal record/attempt/tool-owner observations use the equivalent core TurnState accessors through the native router policy lock."
+  ],
+  "limits": [
+    "Definition5 proves active continuity under its advanced-clock schedule; it does not exercise a retired-task expiration branch or establish timing parity.",
+    "The capture retains13 complete reference decisions and9 evaluator calls, but these additional fields are not all native differential assertions. Coverage rests on the19 original assertions and complete counterpart operation order.",
+    "Focused native checks bind10 relevant inputs and a copied executable, not a full-workspace source-to-binary freeze. Concurrent buffered transport edits are separate.",
+    "Initial scoped Clippy failed on two unrelated buffered-body style diagnostics. The failure is retained; subsequent strict runtime all-target Clippy passed after owner fixes.",
+    "Integer Option<usize> is the typed Rust embedding contract; arbitrary JavaScript values outside valid capacity counts are not newly qualified.",
+    "No full transport, provider, performance, platform, installed-archive or cutover gate is completed by this mapping."
+  ],
+  "rows": [
+    {
+      "id": "test/turn-state.test.mjs#5",
+      "file": "test/turn-state.test.mjs",
+      "name": "gateway routing commits actual provider fallback, retains it after expiry, then permits a new task to downgrade",
+      "line": 63,
+      "baseline_file_sha256": "b45c17653af3a172537d1f7dc62ff4acc5b4ddb7103a221e606ab74979cbffcb",
+      "definition_statement": "test('gateway routing commits actual provider fallback, retains it after expiry, then permits a new task to downgrade', async () => {\n  const config = { ...readConfig({ AUTOROUTER_EVALUATOR: 'jev' }), cacheEntries: 1, turnTtlMs: 1 };\n  let now = 0;\n  const router = new Router(config, { now: () => now,\n    fetchImpl: async () => Response.json({ answers: { tier: { choice: 'haiku', confidence: 0.99 } } }) });\n  const body = { model: config.models.haiku, messages: [{ role: 'user', content: 'Read and fix fixture' }], max_tokens: 1024 };\n  const identity = { scope: 'session/agent', promptId: 'task' };\n  await router.route(body, { ...identity, requestId: 'initial' });\n  router.complete('initial', done(config.models.opus, [{ id: 'read', model: config.models.opus }]));\n  now = 1000000;\n  const continuation = { ...body, messages: [...body.messages,\n    { role: 'assistant', content: [{ type: 'tool_use', id: 'read', name: 'Read', input: {} }] },\n    { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'read', content: 'File' }] },\n  ] };\n  const next = await router.route(continuation, { ...identity, requestId: 'next' });\n  assert.equal(next.model, config.models.opus);\n  assert.equal(next.continuity_state, 'confirmed');\n  router.complete('next', done(config.models.opus));\n  const fresh = await router.route({ ...continuation, messages: [...continuation.messages,\n    { role: 'assistant', content: 'Finished' }, { role: 'user', content: 'Return [].length' },\n  ] }, { scope: identity.scope, promptId: 'fresh', requestId: 'fresh' });\n  assert.equal(fresh.model, config.models.haiku);\n  router.complete('fresh');\n});",
+      "definition_sha256": "4117754d6a4859bf7e3285b99b40385762b7563b7decc04f432a7dfc184c3a3a",
+      "definition_call_sha256": "2743f96bd754163cb0d484aadc72e27675aace5e6e7c85e562fecf3ebfa2a2e0",
+      "static_assertions": 3,
+      "expanded_original_assertions": 3,
+      "native_tests": [
+        "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_provider_fallback_survives_expiry_and_new_task_can_downgrade"
+      ],
+      "assertions": [
+        {
+          "id": "test/turn-state.test.mjs#5:assert-1",
+          "line": 78,
+          "expression": "assert.equal(next.model, config.models.opus)",
+          "sha256": "13b43d0cd41fa561fe6d4a389cacc62ac6c5760a35fae50782f17dc9ed7524b2",
+          "expanded_executions": 1,
+          "native_test": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_provider_fallback_survives_expiry_and_new_task_can_downgrade",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs",
+            "line": 111,
+            "source_fragment": "assert_eq!(next[\"model\"], config.models.opus);"
+          },
+          "status": "covered",
+          "remaining": []
+        },
+        {
+          "id": "test/turn-state.test.mjs#5:assert-2",
+          "line": 79,
+          "expression": "assert.equal(next.continuity_state, 'confirmed')",
+          "sha256": "ff35e9ecc88538381fc7379697d332ece44f16810b8cc0815517b5f39ae94ff5",
+          "expanded_executions": 1,
+          "native_test": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_provider_fallback_survives_expiry_and_new_task_can_downgrade",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs",
+            "line": 112,
+            "source_fragment": "assert_eq!(next[\"continuity_state\"], \"confirmed\");"
+          },
+          "status": "covered",
+          "remaining": []
+        },
+        {
+          "id": "test/turn-state.test.mjs#5:assert-3",
+          "line": 84,
+          "expression": "assert.equal(fresh.model, config.models.haiku)",
+          "sha256": "f1a0262a37c8bbb27221f9562d6e3f95ba30e115e773ec0c576ed2f1daba4ef3",
+          "expanded_executions": 1,
+          "native_test": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_provider_fallback_survives_expiry_and_new_task_can_downgrade",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs",
+            "line": 118,
+            "source_fragment": "assert_eq!(fresh[\"model\"], config.models.haiku);"
+          },
+          "status": "covered",
+          "remaining": []
+        }
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/turn-state.test.mjs#6",
+      "file": "test/turn-state.test.mjs",
+      "name": "unknown safeguards report rejected turn admission without replacing active continuity",
+      "line": 88,
+      "baseline_file_sha256": "b45c17653af3a172537d1f7dc62ff4acc5b4ddb7103a221e606ab74979cbffcb",
+      "definition_statement": "test('unknown safeguards report rejected turn admission without replacing active continuity', async () => {\n  const config = { ...readConfig({ AUTOROUTER_EVALUATOR: 'jev' }), turnEntries: 1 };\n  let evaluatorCalls = 0;\n  const router = new Router(config, { fetchImpl: async () => {\n    evaluatorCalls++;\n    return Response.json({ answers: { tier: { choice: 'opus', confidence: 0.99 } } });\n  } });\n  const initial = { model: config.models.haiku, messages: [{ role: 'user', content: 'Investigate a fixture' }] };\n  await router.route(initial, { scope: 'occupied', promptId: 'first', requestId: 'first' });\n  router.complete('first', done(config.models.opus, [{ id: 'pending', model: config.models.opus }]));\n  const protectedBody = { ...initial, safeguards: [{ type: 'future_contract' }] };\n  const next = await router.route(protectedBody, { scope: 'other', promptId: 'other', requestId: 'other' });\n  assert.equal(next.model, protectedBody.model);\n  assert.equal(next.source, 'passthrough');\n  assert.equal(next.continuity_state, 'capacity_exhausted');\n  assert.equal(evaluatorCalls, 1);\n  assert.equal(router.turns.records.size, 1);\n  assert.equal(router.turns.attempts.size, 0);\n  const continuation = { ...initial, messages: [...initial.messages,\n    { role: 'assistant', content: [{ type: 'tool_use', id: 'pending', name: 'Read', input: {} }] },\n    { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'pending', content: 'fixture' }] },\n  ] };\n  const retained = await router.route(continuation, { scope: 'occupied', promptId: 'first', requestId: 'retained' });\n  assert.equal(retained.model, config.models.opus);\n  assert.equal(retained.continuity_state, 'confirmed');\n  router.complete('retained');\n});",
+      "definition_sha256": "8c8b829d85ab8cf75d13de12e329ba5f7a3adaea9550b8f15351d98e25f3655a",
+      "definition_call_sha256": "8be3ff32d8a60cbcd8da1149e595acc7dee1112121c762c9c2e9ef2e211e8528",
+      "static_assertions": 8,
+      "expanded_original_assertions": 8,
+      "native_tests": [
+        "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_unknown_safeguards_reject_admission_and_retain_active_continuity"
+      ],
+      "assertions": [
+        {
+          "id": "test/turn-state.test.mjs#6:assert-1",
+          "line": 100,
+          "expression": "assert.equal(next.model, protectedBody.model)",
+          "sha256": "0fe9ad498cfb909c0ec7611fa5c9194be6209174d3fdbe48d321e6a271163ab3",
+          "expanded_executions": 1,
+          "native_test": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_unknown_safeguards_reject_admission_and_retain_active_continuity",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs",
+            "line": 141,
+            "source_fragment": "assert_eq!(next[\"model\"], protected[\"model\"]);"
+          },
+          "status": "covered",
+          "remaining": []
+        },
+        {
+          "id": "test/turn-state.test.mjs#6:assert-2",
+          "line": 101,
+          "expression": "assert.equal(next.source, 'passthrough')",
+          "sha256": "58ee9d29d437c9fadb3ec26453d031636f3c4977ca16aaa4f04e5236a22b5ca2",
+          "expanded_executions": 1,
+          "native_test": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_unknown_safeguards_reject_admission_and_retain_active_continuity",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs",
+            "line": 142,
+            "source_fragment": "assert_eq!(next[\"source\"], \"passthrough\");"
+          },
+          "status": "covered",
+          "remaining": []
+        },
+        {
+          "id": "test/turn-state.test.mjs#6:assert-3",
+          "line": 102,
+          "expression": "assert.equal(next.continuity_state, 'capacity_exhausted')",
+          "sha256": "050bf595eddcc11c76312f52d2e27a2237ed858eb99c987477445a8746e1fc11",
+          "expanded_executions": 1,
+          "native_test": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_unknown_safeguards_reject_admission_and_retain_active_continuity",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs",
+            "line": 143,
+            "source_fragment": "assert_eq!(next[\"continuity_state\"], \"capacity_exhausted\");"
+          },
+          "status": "covered",
+          "remaining": []
+        },
+        {
+          "id": "test/turn-state.test.mjs#6:assert-4",
+          "line": 103,
+          "expression": "assert.equal(evaluatorCalls, 1)",
+          "sha256": "e82987b03b7a6b230e1d7ef0cc06d7ed0220a51367a23c8b2f93260b3b5c76aa",
+          "expanded_executions": 1,
+          "native_test": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_unknown_safeguards_reject_admission_and_retain_active_continuity",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs",
+            "line": 144,
+            "source_fragment": "assert_eq!(transport.calls.load(Ordering::SeqCst), 1);"
+          },
+          "status": "covered",
+          "remaining": []
+        },
+        {
+          "id": "test/turn-state.test.mjs#6:assert-5",
+          "line": 104,
+          "expression": "assert.equal(router.turns.records.size, 1)",
+          "sha256": "cf24d5451d6e07cf9d1a80e1ff7d9a23f082d3dcfbbadf6840a4e4e2b5e3b867",
+          "expanded_executions": 1,
+          "native_test": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_unknown_safeguards_reject_admission_and_retain_active_continuity",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs",
+            "line": 147,
+            "source_fragment": "assert_eq!(policy.turns.record_count(), 1);"
+          },
+          "status": "covered",
+          "remaining": []
+        },
+        {
+          "id": "test/turn-state.test.mjs#6:assert-6",
+          "line": 105,
+          "expression": "assert.equal(router.turns.attempts.size, 0)",
+          "sha256": "d60b4277f4871f05bed6e5fb8b0f81e6da9cb53a38e364ac2c680d34fb1be7b4",
+          "expanded_executions": 1,
+          "native_test": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_unknown_safeguards_reject_admission_and_retain_active_continuity",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs",
+            "line": 148,
+            "source_fragment": "assert_eq!(policy.turns.attempt_count(), 0);"
+          },
+          "status": "covered",
+          "remaining": []
+        },
+        {
+          "id": "test/turn-state.test.mjs#6:assert-7",
+          "line": 111,
+          "expression": "assert.equal(retained.model, config.models.opus)",
+          "sha256": "88873074dcc647591470fb7802ced49c9147f59e5157f933e693746bbd9abeb1",
+          "expanded_executions": 1,
+          "native_test": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_unknown_safeguards_reject_admission_and_retain_active_continuity",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs",
+            "line": 152,
+            "source_fragment": "assert_eq!(retained[\"model\"], config.models.opus);"
+          },
+          "status": "covered",
+          "remaining": []
+        },
+        {
+          "id": "test/turn-state.test.mjs#6:assert-8",
+          "line": 112,
+          "expression": "assert.equal(retained.continuity_state, 'confirmed')",
+          "sha256": "8f72cd441411f51390c3ad2408d5ee603e58d5f7edab1d78852610dd6e86126f",
+          "expanded_executions": 1,
+          "native_test": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_unknown_safeguards_reject_admission_and_retain_active_continuity",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs",
+            "line": 153,
+            "source_fragment": "assert_eq!(retained[\"continuity_state\"], \"confirmed\");"
+          },
+          "status": "covered",
+          "remaining": []
+        }
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/turn-state.test.mjs#15",
+      "file": "test/turn-state.test.mjs",
+      "name": "headerless continuations recover exact scoped tool ownership despite same-content tasks",
+      "line": 208,
+      "baseline_file_sha256": "b45c17653af3a172537d1f7dc62ff4acc5b4ddb7103a221e606ab74979cbffcb",
+      "definition_statement": "test('headerless continuations recover exact scoped tool ownership despite same-content tasks', async () => {\n  const config = readConfig({ AUTOROUTER_EVALUATOR: 'jev' });\n  const router = new Router(config, { fetchImpl: async () => Response.json({ answers: { tier: { choice: 'haiku', confidence: 0.99 } } }) });\n  const initial = { model: config.models.haiku, max_tokens: 1024, messages: [{ role: 'user', content: 'Read the file' }] };\n  for (const [promptId, model] of [['a', config.models.opus], ['b', config.models.haiku]]) {\n    await router.route(initial, { scope: 's', promptId, requestId: promptId });\n    router.complete(promptId, done(model, [{ id: `tool-${promptId}`, model }]));\n  }\n  const result = { ...initial, messages: [...initial.messages,\n    { role: 'assistant', content: [{ type: 'tool_use', id: 'tool-a', name: 'Read', input: {} }] },\n    { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'tool-a', content: 'File' }] },\n  ] };\n  const decision = await router.route(result, { scope: 's', requestId: 'continue' });\n  assert.equal(decision.model, config.models.opus);\n  assert.equal(decision.continuity_state, 'confirmed');\n  router.complete('continue', done(config.models.opus));\n  assert.equal((await router.route(result, { scope: 'different' })).continuity_state, 'unknown');\n});",
+      "definition_sha256": "29d46922a6d46ce1dffa9b9b24e0c7b1304ce152ecd973a3ff0b4f0aae98c9c6",
+      "definition_call_sha256": "39ae183daf715e3762945c6372b3b8f01d25c7576caa692a08f4815e503b5beb",
+      "static_assertions": 3,
+      "expanded_original_assertions": 3,
+      "native_tests": [
+        "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_headerless_continuation_recovers_scoped_tool_owner"
+      ],
+      "assertions": [
+        {
+          "id": "test/turn-state.test.mjs#15:assert-1",
+          "line": 221,
+          "expression": "assert.equal(decision.model, config.models.opus)",
+          "sha256": "3b9d1ffbd1abba3e60ea4c40d6071c648ba95bf8f5f36d29fea3cfc5350292ef",
+          "expanded_executions": 1,
+          "native_test": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_headerless_continuation_recovers_scoped_tool_owner",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs",
+            "line": 175,
+            "source_fragment": "assert_eq!(decision[\"model\"], config.models.opus);"
+          },
+          "status": "covered",
+          "remaining": []
+        },
+        {
+          "id": "test/turn-state.test.mjs#15:assert-2",
+          "line": 222,
+          "expression": "assert.equal(decision.continuity_state, 'confirmed')",
+          "sha256": "f113d5da2f8f0fbdc6eb5c1727303619238956d219df6c976d12458c68f2fad2",
+          "expanded_executions": 1,
+          "native_test": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_headerless_continuation_recovers_scoped_tool_owner",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs",
+            "line": 176,
+            "source_fragment": "assert_eq!(decision[\"continuity_state\"], \"confirmed\");"
+          },
+          "status": "covered",
+          "remaining": []
+        },
+        {
+          "id": "test/turn-state.test.mjs#15:assert-3",
+          "line": 224,
+          "expression": "assert.equal((await router.route(result, { scope: 'different' })).continuity_state, 'unknown')",
+          "sha256": "9de97d9b1b8bb6c042e9d5b3b75cab079fb3ccca41f0b66d6f55fda2937380b7",
+          "expanded_executions": 1,
+          "native_test": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_headerless_continuation_recovers_scoped_tool_owner",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs",
+            "line": 178,
+            "source_fragment": "assert_eq!(\n        route(&router, &result, \"different\", \"\", None).await[\"continuity_state\"],\n        \"unknown\"\n    );"
+          },
+          "status": "covered",
+          "remaining": []
+        }
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/turn-state.test.mjs#16",
+      "file": "test/turn-state.test.mjs",
+      "name": "ambiguous headerless continuity never stages an overwrite of either confirmed task",
+      "line": 227,
+      "baseline_file_sha256": "b45c17653af3a172537d1f7dc62ff4acc5b4ddb7103a221e606ab74979cbffcb",
+      "definition_statement": "test('ambiguous headerless continuity never stages an overwrite of either confirmed task', async () => {\n  const config = readConfig({ AUTOROUTER_EVALUATOR: 'jev' });\n  const router = new Router(config, { fetchImpl: async () => Response.json({ answers: { tier: { choice: 'haiku', confidence: 0.99 } } }) });\n  const initial = { model: config.models.haiku, messages: [{ role: 'user', content: 'Same task' }] };\n  for (const [promptId, model] of [['a', config.models.opus], ['b', config.models.haiku]]) {\n    await router.route(initial, { scope: 's', promptId, requestId: promptId });\n    router.complete(promptId, done(model, [{ id: `tool-${promptId}`, model }]));\n  }\n  const body = { ...initial, messages: [...initial.messages,\n    { role: 'assistant', content: 'Context is incomplete' },\n    { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'unobserved', content: 'Result' }] },\n  ] };\n  const decision = await router.route(body, { scope: 's', requestId: 'ambiguous' });\n  assert.equal(decision.reason, 'unknown_continuation');\n  assert.equal(decision.continuity_state, 'unknown');\n  assert.equal(router.complete('ambiguous', done(config.models.sonnet)), false);\n  assert.equal(router.turns.toolOwner('s', ['tool-a']).pin.model, config.models.opus);\n  assert.equal(router.turns.toolOwner('s', ['tool-b']).pin.model, config.models.haiku);\n});",
+      "definition_sha256": "50ff625bf6093aca539e2d7fbd50b28fa1a16a467accec3f47eb44965b8f43bb",
+      "definition_call_sha256": "fa8eacd30071d0449babc1957c89715b793ae0a35991e46230e0b6625fd7f8a3",
+      "static_assertions": 5,
+      "expanded_original_assertions": 5,
+      "native_tests": [
+        "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_ambiguous_headerless_continuation_cannot_overwrite_either_task"
+      ],
+      "assertions": [
+        {
+          "id": "test/turn-state.test.mjs#16:assert-1",
+          "line": 240,
+          "expression": "assert.equal(decision.reason, 'unknown_continuation')",
+          "sha256": "6496bd719c62f56a019b77042ff769d0c9c6b70108afada662f8ca813a4f7814",
+          "expanded_executions": 1,
+          "native_test": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_ambiguous_headerless_continuation_cannot_overwrite_either_task",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs",
+            "line": 205,
+            "source_fragment": "assert_eq!(decision[\"reason\"], \"unknown_continuation\");"
+          },
+          "status": "covered",
+          "remaining": []
+        },
+        {
+          "id": "test/turn-state.test.mjs#16:assert-2",
+          "line": 241,
+          "expression": "assert.equal(decision.continuity_state, 'unknown')",
+          "sha256": "b9f337370177c915eee451b8d0f3fd71b2a29ddaf61fdea9b770eeeb12379b3f",
+          "expanded_executions": 1,
+          "native_test": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_ambiguous_headerless_continuation_cannot_overwrite_either_task",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs",
+            "line": 206,
+            "source_fragment": "assert_eq!(decision[\"continuity_state\"], \"unknown\");"
+          },
+          "status": "covered",
+          "remaining": []
+        },
+        {
+          "id": "test/turn-state.test.mjs#16:assert-3",
+          "line": 242,
+          "expression": "assert.equal(router.complete('ambiguous', done(config.models.sonnet)), false)",
+          "sha256": "5f9a164426590a607480340e493deb6fa9809e17ca3fe38bdd74aa137637a13b",
+          "expanded_executions": 1,
+          "native_test": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_ambiguous_headerless_continuation_cannot_overwrite_either_task",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs",
+            "line": 207,
+            "source_fragment": "assert!(!router.complete(\"ambiguous\", &done(&config.models.sonnet, json!([]))));"
+          },
+          "status": "covered",
+          "remaining": []
+        },
+        {
+          "id": "test/turn-state.test.mjs#16:assert-4",
+          "line": 243,
+          "expression": "assert.equal(router.turns.toolOwner('s', ['tool-a']).pin.model, config.models.opus)",
+          "sha256": "90fda00ad5b57c059c179117de8a030af28e9adccbb84169a1b17f3561d3a66f",
+          "expanded_executions": 1,
+          "native_test": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_ambiguous_headerless_continuation_cannot_overwrite_either_task",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs",
+            "line": 210,
+            "source_fragment": "assert_eq!(\n            policy.turns.tool_owner(\"s\", &[\"tool-a\".into()]).unwrap()[\"pin\"][\"model\"],\n            config.models.opus\n        );"
+          },
+          "status": "covered",
+          "remaining": []
+        },
+        {
+          "id": "test/turn-state.test.mjs#16:assert-5",
+          "line": 244,
+          "expression": "assert.equal(router.turns.toolOwner('s', ['tool-b']).pin.model, config.models.haiku)",
+          "sha256": "3cb3055f1f499457dbf1016e65249c9c584e56d90481215e87ef590e78c1c61b",
+          "expanded_executions": 1,
+          "native_test": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_ambiguous_headerless_continuation_cannot_overwrite_either_task",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs",
+            "line": 214,
+            "source_fragment": "assert_eq!(\n            policy.turns.tool_owner(\"s\", &[\"tool-b\".into()]).unwrap()[\"pin\"][\"model\"],\n            config.models.haiku\n        );"
+          },
+          "status": "covered",
+          "remaining": []
+        }
+      ],
+      "remaining": []
+    }
+  ],
+  "previous_coverage_rows": [
+    {
+      "id": "test/turn-state.test.mjs#5",
+      "file": "test/turn-state.test.mjs",
+      "name": "gateway routing commits actual provider fallback, retains it after expiry, then permits a new task to downgrade",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "js_document",
+        "router_continuity"
+      ]
+    },
+    {
+      "id": "test/turn-state.test.mjs#6",
+      "file": "test/turn-state.test.mjs",
+      "name": "unknown safeguards report rejected turn admission without replacing active continuity",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "js_document",
+        "router_continuity"
+      ]
+    },
+    {
+      "id": "test/turn-state.test.mjs#15",
+      "file": "test/turn-state.test.mjs",
+      "name": "headerless continuations recover exact scoped tool ownership despite same-content tasks",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "js_document",
+        "router_continuity"
+      ]
+    },
+    {
+      "id": "test/turn-state.test.mjs#16",
+      "file": "test/turn-state.test.mjs",
+      "name": "ambiguous headerless continuity never stages an overwrite of either confirmed task",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "js_document",
+        "router_continuity"
+      ]
+    }
+  ]
+}

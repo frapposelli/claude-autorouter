@@ -1,0 +1,4168 @@
+{
+  "schema_version": 1,
+  "kind": "NATIVE_OPENSSL_CLOSE_PHASE_DIAGNOSTIC_LOCAL_CHECKPOINT",
+  "recorded_at_utc": "2026-10-20T13:26:22.491811+00:00",
+  "status": "Bounded diagnostic checkpoint; semantic failures and observed reference variation remain explicit. No TLS/session parity fix is claimed.",
+  "base_commit": "0c852253b56ef9a3409a08e2754aa8565ea65f0d",
+  "scope": "Private synthetic loopback legacy/buffered diagnostics plus a test-only GNU status-copy repair. JavaScript remains shipping default and ordinary native TLS remains Rustls. No backend/configuration support change, production promotion, cap/schema change, release or completed-goal claim.",
+  "source_snapshot": {
+    "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/source-candidate-v1.json",
+    "bytes": 121212,
+    "sha256": "e7d46d2c305c130a2517b7b3a139632b9245776de3f17f8211ce590d456cd7a2"
+  },
+  "raw_source_inputs": 719,
+  "frozen_inputs": 111,
+  "changed_raw_inputs": [
+    "rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/idle_close.rs",
+    "rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/idle_close_tests.rs",
+    "rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/raw_pool.rs",
+    "rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/raw_pool_buffered_replay.rs",
+    "rust/crates/claude-autorouter/tests/launcher_logging.rs"
+  ],
+  "changed_auxiliary_drivers": [
+    "rust/parity/check-openssl-sessions.mjs",
+    "rust/parity/check-openssl-idle-close.mjs"
+  ],
+  "implementation": [
+    "Existing raw pool free/assigned/close rows are retained by a state-only diagnostic reader through cleanup;128 relevant rows maximum, overflow fatal rather than truncation.",
+    "Existing idle Weak identity now carries an immutable ordinal; one-based scalar selection history survives IO release without owning an IO/lease/abort/ticket.",
+    "Exactly3 fixed idle request identities must persist through cleanup. Existing observed/application/matched projections, inventories, deadlines and8physical/16request/256idle/1024pool/32768control/65536diagnostic ceilings are unchanged.",
+    "Raw-pool zero-based request/successful HTTP1 IDs are distinct from idle physical/capture IDs; no joined-clock ordering or peer-admission inference. Node and legacy pool state are explicitly unavailable."
+  ],
+  "characterization": {
+    "sessions-legacy": {
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-b2-sessions-70f12058b30c714012b23618fb24ea12c635b2c518e36ec219c3dcf10e10f5e9.json",
+        "bytes": 74185,
+        "sha256": "70f12058b30c714012b23618fb24ea12c635b2c518e36ec219c3dcf10e10f5e9"
+      },
+      "historical_report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-b2-sessions-982b78d56ca7b9a3195f810d2b513802045c55ea7a940243f6e718c95d56e04c.json",
+        "bytes": 69535,
+        "sha256": "982b78d56ca7b9a3195f810d2b513802045c55ea7a940243f6e718c95d56e04c"
+      },
+      "count": 18,
+      "matched": 14,
+      "passed": false,
+      "failed_ids": [
+        "TLSv1.2-abrupt-after-complete",
+        "TLSv1.2-cancel-body",
+        "TLSv1.3-abrupt-after-complete",
+        "TLSv1.3-cancel-body"
+      ],
+      "reference_Node": "v22.14.0",
+      "reference_Node_sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0",
+      "candidate_sha256": "03f4ce061d9aabd4fabc84076527cfcc9ac1c6dc36de1471d096ffd2999396a2",
+      "source_hash_rows": 13,
+      "both_children_exit0_each_row": true,
+      "every_row_cleanup_true": true,
+      "unbarriered_rows": null,
+      "historical_scope": "Immutable earlier I reports cited by N; different executable/source. Exact current full projections are compared, never relabelled as N execution.",
+      "application_projection_variations": [],
+      "rows": [
+        {
+          "id": "TLSv1.2-clean-close",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "e119f074768487488010861a0af64f98ae818d84db8aab627ed2b9cb0d9ff5f9",
+          "native_application_sha256": "e119f074768487488010861a0af64f98ae818d84db8aab627ed2b9cb0d9ff5f9",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.2-keepalive",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "a834e55cb7ec02ba940cfd76fdbedddba3c925d2f9de0cbc82c07cdebc1357b2",
+          "native_application_sha256": "a834e55cb7ec02ba940cfd76fdbedddba3c925d2f9de0cbc82c07cdebc1357b2",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.2-rotate-ticket-key",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "8df3827f13ab0cb44e3afe54a6801e9c3296c7143e632642ee42a9b840c2a4d5",
+          "native_application_sha256": "8df3827f13ab0cb44e3afe54a6801e9c3296c7143e632642ee42a9b840c2a4d5",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.2-rejected-host-then-valid",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "eb33cd4a88b847ea3bcdc9e18584d5fbf45b5a8214f27d48e260e1e539c183e1",
+          "native_application_sha256": "eb33cd4a88b847ea3bcdc9e18584d5fbf45b5a8214f27d48e260e1e539c183e1",
+          "reference_response_statuses": [
+            502,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            502,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.2-invalid-head",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "cab02eb88d2fa44083ce6f90a4c1ab8fb17d1fe3955a893e0dd006b35f76cf18",
+          "native_application_sha256": "cab02eb88d2fa44083ce6f90a4c1ab8fb17d1fe3955a893e0dd006b35f76cf18",
+          "reference_response_statuses": [
+            502,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            502,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.2-short-body",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "a4eaebc1b59998394dd5bef7cabe1caf8f1b9555b49ebe7ee1c037995be5aafe",
+          "native_application_sha256": "a4eaebc1b59998394dd5bef7cabe1caf8f1b9555b49ebe7ee1c037995be5aafe",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.2-abrupt-after-complete",
+          "matched": false,
+          "cleanup": true,
+          "reference_application_sha256": "df2180ed9464ac8dc7419450ed2f9579a3a65e9a501e91bbea73cb9337908755",
+          "native_application_sha256": "e119f074768487488010861a0af64f98ae818d84db8aab627ed2b9cb0d9ff5f9",
+          "reference_response_statuses": [
+            200,
+            502,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.2-abrupt-after-complete-barrier",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "e119f074768487488010861a0af64f98ae818d84db8aab627ed2b9cb0d9ff5f9",
+          "native_application_sha256": "e119f074768487488010861a0af64f98ae818d84db8aab627ed2b9cb0d9ff5f9",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.2-cancel-body",
+          "matched": false,
+          "cleanup": true,
+          "reference_application_sha256": "b5e1c4aade7499afba07e0f21456d0b50322c9f0d63b45972cd522a45048a351",
+          "native_application_sha256": "e22b306fcbf1260130d912e4c11c8aa0cb6847ddb4f56c1e75baa4e0091e48a6",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.3-clean-close",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "7de5c2d05511aa3cc517d34a52d3d283c6b1eec0a9554d0f4aaf795159273d3d",
+          "native_application_sha256": "7de5c2d05511aa3cc517d34a52d3d283c6b1eec0a9554d0f4aaf795159273d3d",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.3-keepalive",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "5b4c457a4331a5de2f789b18b5532f98e0c045d4375109d37afa04e26c502124",
+          "native_application_sha256": "5b4c457a4331a5de2f789b18b5532f98e0c045d4375109d37afa04e26c502124",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.3-rotate-ticket-key",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "c9fa541f655133988f31ce18ecd3a9f9d9e73ed768339a901c5513fd5b61f808",
+          "native_application_sha256": "c9fa541f655133988f31ce18ecd3a9f9d9e73ed768339a901c5513fd5b61f808",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.3-rejected-host-then-valid",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "bab6744879782737355ed6fe9f60a99ecd0d74d2d231c716abd341d57bb907ab",
+          "native_application_sha256": "bab6744879782737355ed6fe9f60a99ecd0d74d2d231c716abd341d57bb907ab",
+          "reference_response_statuses": [
+            502,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            502,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.3-invalid-head",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "a8a302dd4a3fabfc49aa9267e5699803f8ea7148169a30c6d91108349b5d238e",
+          "native_application_sha256": "a8a302dd4a3fabfc49aa9267e5699803f8ea7148169a30c6d91108349b5d238e",
+          "reference_response_statuses": [
+            502,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            502,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.3-short-body",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "4940c99795a43ed37e8176e71b492315a8de7fd23db29493ebf20ba2df10698b",
+          "native_application_sha256": "4940c99795a43ed37e8176e71b492315a8de7fd23db29493ebf20ba2df10698b",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.3-abrupt-after-complete",
+          "matched": false,
+          "cleanup": true,
+          "reference_application_sha256": "0ecab1469e33261af6e65f2564cf9d68bbf8eb6b24a010c04d0f171467f9758e",
+          "native_application_sha256": "7de5c2d05511aa3cc517d34a52d3d283c6b1eec0a9554d0f4aaf795159273d3d",
+          "reference_response_statuses": [
+            200,
+            502,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.3-abrupt-after-complete-barrier",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "7de5c2d05511aa3cc517d34a52d3d283c6b1eec0a9554d0f4aaf795159273d3d",
+          "native_application_sha256": "7de5c2d05511aa3cc517d34a52d3d283c6b1eec0a9554d0f4aaf795159273d3d",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.3-cancel-body",
+          "matched": false,
+          "cleanup": true,
+          "reference_application_sha256": "f2c1b5936ea2fb072fa81acdf36455d39eeb5b4ab3ccb2146547b999bdc4308c",
+          "native_application_sha256": "5e090ed702df378d9db60fc125d9e55e65b4843e9dd9ede59bfda1ecc2a2392c",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        }
+      ]
+    },
+    "sessions-buffered": {
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-buffered-sessions-84f33a799cdcd5238c5d464bc2c358a0fdf8436ba4e7443b1b9f2dc80ce8cf21.json",
+        "bytes": 191123,
+        "sha256": "84f33a799cdcd5238c5d464bc2c358a0fdf8436ba4e7443b1b9f2dc80ce8cf21"
+      },
+      "historical_report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-buffered-sessions-26e8a1be3d4c4149bb6eee634447e976ca1071d084278cd14cf632522bd2d55a.json",
+        "bytes": 127497,
+        "sha256": "26e8a1be3d4c4149bb6eee634447e976ca1071d084278cd14cf632522bd2d55a"
+      },
+      "count": 18,
+      "matched": 16,
+      "passed": false,
+      "failed_ids": [
+        "TLSv1.2-abrupt-after-complete",
+        "TLSv1.3-abrupt-after-complete"
+      ],
+      "reference_Node": "v22.14.0",
+      "reference_Node_sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0",
+      "candidate_sha256": "03f4ce061d9aabd4fabc84076527cfcc9ac1c6dc36de1471d096ffd2999396a2",
+      "source_hash_rows": 22,
+      "both_children_exit0_each_row": true,
+      "every_row_cleanup_true": true,
+      "unbarriered_rows": null,
+      "historical_scope": "Immutable earlier I reports cited by N; different executable/source. Exact current full projections are compared, never relabelled as N execution.",
+      "application_projection_variations": [],
+      "rows": [
+        {
+          "id": "TLSv1.2-clean-close",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "e119f074768487488010861a0af64f98ae818d84db8aab627ed2b9cb0d9ff5f9",
+          "native_application_sha256": "e119f074768487488010861a0af64f98ae818d84db8aab627ed2b9cb0d9ff5f9",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 21
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 22
+              },
+              {
+                "request": 1,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 28
+              },
+              {
+                "connection": 2,
+                "event": "close",
+                "ms": 29
+              },
+              {
+                "request": 2,
+                "connection": 3,
+                "reused": false,
+                "event": "assigned",
+                "ms": 32
+              },
+              {
+                "connection": 3,
+                "event": "close",
+                "ms": 33
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "close": 3
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.2-keepalive",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "a834e55cb7ec02ba940cfd76fdbedddba3c925d2f9de0cbc82c07cdebc1357b2",
+          "native_application_sha256": "a834e55cb7ec02ba940cfd76fdbedddba3c925d2f9de0cbc82c07cdebc1357b2",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 7
+              },
+              {
+                "connection": 1,
+                "kept": true,
+                "timeout": 5000,
+                "event": "free",
+                "ms": 8
+              },
+              {
+                "request": 1,
+                "connection": 1,
+                "reused": true,
+                "event": "assigned",
+                "ms": 10
+              },
+              {
+                "connection": 1,
+                "kept": true,
+                "timeout": 5000,
+                "event": "free",
+                "ms": 11
+              },
+              {
+                "request": 2,
+                "connection": 1,
+                "reused": true,
+                "event": "assigned",
+                "ms": 12
+              },
+              {
+                "connection": 1,
+                "kept": true,
+                "timeout": 5000,
+                "event": "free",
+                "ms": 12
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                1
+              ],
+              [
+                2,
+                1
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "free": 3
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.2-rotate-ticket-key",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "8df3827f13ab0cb44e3afe54a6801e9c3296c7143e632642ee42a9b840c2a4d5",
+          "native_application_sha256": "8df3827f13ab0cb44e3afe54a6801e9c3296c7143e632642ee42a9b840c2a4d5",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 13
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 13
+              },
+              {
+                "request": 1,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 19
+              },
+              {
+                "connection": 2,
+                "event": "close",
+                "ms": 19
+              },
+              {
+                "request": 2,
+                "connection": 3,
+                "reused": false,
+                "event": "assigned",
+                "ms": 22
+              },
+              {
+                "connection": 3,
+                "event": "close",
+                "ms": 23
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "close": 3
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.2-rejected-host-then-valid",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "eb33cd4a88b847ea3bcdc9e18584d5fbf45b5a8214f27d48e260e1e539c183e1",
+          "native_application_sha256": "eb33cd4a88b847ea3bcdc9e18584d5fbf45b5a8214f27d48e260e1e539c183e1",
+          "reference_response_statuses": [
+            502,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            502,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 1,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 15
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 16
+              },
+              {
+                "request": 2,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 19
+              },
+              {
+                "connection": 2,
+                "event": "close",
+                "ms": 20
+              }
+            ],
+            "assignment_history": [
+              [
+                1,
+                1
+              ],
+              [
+                2,
+                2
+              ]
+            ],
+            "event_counts": {
+              "assigned": 2,
+              "close": 2
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.2-invalid-head",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "cab02eb88d2fa44083ce6f90a4c1ab8fb17d1fe3955a893e0dd006b35f76cf18",
+          "native_application_sha256": "cab02eb88d2fa44083ce6f90a4c1ab8fb17d1fe3955a893e0dd006b35f76cf18",
+          "reference_response_statuses": [
+            502,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            502,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 12
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 13
+              },
+              {
+                "request": 1,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 17
+              },
+              {
+                "connection": 2,
+                "event": "close",
+                "ms": 17
+              },
+              {
+                "request": 2,
+                "connection": 3,
+                "reused": false,
+                "event": "assigned",
+                "ms": 20
+              },
+              {
+                "connection": 3,
+                "event": "close",
+                "ms": 21
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "close": 3
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.2-short-body",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "a4eaebc1b59998394dd5bef7cabe1caf8f1b9555b49ebe7ee1c037995be5aafe",
+          "native_application_sha256": "a4eaebc1b59998394dd5bef7cabe1caf8f1b9555b49ebe7ee1c037995be5aafe",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 7
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 8
+              },
+              {
+                "request": 1,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 11
+              },
+              {
+                "connection": 2,
+                "event": "close",
+                "ms": 12
+              },
+              {
+                "request": 2,
+                "connection": 3,
+                "reused": false,
+                "event": "assigned",
+                "ms": 15
+              },
+              {
+                "connection": 3,
+                "event": "close",
+                "ms": 15
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "close": 3
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.2-abrupt-after-complete",
+          "matched": false,
+          "cleanup": true,
+          "reference_application_sha256": "df2180ed9464ac8dc7419450ed2f9579a3a65e9a501e91bbea73cb9337908755",
+          "native_application_sha256": "e119f074768487488010861a0af64f98ae818d84db8aab627ed2b9cb0d9ff5f9",
+          "reference_response_statuses": [
+            200,
+            502,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 6
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 6
+              },
+              {
+                "request": 1,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 9
+              },
+              {
+                "connection": 2,
+                "event": "close",
+                "ms": 9
+              },
+              {
+                "request": 2,
+                "connection": 3,
+                "reused": false,
+                "event": "assigned",
+                "ms": 13
+              },
+              {
+                "connection": 3,
+                "event": "close",
+                "ms": 13
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "close": 3
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.2-abrupt-after-complete-barrier",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "e119f074768487488010861a0af64f98ae818d84db8aab627ed2b9cb0d9ff5f9",
+          "native_application_sha256": "e119f074768487488010861a0af64f98ae818d84db8aab627ed2b9cb0d9ff5f9",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 7
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 7
+              },
+              {
+                "request": 1,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 11
+              },
+              {
+                "connection": 2,
+                "event": "close",
+                "ms": 11
+              },
+              {
+                "request": 2,
+                "connection": 3,
+                "reused": false,
+                "event": "assigned",
+                "ms": 13
+              },
+              {
+                "connection": 3,
+                "event": "close",
+                "ms": 13
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "close": 3
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.2-cancel-body",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "b5e1c4aade7499afba07e0f21456d0b50322c9f0d63b45972cd522a45048a351",
+          "native_application_sha256": "b5e1c4aade7499afba07e0f21456d0b50322c9f0d63b45972cd522a45048a351",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 10
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 12
+              },
+              {
+                "request": 1,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 22
+              },
+              {
+                "connection": 2,
+                "event": "close",
+                "ms": 22
+              },
+              {
+                "request": 2,
+                "connection": 3,
+                "reused": false,
+                "event": "assigned",
+                "ms": 24
+              },
+              {
+                "connection": 3,
+                "event": "close",
+                "ms": 24
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "close": 3
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.3-clean-close",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "7de5c2d05511aa3cc517d34a52d3d283c6b1eec0a9554d0f4aaf795159273d3d",
+          "native_application_sha256": "7de5c2d05511aa3cc517d34a52d3d283c6b1eec0a9554d0f4aaf795159273d3d",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 9
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 10
+              },
+              {
+                "request": 1,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 13
+              },
+              {
+                "connection": 2,
+                "event": "close",
+                "ms": 14
+              },
+              {
+                "request": 2,
+                "connection": 3,
+                "reused": false,
+                "event": "assigned",
+                "ms": 16
+              },
+              {
+                "connection": 3,
+                "event": "close",
+                "ms": 17
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "close": 3
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.3-keepalive",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "5b4c457a4331a5de2f789b18b5532f98e0c045d4375109d37afa04e26c502124",
+          "native_application_sha256": "5b4c457a4331a5de2f789b18b5532f98e0c045d4375109d37afa04e26c502124",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 15
+              },
+              {
+                "connection": 1,
+                "kept": true,
+                "timeout": 5000,
+                "event": "free",
+                "ms": 16
+              },
+              {
+                "request": 1,
+                "connection": 1,
+                "reused": true,
+                "event": "assigned",
+                "ms": 18
+              },
+              {
+                "connection": 1,
+                "kept": true,
+                "timeout": 5000,
+                "event": "free",
+                "ms": 19
+              },
+              {
+                "request": 2,
+                "connection": 1,
+                "reused": true,
+                "event": "assigned",
+                "ms": 20
+              },
+              {
+                "connection": 1,
+                "kept": true,
+                "timeout": 5000,
+                "event": "free",
+                "ms": 21
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                1
+              ],
+              [
+                2,
+                1
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "free": 3
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.3-rotate-ticket-key",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "c9fa541f655133988f31ce18ecd3a9f9d9e73ed768339a901c5513fd5b61f808",
+          "native_application_sha256": "c9fa541f655133988f31ce18ecd3a9f9d9e73ed768339a901c5513fd5b61f808",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 4
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 4
+              },
+              {
+                "request": 1,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 7
+              },
+              {
+                "connection": 2,
+                "event": "close",
+                "ms": 7
+              },
+              {
+                "request": 2,
+                "connection": 3,
+                "reused": false,
+                "event": "assigned",
+                "ms": 9
+              },
+              {
+                "connection": 3,
+                "event": "close",
+                "ms": 10
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "close": 3
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.3-rejected-host-then-valid",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "bab6744879782737355ed6fe9f60a99ecd0d74d2d231c716abd341d57bb907ab",
+          "native_application_sha256": "bab6744879782737355ed6fe9f60a99ecd0d74d2d231c716abd341d57bb907ab",
+          "reference_response_statuses": [
+            502,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            502,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 1,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 10
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 10
+              },
+              {
+                "request": 2,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 12
+              },
+              {
+                "connection": 2,
+                "event": "close",
+                "ms": 12
+              }
+            ],
+            "assignment_history": [
+              [
+                1,
+                1
+              ],
+              [
+                2,
+                2
+              ]
+            ],
+            "event_counts": {
+              "assigned": 2,
+              "close": 2
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.3-invalid-head",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "a8a302dd4a3fabfc49aa9267e5699803f8ea7148169a30c6d91108349b5d238e",
+          "native_application_sha256": "a8a302dd4a3fabfc49aa9267e5699803f8ea7148169a30c6d91108349b5d238e",
+          "reference_response_statuses": [
+            502,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            502,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 9
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 9
+              },
+              {
+                "request": 1,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 11
+              },
+              {
+                "connection": 2,
+                "event": "close",
+                "ms": 11
+              },
+              {
+                "request": 2,
+                "connection": 3,
+                "reused": false,
+                "event": "assigned",
+                "ms": 13
+              },
+              {
+                "connection": 3,
+                "event": "close",
+                "ms": 13
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "close": 3
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.3-short-body",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "4940c99795a43ed37e8176e71b492315a8de7fd23db29493ebf20ba2df10698b",
+          "native_application_sha256": "4940c99795a43ed37e8176e71b492315a8de7fd23db29493ebf20ba2df10698b",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 4
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 5
+              },
+              {
+                "request": 1,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 6
+              },
+              {
+                "connection": 2,
+                "event": "close",
+                "ms": 7
+              },
+              {
+                "request": 2,
+                "connection": 3,
+                "reused": false,
+                "event": "assigned",
+                "ms": 8
+              },
+              {
+                "connection": 3,
+                "event": "close",
+                "ms": 8
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "close": 3
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.3-abrupt-after-complete",
+          "matched": false,
+          "cleanup": true,
+          "reference_application_sha256": "0ecab1469e33261af6e65f2564cf9d68bbf8eb6b24a010c04d0f171467f9758e",
+          "native_application_sha256": "7de5c2d05511aa3cc517d34a52d3d283c6b1eec0a9554d0f4aaf795159273d3d",
+          "reference_response_statuses": [
+            200,
+            502,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 4
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 5
+              },
+              {
+                "request": 1,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 6
+              },
+              {
+                "connection": 2,
+                "event": "close",
+                "ms": 6
+              },
+              {
+                "request": 2,
+                "connection": 3,
+                "reused": false,
+                "event": "assigned",
+                "ms": 8
+              },
+              {
+                "connection": 3,
+                "event": "close",
+                "ms": 8
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "close": 3
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.3-abrupt-after-complete-barrier",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "7de5c2d05511aa3cc517d34a52d3d283c6b1eec0a9554d0f4aaf795159273d3d",
+          "native_application_sha256": "7de5c2d05511aa3cc517d34a52d3d283c6b1eec0a9554d0f4aaf795159273d3d",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 3
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 3
+              },
+              {
+                "request": 1,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 5
+              },
+              {
+                "connection": 2,
+                "event": "close",
+                "ms": 5
+              },
+              {
+                "request": 2,
+                "connection": 3,
+                "reused": false,
+                "event": "assigned",
+                "ms": 6
+              },
+              {
+                "connection": 3,
+                "event": "close",
+                "ms": 6
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "close": 3
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.3-cancel-body",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "f2c1b5936ea2fb072fa81acdf36455d39eeb5b4ab3ccb2146547b999bdc4308c",
+          "native_application_sha256": "f2c1b5936ea2fb072fa81acdf36455d39eeb5b4ab3ccb2146547b999bdc4308c",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "node_contract": true,
+          "rust_contract": true,
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 4
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 5
+              },
+              {
+                "request": 1,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 13
+              },
+              {
+                "connection": 2,
+                "event": "close",
+                "ms": 13
+              },
+              {
+                "request": 2,
+                "connection": 3,
+                "reused": false,
+                "event": "assigned",
+                "ms": 15
+              },
+              {
+                "connection": 3,
+                "event": "close",
+                "ms": 15
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "close": 3
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        }
+      ]
+    },
+    "idle-legacy": {
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-idle-close-3bde0e168317464cb7913f1b7ae9c91776586b3dde6a82b9692a7459e1050e85.json",
+        "bytes": 64052,
+        "sha256": "3bde0e168317464cb7913f1b7ae9c91776586b3dde6a82b9692a7459e1050e85"
+      },
+      "historical_report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-idle-close-34c7b569f9cac08d6caa90c7bd9e0189475f7f90cf1ab67b47c12ecf766cbc94.json",
+        "bytes": 56483,
+        "sha256": "34c7b569f9cac08d6caa90c7bd9e0189475f7f90cf1ab67b47c12ecf766cbc94"
+      },
+      "count": 10,
+      "matched": 4,
+      "passed": false,
+      "failed_ids": [
+        "TLSv1.2-unbarriered-2",
+        "TLSv1.2-unbarriered-3",
+        "TLSv1.2-unbarriered-4",
+        "TLSv1.3-unbarriered-7",
+        "TLSv1.3-unbarriered-8",
+        "TLSv1.3-unbarriered-9"
+      ],
+      "reference_Node": "v22.14.0",
+      "reference_Node_sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0",
+      "candidate_sha256": "03f4ce061d9aabd4fabc84076527cfcc9ac1c6dc36de1471d096ffd2999396a2",
+      "source_hash_rows": 8,
+      "both_children_exit0_each_row": true,
+      "every_row_cleanup_true": true,
+      "unbarriered_rows": 6,
+      "historical_scope": "Immutable earlier I reports cited by N; different executable/source. Exact current full projections are compared, never relabelled as N execution.",
+      "application_projection_variations": [],
+      "rows": [
+        {
+          "id": "TLSv1.2-observed-close-0",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "1e9a0f7d54bb1dab6408d652081565898e838edc1a1ada6cce8c94198ac6f3c0",
+          "native_application_sha256": "1e9a0f7d54bb1dab6408d652081565898e838edc1a1ada6cce8c94198ac6f3c0",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "physical_assignment_history": [
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.2-selected-before-close-1",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "697395d7d371a22d804f1cfbc96711b4cd10b1a764837db274fe31fe2a1d2409",
+          "native_application_sha256": "697395d7d371a22d804f1cfbc96711b4cd10b1a764837db274fe31fe2a1d2409",
+          "reference_response_statuses": [
+            200,
+            502,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            502,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "physical_assignment_history": [
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.2-unbarriered-2",
+          "matched": false,
+          "cleanup": true,
+          "reference_application_sha256": "697395d7d371a22d804f1cfbc96711b4cd10b1a764837db274fe31fe2a1d2409",
+          "native_application_sha256": "50086099a90e987ef5ab6953332810f1208ba5aa52e954a7b3bc23b0c54267f6",
+          "reference_response_statuses": [
+            200,
+            502,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "physical_assignment_history": [
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              3,
+              3
+            ]
+          ],
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.2-unbarriered-3",
+          "matched": false,
+          "cleanup": true,
+          "reference_application_sha256": "697395d7d371a22d804f1cfbc96711b4cd10b1a764837db274fe31fe2a1d2409",
+          "native_application_sha256": "50086099a90e987ef5ab6953332810f1208ba5aa52e954a7b3bc23b0c54267f6",
+          "reference_response_statuses": [
+            200,
+            502,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "physical_assignment_history": [
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              3,
+              3
+            ]
+          ],
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.2-unbarriered-4",
+          "matched": false,
+          "cleanup": true,
+          "reference_application_sha256": "697395d7d371a22d804f1cfbc96711b4cd10b1a764837db274fe31fe2a1d2409",
+          "native_application_sha256": "50086099a90e987ef5ab6953332810f1208ba5aa52e954a7b3bc23b0c54267f6",
+          "reference_response_statuses": [
+            200,
+            502,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "physical_assignment_history": [
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              3,
+              3
+            ]
+          ],
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.3-observed-close-5",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "1e9a0f7d54bb1dab6408d652081565898e838edc1a1ada6cce8c94198ac6f3c0",
+          "native_application_sha256": "1e9a0f7d54bb1dab6408d652081565898e838edc1a1ada6cce8c94198ac6f3c0",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "physical_assignment_history": [
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.3-selected-before-close-6",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "697395d7d371a22d804f1cfbc96711b4cd10b1a764837db274fe31fe2a1d2409",
+          "native_application_sha256": "697395d7d371a22d804f1cfbc96711b4cd10b1a764837db274fe31fe2a1d2409",
+          "reference_response_statuses": [
+            200,
+            502,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            502,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "physical_assignment_history": [
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.3-unbarriered-7",
+          "matched": false,
+          "cleanup": true,
+          "reference_application_sha256": "697395d7d371a22d804f1cfbc96711b4cd10b1a764837db274fe31fe2a1d2409",
+          "native_application_sha256": "50086099a90e987ef5ab6953332810f1208ba5aa52e954a7b3bc23b0c54267f6",
+          "reference_response_statuses": [
+            200,
+            502,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "physical_assignment_history": [
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              3,
+              3
+            ]
+          ],
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.3-unbarriered-8",
+          "matched": false,
+          "cleanup": true,
+          "reference_application_sha256": "697395d7d371a22d804f1cfbc96711b4cd10b1a764837db274fe31fe2a1d2409",
+          "native_application_sha256": "50086099a90e987ef5ab6953332810f1208ba5aa52e954a7b3bc23b0c54267f6",
+          "reference_response_statuses": [
+            200,
+            502,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "physical_assignment_history": [
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              3,
+              3
+            ]
+          ],
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        },
+        {
+          "id": "TLSv1.3-unbarriered-9",
+          "matched": false,
+          "cleanup": true,
+          "reference_application_sha256": "697395d7d371a22d804f1cfbc96711b4cd10b1a764837db274fe31fe2a1d2409",
+          "native_application_sha256": "50086099a90e987ef5ab6953332810f1208ba5aa52e954a7b3bc23b0c54267f6",
+          "reference_response_statuses": [
+            200,
+            502,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "physical_assignment_history": [
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              3,
+              3
+            ]
+          ],
+          "raw_pool": {
+            "available": false,
+            "reason": "legacy_constructor_has_no_raw_pool_trace"
+          }
+        }
+      ]
+    },
+    "idle-buffered": {
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-buffered-idle-close-e27462a777cbb24b8fb086eac2bca99d1cf0d0b18591f4dbbd6a6bd8f847d746.json",
+        "bytes": 126623,
+        "sha256": "e27462a777cbb24b8fb086eac2bca99d1cf0d0b18591f4dbbd6a6bd8f847d746"
+      },
+      "historical_report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-buffered-idle-close-fe598fb15024fd379111edfd06b181af073f7d2c2cf61ac1888478c1f11025ac.json",
+        "bytes": 74800,
+        "sha256": "fe598fb15024fd379111edfd06b181af073f7d2c2cf61ac1888478c1f11025ac"
+      },
+      "count": 10,
+      "matched": 5,
+      "passed": false,
+      "failed_ids": [
+        "TLSv1.2-unbarriered-2",
+        "TLSv1.2-unbarriered-3",
+        "TLSv1.2-unbarriered-4",
+        "TLSv1.3-unbarriered-7",
+        "TLSv1.3-unbarriered-9"
+      ],
+      "reference_Node": "v22.14.0",
+      "reference_Node_sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0",
+      "candidate_sha256": "03f4ce061d9aabd4fabc84076527cfcc9ac1c6dc36de1471d096ffd2999396a2",
+      "source_hash_rows": 16,
+      "both_children_exit0_each_row": true,
+      "every_row_cleanup_true": true,
+      "unbarriered_rows": 6,
+      "historical_scope": "Immutable earlier I reports cited by N; different executable/source. Exact current full projections are compared, never relabelled as N execution.",
+      "application_projection_variations": [
+        {
+          "id": "TLSv1.3-unbarriered-8",
+          "changed_lanes": [
+            "node"
+          ],
+          "historical_matched": false,
+          "current_matched": true,
+          "new_match_without_native_projection_change": true,
+          "scope": "Observed application variation between distinct runs/source snapshots; no causal or native-improvement inference."
+        }
+      ],
+      "rows": [
+        {
+          "id": "TLSv1.2-observed-close-0",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "1e9a0f7d54bb1dab6408d652081565898e838edc1a1ada6cce8c94198ac6f3c0",
+          "native_application_sha256": "1e9a0f7d54bb1dab6408d652081565898e838edc1a1ada6cce8c94198ac6f3c0",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "physical_assignment_history": [
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 8
+              },
+              {
+                "connection": 1,
+                "kept": true,
+                "timeout": 5000,
+                "event": "free",
+                "ms": 10
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 10
+              },
+              {
+                "request": 1,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 12
+              },
+              {
+                "connection": 2,
+                "kept": true,
+                "timeout": 5000,
+                "event": "free",
+                "ms": 12
+              },
+              {
+                "request": 2,
+                "connection": 2,
+                "reused": true,
+                "event": "assigned",
+                "ms": 13
+              },
+              {
+                "connection": 2,
+                "kept": true,
+                "timeout": 5000,
+                "event": "free",
+                "ms": 13
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                2
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "free": 3,
+              "close": 1
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.2-selected-before-close-1",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "697395d7d371a22d804f1cfbc96711b4cd10b1a764837db274fe31fe2a1d2409",
+          "native_application_sha256": "697395d7d371a22d804f1cfbc96711b4cd10b1a764837db274fe31fe2a1d2409",
+          "reference_response_statuses": [
+            200,
+            502,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            502,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "physical_assignment_history": [
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 3
+              },
+              {
+                "connection": 1,
+                "kept": true,
+                "timeout": 5000,
+                "event": "free",
+                "ms": 4
+              },
+              {
+                "request": 1,
+                "connection": 1,
+                "reused": true,
+                "event": "assigned",
+                "ms": 5
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 9
+              },
+              {
+                "request": 2,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 10
+              },
+              {
+                "connection": 2,
+                "kept": true,
+                "timeout": 5000,
+                "event": "free",
+                "ms": 10
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                1
+              ],
+              [
+                2,
+                2
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "free": 2,
+              "close": 1
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.2-unbarriered-2",
+          "matched": false,
+          "cleanup": true,
+          "reference_application_sha256": "697395d7d371a22d804f1cfbc96711b4cd10b1a764837db274fe31fe2a1d2409",
+          "native_application_sha256": "50086099a90e987ef5ab6953332810f1208ba5aa52e954a7b3bc23b0c54267f6",
+          "reference_response_statuses": [
+            200,
+            502,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "physical_assignment_history": [
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              3,
+              3
+            ]
+          ],
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 3
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 3
+              },
+              {
+                "request": 1,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 4
+              },
+              {
+                "connection": 2,
+                "event": "close",
+                "ms": 4
+              },
+              {
+                "request": 2,
+                "connection": 3,
+                "reused": false,
+                "event": "assigned",
+                "ms": 5
+              },
+              {
+                "connection": 3,
+                "event": "close",
+                "ms": 5
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "close": 3
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.2-unbarriered-3",
+          "matched": false,
+          "cleanup": true,
+          "reference_application_sha256": "697395d7d371a22d804f1cfbc96711b4cd10b1a764837db274fe31fe2a1d2409",
+          "native_application_sha256": "50086099a90e987ef5ab6953332810f1208ba5aa52e954a7b3bc23b0c54267f6",
+          "reference_response_statuses": [
+            200,
+            502,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "physical_assignment_history": [
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              3,
+              3
+            ]
+          ],
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 3
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 3
+              },
+              {
+                "request": 1,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 4
+              },
+              {
+                "connection": 2,
+                "event": "close",
+                "ms": 4
+              },
+              {
+                "request": 2,
+                "connection": 3,
+                "reused": false,
+                "event": "assigned",
+                "ms": 5
+              },
+              {
+                "connection": 3,
+                "event": "close",
+                "ms": 6
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "close": 3
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.2-unbarriered-4",
+          "matched": false,
+          "cleanup": true,
+          "reference_application_sha256": "697395d7d371a22d804f1cfbc96711b4cd10b1a764837db274fe31fe2a1d2409",
+          "native_application_sha256": "50086099a90e987ef5ab6953332810f1208ba5aa52e954a7b3bc23b0c54267f6",
+          "reference_response_statuses": [
+            200,
+            502,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "physical_assignment_history": [
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              3,
+              3
+            ]
+          ],
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 4
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 5
+              },
+              {
+                "request": 1,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 6
+              },
+              {
+                "connection": 2,
+                "event": "close",
+                "ms": 6
+              },
+              {
+                "request": 2,
+                "connection": 3,
+                "reused": false,
+                "event": "assigned",
+                "ms": 7
+              },
+              {
+                "connection": 3,
+                "event": "close",
+                "ms": 7
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "close": 3
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.3-observed-close-5",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "1e9a0f7d54bb1dab6408d652081565898e838edc1a1ada6cce8c94198ac6f3c0",
+          "native_application_sha256": "1e9a0f7d54bb1dab6408d652081565898e838edc1a1ada6cce8c94198ac6f3c0",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "physical_assignment_history": [
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 4
+              },
+              {
+                "connection": 1,
+                "kept": true,
+                "timeout": 5000,
+                "event": "free",
+                "ms": 5
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 5
+              },
+              {
+                "request": 1,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 7
+              },
+              {
+                "connection": 2,
+                "kept": true,
+                "timeout": 5000,
+                "event": "free",
+                "ms": 7
+              },
+              {
+                "request": 2,
+                "connection": 2,
+                "reused": true,
+                "event": "assigned",
+                "ms": 8
+              },
+              {
+                "connection": 2,
+                "kept": true,
+                "timeout": 5000,
+                "event": "free",
+                "ms": 8
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                2
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "free": 3,
+              "close": 1
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.3-selected-before-close-6",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "697395d7d371a22d804f1cfbc96711b4cd10b1a764837db274fe31fe2a1d2409",
+          "native_application_sha256": "697395d7d371a22d804f1cfbc96711b4cd10b1a764837db274fe31fe2a1d2409",
+          "reference_response_statuses": [
+            200,
+            502,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            502,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "physical_assignment_history": [
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 4
+              },
+              {
+                "connection": 1,
+                "kept": true,
+                "timeout": 5000,
+                "event": "free",
+                "ms": 4
+              },
+              {
+                "request": 1,
+                "connection": 1,
+                "reused": true,
+                "event": "assigned",
+                "ms": 6
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 8
+              },
+              {
+                "request": 2,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 11
+              },
+              {
+                "connection": 2,
+                "kept": true,
+                "timeout": 5000,
+                "event": "free",
+                "ms": 11
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                1
+              ],
+              [
+                2,
+                2
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "free": 2,
+              "close": 1
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.3-unbarriered-7",
+          "matched": false,
+          "cleanup": true,
+          "reference_application_sha256": "697395d7d371a22d804f1cfbc96711b4cd10b1a764837db274fe31fe2a1d2409",
+          "native_application_sha256": "50086099a90e987ef5ab6953332810f1208ba5aa52e954a7b3bc23b0c54267f6",
+          "reference_response_statuses": [
+            200,
+            502,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "physical_assignment_history": [
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              3,
+              3
+            ]
+          ],
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 5
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 5
+              },
+              {
+                "request": 1,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 8
+              },
+              {
+                "connection": 2,
+                "event": "close",
+                "ms": 8
+              },
+              {
+                "request": 2,
+                "connection": 3,
+                "reused": false,
+                "event": "assigned",
+                "ms": 10
+              },
+              {
+                "connection": 3,
+                "event": "close",
+                "ms": 10
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "close": 3
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.3-unbarriered-8",
+          "matched": true,
+          "cleanup": true,
+          "reference_application_sha256": "50086099a90e987ef5ab6953332810f1208ba5aa52e954a7b3bc23b0c54267f6",
+          "native_application_sha256": "50086099a90e987ef5ab6953332810f1208ba5aa52e954a7b3bc23b0c54267f6",
+          "reference_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": false,
+            "rust": true
+          },
+          "physical_assignment_history": [
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              3,
+              3
+            ]
+          ],
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 4
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 5
+              },
+              {
+                "request": 1,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 7
+              },
+              {
+                "connection": 2,
+                "event": "close",
+                "ms": 7
+              },
+              {
+                "request": 2,
+                "connection": 3,
+                "reused": false,
+                "event": "assigned",
+                "ms": 9
+              },
+              {
+                "connection": 3,
+                "event": "close",
+                "ms": 10
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "close": 3
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        },
+        {
+          "id": "TLSv1.3-unbarriered-9",
+          "matched": false,
+          "cleanup": true,
+          "reference_application_sha256": "697395d7d371a22d804f1cfbc96711b4cd10b1a764837db274fe31fe2a1d2409",
+          "native_application_sha256": "50086099a90e987ef5ab6953332810f1208ba5aa52e954a7b3bc23b0c54267f6",
+          "reference_response_statuses": [
+            200,
+            502,
+            200
+          ],
+          "native_response_statuses": [
+            200,
+            200,
+            200
+          ],
+          "historical_projection_equal": {
+            "node": true,
+            "rust": true
+          },
+          "physical_assignment_history": [
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              3,
+              3
+            ]
+          ],
+          "raw_pool": {
+            "rows": [
+              {
+                "request": 0,
+                "connection": 1,
+                "reused": false,
+                "event": "assigned",
+                "ms": 5
+              },
+              {
+                "connection": 1,
+                "event": "close",
+                "ms": 5
+              },
+              {
+                "request": 1,
+                "connection": 2,
+                "reused": false,
+                "event": "assigned",
+                "ms": 8
+              },
+              {
+                "connection": 2,
+                "event": "close",
+                "ms": 8
+              },
+              {
+                "request": 2,
+                "connection": 3,
+                "reused": false,
+                "event": "assigned",
+                "ms": 10
+              },
+              {
+                "connection": 3,
+                "event": "close",
+                "ms": 10
+              }
+            ],
+            "assignment_history": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "event_counts": {
+              "assigned": 3,
+              "close": 3
+            },
+            "identity_scope": "Zero-based raw-pool request / successful HTTP1 setup; selection precedes HTTP admission."
+          }
+        }
+      ]
+    }
+  },
+  "historical_N_checkpoint": {
+    "summary": {
+      "path": "rust/parity/measurements/native-openssl-context-defaults-summary.json",
+      "bytes": 122142,
+      "sha256": "550f8a690985733aebba3ac90324a6178f6f2e040d11b2d2acc1be372c59ad59"
+    },
+    "scope": "Prior configuration40/40+4 and explicit supplier8+2 remain historical N evidence. O does not rerun or requalify those supplier units; current CI still lacks their durable entrypoint."
+  },
+  "validation": {
+    "owners": {
+      "vendor-node": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/vendor-node.json",
+          "bytes": 1220,
+          "sha256": "2ce5c1cf18fafe6db3ff6c2f144c4fc5dee524e298e87767ab82dab36cc8bc9e"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/vendor-node-invocation.json",
+          "bytes": 39856,
+          "sha256": "187754587df68edf364eeb84c5e54099a4efb4ac363538a3e0c4914616eb5098"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/vendor-node.stdout",
+          "bytes": 86,
+          "sha256": "8345b0dda7ce79d921d8655873c5737dcaa7576e3fb000dfad004fab832c9124"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/vendor-node.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "post_execution_mismatches": [],
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "elapsed_seconds": 0.36795812495984137
+      },
+      "auditor-build": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/auditor-build.json",
+          "bytes": 1527,
+          "sha256": "602dc5c046370ca1eb07486af8adea577bf83128a114f294aad950e76b078d7f"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/auditor-build-invocation.json",
+          "bytes": 40161,
+          "sha256": "b6b5ec9e1c28cc2ad559598905e9ef0b02caa54e6130e04068401c29e82802a5"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/auditor-build.stdout",
+          "bytes": 87489,
+          "sha256": "1090ce158bda8fb215f4f25c36f6719f60889eb9f5dbbece317fa983085f4d8a"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/auditor-build.stderr",
+          "bytes": 2140,
+          "sha256": "2e027d9f5e289907295f6f8b83284470409b280a567801a9989b40fba79f3dba"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "post_execution_mismatches": [],
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "elapsed_seconds": 17.167559624882415
+      },
+      "auditor-bootstrap": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/auditor-bootstrap.json",
+          "bytes": 1516,
+          "sha256": "e34e76af85d4f98f77c48cd5268b35e3acd08fe6fe3fa1ac6e21d6eda31f0b54"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/auditor-bootstrap-invocation.json",
+          "bytes": 42902,
+          "sha256": "e01ff20bfc53bfa036f110f24cd1f71fb75ddc5f81dc2a6923418ad731b58fc9"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/auditor-bootstrap.stdout",
+          "bytes": 965,
+          "sha256": "926f1ffbfb0e8527be741b7856ddcc848dbf9fa909d79627154f914754f3dbca"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/auditor-bootstrap.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "post_execution_mismatches": [],
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "elapsed_seconds": 0.852790790842846
+      },
+      "vendor-native": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/vendor-native.json",
+          "bytes": 1351,
+          "sha256": "082d0906ddf4b5051da28d9d83b525dc8157f60b785b09e50d4bfa2c399decb6"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/vendor-native-invocation.json",
+          "bytes": 42736,
+          "sha256": "1b3926b452554edf80bc0d55f41aa243562f77a8f6f52ff374928d54ffd4cf7e"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/vendor-native.stdout",
+          "bytes": 4351,
+          "sha256": "847634deed08f5f7fc4ae09b143e0e2809ae6239f1fb5f020eed780ba28df012"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/vendor-native.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "post_execution_mismatches": [],
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "elapsed_seconds": 1.256651374977082
+      },
+      "production-feature-controls": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/production-feature-controls.json",
+          "bytes": 1398,
+          "sha256": "4c543bd88404b54526bd0bfd4955aa0dc573d720baba3414d04d0d3c6adc1411"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/production-feature-controls-invocation.json",
+          "bytes": 42782,
+          "sha256": "e99909573f8f46fda5b263c0c79d661beed0c1a2efcf29d1a9813919b18095c8"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/production-feature-controls.stdout",
+          "bytes": 158,
+          "sha256": "82bf79eb19f1e32e25ab31dc80a53acca9249f079b9d6cff76bba44edbc37ff4"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/production-feature-controls.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "post_execution_mismatches": [],
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "elapsed_seconds": 0.09794541681185365
+      },
+      "workspace": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/workspace.json",
+          "bytes": 1453,
+          "sha256": "70f6bffaca03b67255b51bfd5461b78fdf3542d74e2af89febde4e9802bf6b1c"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/workspace-invocation.json",
+          "bytes": 43577,
+          "sha256": "c609b6b818facf45f492ed4308ec861c1cb6c2125e6182fefc1b2f978fb6a033"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/workspace.stdout",
+          "bytes": 168437,
+          "sha256": "20001c7d529bbfa74f57cd32768add4b160ee16a78dfa4faf69d11758c7af0b1"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/workspace.stderr",
+          "bytes": 19520,
+          "sha256": "b48c06cb39f28cec9ed26eb7b2befd300d3412139ce80a9dc2e4251ab393b9f0"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "post_execution_mismatches": [],
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "elapsed_seconds": 376.39003670797683
+      },
+      "fmt": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/fmt.json",
+          "bytes": 1235,
+          "sha256": "6a65e6acf8a5e94a7e4f6333ebccd6ec56bf26c9986546777f57ad6f01ca8b59"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/fmt-invocation.json",
+          "bytes": 43368,
+          "sha256": "2ac3b5ecd707eeff64683b40dd0a9445b81a71f8a3a3b5ff13fbde27dae4272e"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/fmt.stdout",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/fmt.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "post_execution_mismatches": [],
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "elapsed_seconds": 1.1600184170529246
+      },
+      "clippy": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/clippy.json",
+          "bytes": 1480,
+          "sha256": "682c220ab10ddf4b3a2c9c8881b75fb280b9b02d4c8922cd01429bc5e2b79e7e"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/clippy-invocation.json",
+          "bytes": 43611,
+          "sha256": "260ae02df9d3a49df8abc86acd88cdb967d3b6d58720c0d5b752c8bcfbfd0f32"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/clippy.stdout",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/clippy.stderr",
+          "bytes": 5066,
+          "sha256": "2e94ccc4b4ad6d3ec87db6445ff1ef3cb88aef6d5c77163178e6db89a3d151c9"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "post_execution_mismatches": [],
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "elapsed_seconds": 33.40916483406909
+      },
+      "node-check": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/node-check.json",
+          "bytes": 1216,
+          "sha256": "95b11ec8e2f34b981a50ef920d7a02d9fa620a90844f277e35237df66b8fe1e4"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/node-check-invocation.json",
+          "bytes": 43345,
+          "sha256": "f29a8d8019568f12c6d2590627b5afd181fc36dddb73966a64530c5fb1ad92ee"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/node-check.stdout",
+          "bytes": 153,
+          "sha256": "532c6103d0ae7485afac714e22851bbe915a0dfef35deddde4abf0e0db7f21a9"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/node-check.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "post_execution_mismatches": [],
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "elapsed_seconds": 5.002222083043307
+      },
+      "node-tests": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/node-tests.json",
+          "bytes": 1271,
+          "sha256": "837d6496624aa5157bb5a1da4b18f856e600573cfc5a5369d1443815a44c3b14"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/node-tests-invocation.json",
+          "bytes": 43398,
+          "sha256": "96463a5ecf33ae5891a477b34cd985dd3b9e938a67dd6c29217a583afafaeaa2"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/node-tests.stdout",
+          "bytes": 144941,
+          "sha256": "b9fe373773ce450da60529c72b680950021bc4754d17afdae244eecea757cf71"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/node-tests.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "post_execution_mismatches": [],
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "elapsed_seconds": 9.44556266698055
+      },
+      "node-package": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/node-package.json",
+          "bytes": 1290,
+          "sha256": "8afec2355f41236ed921ecf14fb1454927aa5450cef678649844569898469c4c"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/node-package-invocation.json",
+          "bytes": 43419,
+          "sha256": "12aa8c5940f73497de2226b74de8b051559516b0061ddc5ce74dd9a5f572afbd"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/node-package.stdout",
+          "bytes": 885,
+          "sha256": "e8e437a5d2e49b8ebdacf32814f639ebd209d8975efed9cd3a2934461d64285a"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/node-package.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "post_execution_mismatches": [],
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "elapsed_seconds": 9.364907250041142
+      },
+      "build-libtest": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/build-libtest.json",
+          "bytes": 1477,
+          "sha256": "41c5019a01fa336a81710062a56492c2acbecb844d88371adf9539d02d2f4b58"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/build-libtest-invocation.json",
+          "bytes": 41706,
+          "sha256": "1ce4caf556b989285ff7b007a68bb7793a00dab7102a6fce9b4cf750c5456a77"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/build-libtest.stdout",
+          "bytes": 264824,
+          "sha256": "1b2f44a9099444f4a990cc302f6612d6e7c1bb9b4e908043022864ea130f73fc"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/build-libtest.stderr",
+          "bytes": 61,
+          "sha256": "b88ab8ad329f1ace3468f18c1f4c65da8e05a52c969d4a72e49cf2657db280d9"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "post_execution_mismatches": [],
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "elapsed_seconds": 0.8005129999946803
+      },
+      "cli-roundtrip-o": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/cli-roundtrip-o.json",
+          "bytes": 1367,
+          "sha256": "5bae5e00ec72cfdfcef296842452f2787d9412f234ac8bfb3f897a8db1a0badc"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/cli-roundtrip-o-invocation.json",
+          "bytes": 50582,
+          "sha256": "e99d0ebae4e25e713d30538cff0287e331893f8a71cff7db36c23d7187e96015"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/cli-roundtrip-o.stdout",
+          "bytes": 1999,
+          "sha256": "bea171d3ce541d0f346dad0ee307198bbf1d045e3747039f4d21ab628f9daa55"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/cli-roundtrip-o.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "post_execution_mismatches": [],
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "elapsed_seconds": 20.714422875083983
+      },
+      "sessions-legacy": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/sessions-legacy.json",
+          "bytes": 1789,
+          "sha256": "fb2f127fb8dc8d9839355b70225448cffa0b547a716712f36fc7e5b429798055"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/sessions-legacy-invocation.json",
+          "bytes": 45223,
+          "sha256": "463db2c0b9cb4d3f959bfe8cdfc953e3a338f0ec0eba892c8f848e8a191cd589"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/sessions-legacy.stdout",
+          "bytes": 2198,
+          "sha256": "2691275d6a0259ce397875861952823da8e27f2aea8f9294f824dbf59c1b3875"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/sessions-legacy.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "exit_code": 1,
+        "owner_failure": null,
+        "post_execution_mismatches": [],
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "elapsed_seconds": 7.42384579195641
+      },
+      "sessions-buffered": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/sessions-buffered.json",
+          "bytes": 1794,
+          "sha256": "9a621a56fe14db9a52c16e533fefb9e1d920d3061fc829f119470645605e9d0b"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/sessions-buffered-invocation.json",
+          "bytes": 45229,
+          "sha256": "856c6ec45085881b04683cb47353983fbd6111f69b82beccf3a35052d1a3b78e"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/sessions-buffered.stdout",
+          "bytes": 2204,
+          "sha256": "a2e819a5c42cac431e0434a06389d113eb37ec1b97a6fdffd6c9ff9e82eadc8c"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/sessions-buffered.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "exit_code": 1,
+        "owner_failure": null,
+        "post_execution_mismatches": [],
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "elapsed_seconds": 8.759475000202656
+      },
+      "idle-legacy": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/idle-legacy.json",
+          "bytes": 1788,
+          "sha256": "f8ed696e1648dff59c80239a3b145064cf658649f383668dcf739c078a640873"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/idle-legacy-invocation.json",
+          "bytes": 44945,
+          "sha256": "96660590d06c24a048609008218ea31bb2efa8a3350144afc5f68572a508831f"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/idle-legacy.stdout",
+          "bytes": 852,
+          "sha256": "6fcd59a6ce8b1e8612d3a2e9d445772ea06bd85831d577eb9763aa9cf1c0bb29"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/idle-legacy.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "exit_code": 1,
+        "owner_failure": null,
+        "post_execution_mismatches": [],
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "elapsed_seconds": 5.7927682909648865
+      },
+      "idle-buffered": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/idle-buffered.json",
+          "bytes": 1792,
+          "sha256": "d8e4b61dec8ed3eb560471defdd05c40f961d880a6ceed0bdab28eafa75abd21"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/idle-buffered-invocation.json",
+          "bytes": 44951,
+          "sha256": "24537f822852831ead734396f64ae839ede0f0455b413900b38a33ea97b163b5"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/idle-buffered.stdout",
+          "bytes": 860,
+          "sha256": "7e9256ba5904e82dceb13e0128d0eb4b6c242506894c88b42001ce5a9c2f6609"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/idle-buffered.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "exit_code": 1,
+        "owner_failure": null,
+        "post_execution_mismatches": [],
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "elapsed_seconds": 6.1479764161631465
+      }
+    },
+    "workspace_totals": {
+      "passed": 1591,
+      "failed": 0,
+      "ignored": 11,
+      "measured": 0,
+      "filtered": 0,
+      "groups": 66
+    },
+    "all_prior_named_outcomes_preserved": 1599,
+    "new_tests": [
+      {
+        "name": "tls_roots::openssl_spike::idle_close_tests::historical_selection_keeps_scalar_identity_after_connection_release",
+        "status": "ok"
+      },
+      {
+        "name": "tls_roots::openssl_spike::raw_pool::buffered::replay::pool_diagnostic_overflow_is_not_a_truncated_success - should panic",
+        "status": "ok"
+      },
+      {
+        "name": "tls_roots::openssl_spike::raw_pool::buffered::replay::retained_pool_diagnostics_preserve_exact_boundary_and_assignment",
+        "status": "ok"
+      }
+    ],
+    "syntax_files": 98,
+    "node_passed": 645,
+    "safe_package_files": 58,
+    "package_lifecycles": 17,
+    "runtime_artifact": {
+      "receipt": {
+        "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/retained-runtime-pin.json",
+        "bytes": 2401,
+        "sha256": "b5cd44f1ad831770ea977735647f89bbf4f000ac00c4d5c30e6692c54e6640f0"
+      },
+      "retained": {
+        "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/retained/autorouter-runtime-libtest",
+        "bytes": 114573072,
+        "sha256": "03f4ce061d9aabd4fabc84076527cfcc9ac1c6dc36de1471d096ffd2999396a2"
+      },
+      "profile": {
+        "opt_level": "0",
+        "debuginfo": 0,
+        "debug_assertions": true,
+        "overflow_checks": true,
+        "test": true
+      },
+      "features": [
+        "default",
+        "development-probes"
+      ],
+      "cargo_fresh": true,
+      "scope": "Actual opt0 local correctness artifact; not optimized shipping or performance proof."
+    },
+    "data_helper_artifact": {
+      "receipt": {
+        "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/retained-data-helper-pin.json",
+        "bytes": 2265,
+        "sha256": "81aa0089f4f3ac3d89e03281a633830fb39617fc7f90d97ce9e5616b05f92e04"
+      },
+      "retained": {
+        "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/retained/xtask-data",
+        "bytes": 58056576,
+        "sha256": "f1f8746f92d1f1fd3af68aa44448594099ed9fb1076ca5f59127160acdd916e7"
+      },
+      "profile": {
+        "opt_level": "0",
+        "debuginfo": 0,
+        "debug_assertions": true,
+        "overflow_checks": true,
+        "test": false
+      },
+      "features": [
+        "default",
+        "runtime-tools"
+      ],
+      "cargo_fresh": true,
+      "scope": "Actual opt0 local correctness artifact; not optimized shipping or performance proof."
+    }
+  },
+  "gnu_fixture_repair": {
+    "attribution": {
+      "path": "artifacts/rust-rewrite/ci-0c85225-readonly-audit-20261020-1/sample2-gnu-x64-failure/failure-review.json",
+      "bytes": 20084,
+      "sha256": "73b93477aa4bcc2e2e2462dcc8af7b78cf808e0506af80b2c6e49ff75e5813f8"
+    },
+    "parent_head": "0c852253b56ef9a3409a08e2754aa8565ea65f0d",
+    "job": {
+      "id": 118621118504,
+      "run_id": 39420851636,
+      "name": "GNU glibc 2.28 / x86_64-unknown-linux-gnu",
+      "html_url": "https://github.com/frapposelli/claude-autorouter/actions/runs/39420851636/job/118621118504",
+      "status": "completed",
+      "conclusion": "failure"
+    },
+    "checkout": {
+      "actual_raw_log_evidence": true,
+      "ref": "refs/remotes/pull/16/merge",
+      "merge_commit": "85329827abb2119fc8e93cc2df32c96176433753",
+      "pr_head": "0c852253b56ef9a3409a08e2754aa8565ea65f0d",
+      "base": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+      "scope": "Log proves checked-out commit; no full merge-tree archive or artifacts downloaded."
+    },
+    "failure": "GNU cp rejected the live status source because atomic replacement occurred during its metadata checks.",
+    "repair": "Test fixture uses one opened cat source and requires complete JSON parse. All old logging/privacy/mode/output/cleanup assertions remain. No production code, retry or forced delay.",
+    "local_launcher_logging_tests_passed": 13,
+    "fresh_CI_status": "PENDING_NEW_COMMIT; parent failure is retained and local results do not repair it retroactively."
+  },
+  "source_packet": {
+    "result": {
+      "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/cli-roundtrip-current719/cli-roundtrip-result.json",
+      "bytes": 2189,
+      "sha256": "3b6440cc65b52f79875745622fa42401d83470ec5c4a25cebe62a3b9ac4bf46e"
+    },
+    "manifest": {
+      "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/cli-roundtrip-current719/transfer/transfer-manifest.json",
+      "bytes": 1963,
+      "sha256": "6221bba1bd6afb1354df8a0a3eaac897ec52675b1c7d1bf3aa699ca36153667e"
+    },
+    "archives": [
+      {
+        "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/cli-roundtrip-current719/transfer/native-source.cpio.gz",
+        "bytes": 3117888,
+        "sha256": "e0e3fdc6af2fc7e7bde7c32c467b07f5dd5ac7ee787f3abc0c7eddfc74847a6d"
+      },
+      {
+        "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/cli-roundtrip-current719/transfer/frozen-node-reference-delta.tar.gz",
+        "bytes": 299945,
+        "sha256": "0abea5d907b897c69d1e6f12ac2132f185781569e5d2c6f115a79d1f1fd0b4e8"
+      }
+    ],
+    "schema": 7,
+    "native_members": 721,
+    "indexed_hash_rows": 720,
+    "vendor_members": 265,
+    "corpus_members": 89,
+    "restored_reference_files": 113,
+    "frozen_reference_inputs": 111,
+    "geometry": {
+      "native_indexed_source": {
+        "members": 721,
+        "logical_bytes": 33228613,
+        "expanded_bytes": 33297920
+      },
+      "reference": {
+        "full_files": 113,
+        "delta_members": 109,
+        "delta_ustar_expanded_bytes": 1335296
+      },
+      "joint_schema7": {
+        "logical_bytes": 34655728,
+        "expanded_bytes": 34633216
+      },
+      "source_expansion_headroom": 256512
+    },
+    "source_limit_bytes": 33554432,
+    "joint_limit_bytes": 41943040,
+    "default_explicit7_packet_bytes_equal": true,
+    "schema6_refuses_before_destination": true,
+    "scope": "Current retained opt0/debug helper data-only recensus/create/byte-parse/reference restore. No restored source execution or shipping/performance/TLS qualification. Inherited per-helper output checks reject after subprocess capture; they are not streaming allocation quotas."
+  },
+  "independent_reviews": {
+    "raw-pool-diagnostics-static-review.json": {
+      "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/raw-pool-diagnostics-static-review.json",
+      "bytes": 9075,
+      "sha256": "dabe0ca3733709d6127eb2aea36d2d14e4092f49f9e3bddc211b88150f30b27c"
+    },
+    "independent-idle-assignment-history-static-review.json": {
+      "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/independent-idle-assignment-history-static-review.json",
+      "bytes": 3586,
+      "sha256": "d31b958846a78bbb26cc12e23c858b4f6589afac9ce3bf9af310b4d3a2ae3f8d"
+    },
+    "independent-workspace-actual-review.json": {
+      "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/independent-workspace-actual-review.json",
+      "bytes": 9371,
+      "sha256": "109b08a71031a7664d941e8a554dff17c7f85b6fa2f4cfba2f8ddeb4c2a29330"
+    },
+    "independent-workspace-named-comparison.json": {
+      "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/independent-workspace-named-comparison.json",
+      "bytes": 5936,
+      "sha256": "e351f55b9835f3744dd72f477d56e638a0c0649d6d407fc74074a81171956a81"
+    },
+    "cli-roundtrip-o-draft-review.json": {
+      "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/cli-roundtrip-o-draft-review.json",
+      "bytes": 6134,
+      "sha256": "2ef740743edd541bd0f9462ecf05ba02fc562d1007b14b19a290920e496c3002"
+    }
+  },
+  "close_phase_source_analysis": {
+    "receipt": {
+      "path": "artifacts/rust-rewrite/openssl-close-phase-trace-validation-20261020-1/close-phase-source-analysis.json",
+      "bytes": 93457,
+      "sha256": "660c5f3b5d37022d4204a1c926c61db132bb18b1c5faa417b794fa1e9346f414"
+    },
+    "scope": "Source/actual phase analysis and an unimplemented next-control design. No free row alone locates a body-completion/closed-driver branch; delaying a later close notification cannot restore an already-closed sender. Request failure, physical close(false), abort and session eviction remain distinct."
+  },
+  "remaining_limits": [
+    "Every semantic mismatch is retained. An incidental extra match due to a changed reference application outcome is not evidence of a native fix.",
+    "Diagnostics can perturb unbarriered scheduling; independent traces do not establish a shared clock or causal EOF/free/close order.",
+    "No production configuration/default/backend support, general TLS/session/idle-close equivalence, final platform/release/cutover or performance/live-quality qualification.",
+    "Historical reports/executables/source snapshots remain separate. No retry/unioned match set or parent CI transfer.",
+    "Compiler-cache deletion is not credited by this producer; only a separately reviewed completed Root receipt may support later disk-cleanup claims."
+  ]
+}

@@ -1,0 +1,369 @@
+{
+  "schema_version": 1,
+  "kind": "native_buffered_turn_fingerprint_checkpoint",
+  "base_commit": "19e3d2c1b0b3620de38b8c2a159eb4a232c6c679",
+  "source_uncommitted_at_validation": true,
+  "shipping_implementation": "JavaScript 0.5.2",
+  "changes": [
+    "Share the authoritative iterative JSON writer with an infallible crate-private fragment destination.",
+    "Hash normalized turn/prompt preimages through one 4096-byte batch; preserve content aliases and exact cache-control/history semantics.",
+    "Remove catalog-sized preimage strings and cloned member strings; structural traversal stacks still allocate.",
+    "Retain 26 complete frozen Node preimages, including a 4263-byte normalized composition and escaped scope/prompt identities."
+  ],
+  "checkpoint_source_sha256": {
+    "rust/crates/autorouter-core/src/js_json.rs": "f1cc0a9232822422529de2596f0f5af5425d553152854b6299d0fee60ce0630e",
+    "rust/crates/autorouter-core/src/router.rs": "fa41b4e2665c5db4d9475cfeeb027ae7f72b0c3f2a68b2c99369b07f47066d56",
+    "rust/crates/autorouter-core/src/turn_fingerprint_contracts.rs": "7476576b163c0fc96cda8fade98e4b9492a618305c2acb1e5c96530d0f1a161f",
+    "rust/parity/cases/turn-fingerprint-preimages.jsonl": "e6e5682c9ab894f3d6032c2bdad31c1ea4ed4f871c84b6be8d62ee012d2a50b6",
+    "rust/parity/cases/turn-fingerprint-preimages.capture.json": "9dd75142575f16dbd51806bc6f8844fc02ba6c37bd28c8883be6cef766eb3e5f",
+    "rust/xtask/src/bundle.rs": "40e864e6a74b6df2053b300cd97b708adb81c090df722e1f7d0300e23506e2d2"
+  },
+  "capture_generator": {
+    "path": "rust/parity/capture-turn-fingerprint.mjs",
+    "bytes": 11045,
+    "sha256": "fbeae2c85fda7c2b83760971c27a9dcb30a63d937785b500dbec53fc048244bb"
+  },
+  "frozen_capture": {
+    "cases": 26,
+    "verified_original_files": 111,
+    "corpus": {
+      "path": "rust/parity/cases/turn-fingerprint-preimages.jsonl",
+      "bytes": 45682,
+      "sha256": "e6e5682c9ab894f3d6032c2bdad31c1ea4ed4f871c84b6be8d62ee012d2a50b6"
+    },
+    "provenance": {
+      "path": "rust/parity/cases/turn-fingerprint-preimages.capture.json",
+      "bytes": 1405,
+      "sha256": "9dd75142575f16dbd51806bc6f8844fc02ba6c37bd28c8883be6cef766eb3e5f"
+    },
+    "extension_verification": {
+      "path": "artifacts/rust-rewrite/turn-fingerprint-20261016-1/corpus-extension-1/verification.json",
+      "bytes": 1977,
+      "sha256": "7ffcb44cb9246898638482aa1fdb4f197d2e7f419eedf4705a3ec79a29dadc7b"
+    }
+  },
+  "numerical_method": {
+    "protocol": {
+      "path": "rust/parity/whole-connection-benchmark-v1.json",
+      "bytes": 5858,
+      "sha256": "5e8729d7b37e84da10cb295f32912e7edcb94b004cc908c35742f4a9bd850b78"
+    },
+    "boundary_review": {
+      "path": "rust/parity/whole-connection-benchmark-review-v1.json",
+      "bytes": 2794,
+      "sha256": "fc9d6388debd1d667bde55ff2a7c549aadbe316d86e22535b2ba25898662e0aa"
+    },
+    "gates": {
+      "path": "rust/parity/performance-gates.json",
+      "bytes": 4792,
+      "sha256": "a9a8d7e1f9868e23303972117a19d5f899a934ebf7e50c0e8fc7498870cbd84f"
+    },
+    "pairs_per_experiment": 5,
+    "warmup_per_engine_per_pair": 200,
+    "measured_samples_per_engine_per_pair": 2000,
+    "threshold_unchanged": 0.5,
+    "provider_calls": 0,
+    "sequential_normal_use_experiments": true,
+    "causal_speedup_claim": false,
+    "policy_companion": {
+      "path": "rust/parity/whole-connection-policy-v1.json",
+      "bytes": 3106,
+      "sha256": "b31830b32d5652fb0ab81abfefe1d874effbe0a2942a0d5f9cd8860f15c4f957"
+    },
+    "method_guide": {
+      "path": "rust/docs/whole-connection-benchmark.md",
+      "bytes": 4705,
+      "sha256": "c357984deafe2880ca885038a2f10224c2182b0e9f7b38525f0dc4b8885d96d2"
+    }
+  },
+  "before_experiment": {
+    "report": {
+      "path": "artifacts/rust-rewrite/turn-fingerprint-20261016-1/baseline-measurement-1/report.json",
+      "bytes": 41695260,
+      "sha256": "a177823ff91a91491caf279dc1ca7721cd2511c669b9393615afa02cc544eaf1"
+    },
+    "preflight": {
+      "path": "artifacts/rust-rewrite/turn-fingerprint-20261016-1/baseline-measurement-1/preflight.json",
+      "bytes": 137311,
+      "sha256": "648b5b1e6246ffcd138d7795cdc6c35bdbd6372218825d30e8dad14fc1997e7e"
+    },
+    "helper": {
+      "path": "artifacts/rust-rewrite/turn-fingerprint-20261016-1/baseline-xtask",
+      "bytes": 17123920,
+      "sha256": "79d0e88e454cf22a74b5ec520ff02f8e6ebf35daaf9837fce2b4dc33e21c6286"
+    },
+    "pairs": 5,
+    "functional_request_pairs_verified": 11000,
+    "separate_round_files_verified": 10,
+    "rounds": [
+      {
+        "round": 1,
+        "node_p95_ms": 4.096082999999453,
+        "rust_p95_ms": 2.009958,
+        "ratio": 0.4907024589101999
+      },
+      {
+        "round": 2,
+        "node_p95_ms": 4.239917000000105,
+        "rust_p95_ms": 2.099333,
+        "ratio": 0.49513540005616813
+      },
+      {
+        "round": 3,
+        "node_p95_ms": 4.414082999999664,
+        "rust_p95_ms": 2.070833,
+        "ratio": 0.4691422884436377
+      },
+      {
+        "round": 4,
+        "node_p95_ms": 9.526959000000716,
+        "rust_p95_ms": 6.452541,
+        "ratio": 0.67729282764831
+      },
+      {
+        "round": 5,
+        "node_p95_ms": 9.459624999999505,
+        "rust_p95_ms": 6.282625,
+        "ratio": 0.6641515916328955
+      }
+    ],
+    "recomputed_interval": {
+      "median": 0.49513540005616813,
+      "low": 0.4691422884436377,
+      "high": 0.67729282764831
+    },
+    "status": "inconclusive",
+    "conditions": {
+      "cpu": "Apple M4",
+      "memory_bytes": 17179869184,
+      "os": "macos",
+      "os_release": "25.6.0",
+      "architecture": "aarch64",
+      "node": "v22.14.0",
+      "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+      "load_before": "{ 4.84 5.16 6.32 }",
+      "load_after": "{ 9.12 6.30 6.61 }",
+      "power": "Uncontrolled; preflight retains configured AC/battery settings, not an observation of active power source",
+      "build_profile": "release helper;source-to-binary provenance not verified"
+    }
+  },
+  "buffered_experiment": {
+    "report": {
+      "path": "artifacts/rust-rewrite/turn-fingerprint-20261016-1/candidate-measurement-1/report.json",
+      "bytes": 41698920,
+      "sha256": "abdd7057f6f7bc181e3c70c6af883253f3f2d95a0f10fc495e033cad2e429081"
+    },
+    "preflight": {
+      "path": "artifacts/rust-rewrite/turn-fingerprint-20261016-1/candidate-measurement-1/preflight.json",
+      "bytes": 137507,
+      "sha256": "db35675ebeb328d09dd1e9351f74cf8eda2ecc5ec862cff9849b75a7cb23c3c2"
+    },
+    "helper": {
+      "path": "artifacts/rust-rewrite/turn-fingerprint-20261016-1/candidate-xtask",
+      "bytes": 17124384,
+      "sha256": "2b1b79cca3c377bf8bc9e2020905c5a1a84082e8c81ae5c67556699b232a6c73"
+    },
+    "pairs": 5,
+    "functional_request_pairs_verified": 11000,
+    "separate_round_files_verified": 10,
+    "rounds": [
+      {
+        "round": 1,
+        "node_p95_ms": 4.943540999999641,
+        "rust_p95_ms": 2.5444999999999998,
+        "ratio": 0.5147120252467178
+      },
+      {
+        "round": 2,
+        "node_p95_ms": 4.850083000000268,
+        "rust_p95_ms": 2.791625,
+        "ratio": 0.575582933322965
+      },
+      {
+        "round": 3,
+        "node_p95_ms": 3.9215830000002825,
+        "rust_p95_ms": 1.840625,
+        "ratio": 0.4693576548041613
+      },
+      {
+        "round": 4,
+        "node_p95_ms": 4.1898330000003625,
+        "rust_p95_ms": 1.6585409999999998,
+        "ratio": 0.3958489514975552
+      },
+      {
+        "round": 5,
+        "node_p95_ms": 4.1889590000009775,
+        "rust_p95_ms": 1.866375,
+        "ratio": 0.4455462562416019
+      }
+    ],
+    "recomputed_interval": {
+      "median": 0.4693576548041613,
+      "low": 0.3958489514975552,
+      "high": 0.575582933322965
+    },
+    "status": "inconclusive",
+    "conditions": {
+      "cpu": "Apple M4",
+      "memory_bytes": 17179869184,
+      "os": "macos",
+      "os_release": "25.6.0",
+      "architecture": "aarch64",
+      "node": "v22.14.0",
+      "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+      "load_before": "{ 4.43 5.87 6.37 }",
+      "load_after": "{ 4.64 5.69 6.26 }",
+      "power": "Uncontrolled; preflight retains configured AC/battery settings, not an observation of active power source",
+      "build_profile": "release helper;source-to-binary provenance not verified"
+    }
+  },
+  "measured_candidate_sources": {
+    "rust/crates/autorouter-core/src/js_json.rs": "f1cc0a9232822422529de2596f0f5af5425d553152854b6299d0fee60ce0630e",
+    "rust/crates/autorouter-core/src/router.rs": "9b945d0cbc6b917c243288c722559cb0e4a09a368c975ad6fe62f80c5cc14a1d",
+    "rust/crates/autorouter-core/src/turn_fingerprint_contracts.rs": "9f95a3f33741a4500291ca9028cd6947346172fbb38c584a4c5c1018c2023f0c",
+    "rust/parity/cases/turn-fingerprint-preimages.jsonl": "3ac77cca7d675f04cd291c05be0c7ec2de4a5b769100322264ead1c0687bd288",
+    "rust/parity/whole-connection-benchmark-v1.json": "5e8729d7b37e84da10cb295f32912e7edcb94b004cc908c35742f4a9bd850b78",
+    "rust/parity/performance-gates.json": "a9a8d7e1f9868e23303972117a19d5f899a934ebf7e50c0e8fc7498870cbd84f"
+  },
+  "post_measurement_changes": "Final router spelling uses buffer.as_slice() instead of &buffer; current tests/corpus contain26 cases instead of measured24. Numerical evidence stays bound to the earlier measured helper/source hashes. The borrow-only source difference is checked exactly; no numerical qualification transfers to new bytes.",
+  "independent_recomputation": {
+    "path": "artifacts/rust-rewrite/turn-fingerprint-20261016-1/independent-review.json",
+    "bytes": 10214,
+    "sha256": "1fafb2182af15c66fe00a81538213b06143a8b75e907ed28331f588df2ae5182"
+  },
+  "validation": {
+    "rust_workspace": {
+      "passed": 1321,
+      "failed": 0,
+      "ignored": 10,
+      "groups": 66,
+      "log": {
+        "path": "artifacts/rust-rewrite/fingerprint-validation-20261016-1/workspace-tests.log",
+        "bytes": 150005,
+        "sha256": "554bd56d49332a356eca348f65bc44ac401c0ad69e47d6c0d488a8bff7b71df1"
+      }
+    },
+    "rust_commands": {
+      "path": "artifacts/rust-rewrite/fingerprint-validation-20261016-1/rust-progress-2.json",
+      "bytes": 617,
+      "sha256": "7a97d744658ff36d01a5bd3fbf431656ccd60f88da1cbdfb86d4c71055a4da5c"
+    },
+    "formatting": {
+      "path": "artifacts/rust-rewrite/fingerprint-validation-20261016-1/fmt-2.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "strict_workspace_clippy": {
+      "path": "artifacts/rust-rewrite/fingerprint-validation-20261016-1/strict-workspace-clippy-2.log",
+      "bytes": 3181,
+      "sha256": "3450890060e9166c5067d34b5c6ab9de51e58f22f8985145bb30b020ad56aad2"
+    },
+    "minimal_auditor_tests": {
+      "passed": 28,
+      "log": {
+        "path": "artifacts/rust-rewrite/fingerprint-validation-20261016-1/minimal-auditor-tests.log",
+        "bytes": 4668,
+        "sha256": "f3c6e8c5b00d300cb80cdd5ba491af6a3bd3d3acf2101c4349327d2aa438a855"
+      }
+    },
+    "strict_minimal_clippy": {
+      "path": "artifacts/rust-rewrite/fingerprint-validation-20261016-1/minimal-strict-clippy.log",
+      "bytes": 2140,
+      "sha256": "0e30644221c518d25b6eb7b322e72c80ce284b1963ea2d63a4a5e77c2dc6a1cc"
+    },
+    "node": {
+      "passed": 596,
+      "installed_archive_files": 58,
+      "commands": {
+        "path": "artifacts/rust-rewrite/fingerprint-validation-20261016-1/node-progress.json",
+        "bytes": 453,
+        "sha256": "a4ae9f0206e320cfeabb6aaa62b99ad4aa3dd87e999f0a2282ae4d564f809d3c"
+      },
+      "check": {
+        "path": "artifacts/rust-rewrite/fingerprint-validation-20261016-1/node-check.log",
+        "bytes": 153,
+        "sha256": "4882654ddbf9853bf4f185dc398c36b83eaa63b59fbb76d525b746ce417b768f"
+      },
+      "tests": {
+        "path": "artifacts/rust-rewrite/fingerprint-validation-20261016-1/node-tests.log",
+        "bytes": 135720,
+        "sha256": "477a719b6132095d396ae68c07cb74951abdcdaa9c706ca862c6282af3a53b2d"
+      },
+      "package": {
+        "path": "artifacts/rust-rewrite/fingerprint-validation-20261016-1/node-package.log",
+        "bytes": 885,
+        "sha256": "33be387f96aee9e5f1829f512bb4dd8a279c4713e6368e291fca097e3544bc64"
+      }
+    },
+    "frozen_differential_families": 17,
+    "differential": {
+      "path": "artifacts/rust-rewrite/fingerprint-validation-20261016-1/final-differential-all/suite.json",
+      "bytes": 7767,
+      "sha256": "e7f494d2c4db04191c7457d308a513c1931e72d4f6afbcd17806c4622ce1793e"
+    },
+    "final_whole_connection": {
+      "status": "not_measured",
+      "deterministic_parity": true,
+      "report": {
+        "path": "artifacts/rust-rewrite/fingerprint-validation-20261016-1/final-whole-validation/report.json",
+        "bytes": 160973,
+        "sha256": "db223a941f483299d66db0c1ef3ac3f3bfa19bf389d6aab926930e36448e21b0"
+      }
+    },
+    "helper": {
+      "path": "artifacts/rust-rewrite/fingerprint-validation-20261016-1/final-xtask",
+      "bytes": 51277952,
+      "sha256": "73488a9782c4a3c759e24849333ba567a1ebca846bfb8fdea5ad81fc459e2c60"
+    },
+    "helper_build_report": {
+      "path": "artifacts/rust-rewrite/fingerprint-validation-20261016-1/helper-build.jsonl",
+      "bytes": 167920,
+      "sha256": "e5dc7a92f30b95acd15403468aece8fb5c59318beb49c6c3ac1ac66e96b7d0cc"
+    },
+    "source_transfer": {
+      "current_allowlisted_files_verified": 693,
+      "native_files": 695,
+      "logical_reference_files_verified": 113,
+      "aggregate_expanded_carrier_bytes": 33548800,
+      "aggregate_expanded_limit": 33554432,
+      "aggregate_logical_file_bytes": 33414582,
+      "aggregate_logical_file_limit": 33554432,
+      "carrier_headroom_bytes": 5632,
+      "logical_headroom_bytes": 139850
+    },
+    "transfer_inspection": {
+      "path": "artifacts/rust-rewrite/fingerprint-transfer-evidence-20261016-1/inspection.json",
+      "bytes": 1549,
+      "sha256": "15ddd0a2049ec80bc6454af95c95a0198905e94100a80bcedcbba9772f8efbf7"
+    }
+  },
+  "retained_failed_attempts": [
+    {
+      "reason": "Strict Clippy rejected a needless generic borrow; final source uses the same bytes as a borrowed slice.",
+      "log": {
+        "path": "artifacts/rust-rewrite/fingerprint-validation-20261016-1/strict-workspace-clippy.log",
+        "bytes": 2471,
+        "sha256": "e71d3fe4b9d7ec321350e85261b4a6338b9b443aded527a1a87043f64c7719c4"
+      }
+    }
+  ],
+  "coverage": {
+    "covered": 532,
+    "partial_assertion_mapping": 56,
+    "whole_behavior_areas_complete": 0
+  },
+  "ci": "This new source requires fresh CI; earlier checkpoints do not qualify it.",
+  "whole_gateway_processing_gate": "incomplete",
+  "representative_hardware_acceptance": false,
+  "shipping_artifact_qualification": false,
+  "source_to_binary_provenance": "unverified_prebuilt",
+  "full_goal_complete": false,
+  "release_approved": false,
+  "remaining": [
+    "Remaining original assertions and configuration/limit boundaries.",
+    "Protocol/TLS/resource schedules and complete supported-platform/minimum-environment evidence.",
+    "All unchanged final-candidate numerical gates and matched real evaluator/task evidence.",
+    "Artifact/build/license provenance, failure/rollback qualification and final cutover."
+  ]
+}

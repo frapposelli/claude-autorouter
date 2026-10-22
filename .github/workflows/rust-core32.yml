@@ -1,0 +1,130 @@
+name: Rust 32-bit core arithmetic
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  core32:
+    name: core arithmetic / i686-unknown-linux-gnu
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash
+        working-directory: rust
+    env:
+      CARGO_INCREMENTAL: '0'
+      CARGO_PROFILE_DEV_DEBUG: '0'
+      CARGO_PROFILE_TEST_DEBUG: '0'
+      CARGO_BUILD_JOBS: '4'
+      CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER: gcc
+      RUSTFLAGS: ''
+      LC_ALL: C
+      CARGO_TERM_COLOR: never
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Declare exact source and workspace Rust version
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p ../artifacts/rust-rewrite/core32
+          test "$(uname -m)" = x86_64
+          test -z "$(git status --porcelain)"
+          git rev-parse HEAD > ../artifacts/rust-rewrite/core32/source-commit.txt
+          git status --porcelain > ../artifacts/rust-rewrite/core32/source-status.txt
+          python3 - <<'PYTHON'
+          import os, re, tomllib
+          from pathlib import Path
+          version = tomllib.loads(Path('rust-toolchain.toml').read_text())['toolchain']['channel']
+          if not re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', version):
+              raise SystemExit('Workspace Rust channel must be an exact version')
+          for name in [
+              'RUSTC','RUSTDOC','RUSTC_WRAPPER','RUSTC_WORKSPACE_WRAPPER',
+              'CARGO_BUILD_RUSTC','CARGO_BUILD_RUSTDOC','CARGO_BUILD_RUSTC_WRAPPER',
+              'CARGO_BUILD_RUSTC_WORKSPACE_WRAPPER','CARGO_ENCODED_RUSTFLAGS',
+              'CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_RUNNER',
+          ]:
+              if os.environ.get(name):
+                  raise SystemExit('Unexpected compiler or execution override')
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write('AUTOROUTER_CORE32_RUST=' + version + '\n')
+          PYTHON
+      - name: Install exact selected multilib roots from runner package indexes
+        run: |
+          set -euo pipefail
+          umask 077
+          out=../artifacts/rust-rewrite/core32
+          sudo apt-get update --error-on=any -o Acquire::Retries=0 -o Acquire::http::Timeout=60 -o Acquire::https::Timeout=60
+          apt-cache policy gcc-multilib libc6-dev-i386 > "$out/apt-policy.txt"
+          autorouter_gcc_version=$(apt-cache policy gcc-multilib | awk '/Candidate:/ {print $2}')
+          autorouter_libc_version=$(apt-cache policy libc6-dev-i386 | awk '/Candidate:/ {print $2}')
+          [[ "$autorouter_gcc_version" =~ ^[0-9A-Za-z.+:~_-]+$ ]]
+          [[ "$autorouter_libc_version" =~ ^[0-9A-Za-z.+:~_-]+$ ]]
+          test "$autorouter_gcc_version" != '(none)'
+          test "$autorouter_libc_version" != '(none)'
+          printf '%s\n%s\n' "$autorouter_gcc_version" "$autorouter_libc_version" > "$out/requested-root-versions.txt"
+          sudo apt-get install --yes --no-install-recommends --no-remove \
+            "gcc-multilib=$autorouter_gcc_version" "libc6-dev-i386=$autorouter_libc_version"
+          test "$(dpkg-query -W -f='${Version}' gcc-multilib)" = "$autorouter_gcc_version"
+          test "$(dpkg-query -W -f='${Version}' libc6-dev-i386)" = "$autorouter_libc_version"
+          dpkg-query -W -f='${Package}\t${Version}\t${Architecture}\n' > "$out/installed-packages.tsv"
+          apt-get indextargets > "$out/apt-index-targets.txt"
+          gcc --version > "$out/gcc-version.txt"
+          python3 --version > "$out/python-version.txt"
+          cp /etc/os-release "$out/os-release.txt"
+          uname -srmo > "$out/kernel.txt"
+      - name: Fetch exact Rust target and locked core dependencies
+        run: |
+          set -euo pipefail
+          out=../artifacts/rust-rewrite/core32
+          rustup toolchain install "$AUTOROUTER_CORE32_RUST" --profile minimal
+          rustup target add --toolchain "$AUTOROUTER_CORE32_RUST" i686-unknown-linux-gnu
+          rustc "+$AUTOROUTER_CORE32_RUST" -vV > "$out/rustc-version.txt"
+          cargo "+$AUTOROUTER_CORE32_RUST" --version > "$out/cargo-version.txt"
+          rustup --version > "$out/rustup-version.txt"
+          rustc "+$AUTOROUTER_CORE32_RUST" --print cfg --target i686-unknown-linux-gnu > "$out/target-cfg.txt"
+          grep -Fxq 'target_pointer_width="32"' "$out/target-cfg.txt"
+          cargo "+$AUTOROUTER_CORE32_RUST" fetch --locked --target i686-unknown-linux-gnu
+      - name: Build and inspect genuine ELF32 core test executables
+        id: inspect
+        run: |
+          set -euo pipefail
+          umask 077
+          out=../artifacts/rust-rewrite/core32
+          export CARGO_TARGET_DIR="$GITHUB_WORKSPACE/artifacts/rust-rewrite/core32/target"
+          cargo "+$AUTOROUTER_CORE32_RUST" test --target i686-unknown-linux-gnu --package autorouter-core \
+            --no-run --offline --locked --message-format=json > "$out/build.jsonl"
+          python3 distribution/ci/core32-proof.py inspect
+      - name: Execute the complete 32-bit core package and doc tests
+        run: |
+          set -euo pipefail
+          umask 077
+          out=../artifacts/rust-rewrite/core32
+          export CARGO_TARGET_DIR="$GITHUB_WORKSPACE/artifacts/rust-rewrite/core32/target"
+          cargo "+$AUTOROUTER_CORE32_RUST" test --target i686-unknown-linux-gnu --package autorouter-core \
+            --offline --locked -- --test-threads=4 > "$out/package-tests.log" 2>&1
+          git rev-parse HEAD > "$out/source-commit-after.txt"
+          git status --porcelain > "$out/source-status-after.txt"
+          python3 distribution/ci/core32-proof.py finish
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: rust-core32-i686
+          path: |
+            artifacts/rust-rewrite/core32/*.json
+            artifacts/rust-rewrite/core32/*.jsonl
+            artifacts/rust-rewrite/core32/*.txt
+            artifacts/rust-rewrite/core32/*.tsv
+            artifacts/rust-rewrite/core32/*.log
+            ${{ steps.inspect.outputs.test_binaries }}
+          if-no-files-found: warn

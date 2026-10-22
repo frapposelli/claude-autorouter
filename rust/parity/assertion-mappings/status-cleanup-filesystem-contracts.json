@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "kind": "status_cleanup_filesystem_per_assertion_migration",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "original_definition": {
+    "id": "test/status-cleanup.test.mjs#5",
+    "name": "cleanup never throws, including for a missing directory or a failing filesystem",
+    "statement": "test('cleanup never throws, including for a missing directory or a failing filesystem', async t => {\n  const root = temporary(t);\n  assert.equal(await run(join(root, 'missing')), 0);\n  statusDirectory(root, 'autorouter-status-dead', { pid: DEAD, heartbeat_at: NOW });\n  const failing = { readdir: async () => ['autorouter-status-dead'], lstat: async () => { throw new Error('PRIVATE_PATH'); } };\n  assert.equal(await run(root, { io: failing }), 0);\n});\n",
+    "statement_sha256": "6c58f159a9ecebc1b6e501f486dc77ae352f0f5dac65a4d91beba74c656ff5c5"
+  },
+  "previous_coverage_row": {
+    "id": "test/status-cleanup.test.mjs#5",
+    "file": "test/status-cleanup.test.mjs",
+    "name": "cleanup never throws, including for a missing directory or a failing filesystem",
+    "parameterized": false,
+    "status": "partial_assertion_mapping",
+    "rust_tests": [
+      "rust/crates/autorouter-runtime/src/status_cleanup.rs#status_cleanup::tests::cleanup_is_bounded_and_missing_directory_is_ignored"
+    ],
+    "shared_cases": [],
+    "evidence": {
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+      "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+      "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+      "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+      "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+    },
+    "related_components": [
+      "status"
+    ],
+    "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+    "remaining_assertions": [
+      "Missing directory is tested; a synthetic lstat/filesystem failure and private error suppression are not injected."
+    ]
+  },
+  "per_assertion": [
+    {
+      "id": "test/status-cleanup.test.mjs#5:assert-1",
+      "expression": "assert.equal(await run(join(root, 'missing')), 0)",
+      "sha256": "c7642604bb93931b1fd40cbd368df88f4fc1b304ff41ba0e2797474db58b66c4",
+      "source_executions": 1,
+      "status": "covered_under_explicit_native_api_migration",
+      "native_test": "status_cleanup::tests::cleanup_is_bounded_and_missing_directory_is_ignored",
+      "native_predicate": "remove_stale_status_directories on a removed owned root returns0; the original missing-directory branch."
+    },
+    {
+      "id": "test/status-cleanup.test.mjs#5:assert-2",
+      "expression": "assert.equal(await run(root, { io: failing }), 0)",
+      "sha256": "449124ad1e9880dda52cce7b1568e60e3924b64704d8d02b2cb69553b3bd8cdf",
+      "source_executions": 1,
+      "status": "covered_under_explicit_native_api_migration",
+      "native_test": "failed_probe_skips_only_its_directory_and_private_panic_output_is_suppressed \u2192 cleanup_probe_hook_child",
+      "native_predicate": "Ordinary non-root runner: root0400 remains readable to read_dir; an actual child symlink_metadata returns PermissionDenied/OS13; production cleanup returns0 with zero liveness, then root0700 recovery preserves settings and removes the dead entry. Bounded subprocess stdout/stderr exclude the synthetic private path/settings marker."
+    }
+  ],
+  "native_API_review": {
+    "preserved": "Missing directory and failed per-entry metadata reads return zero without leaking private errors or modifying retained settings; later entries and recovery remain usable.",
+    "migration": "Rust CleanupOptions uses concrete Tokio filesystem operations rather than an injected JavaScript io object. Actual PermissionDenied (OS13) and NotFound faults replace source-injected Error values; JavaScript provider/callback/Error identities are not part of the Rust API.",
+    "review": "Accepted for the two original return-value assertions under the documented native embedding boundary. A non-root execution is required for permission-fault evidence; privileged skips do not qualify that branch."
+  },
+  "current_source_bindings": [
+    {
+      "path": "rust/crates/autorouter-runtime/src/status_cleanup.rs",
+      "bytes": 16382,
+      "sha256": "ba083c4840241585de721778d082b904d315327c00b7fefbdc118aa142a0d94c"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/status_cleanup_probe.rs",
+      "bytes": 6853,
+      "sha256": "e31c6d48cf5164080b110a24adc1de638f2e152b0985cc9f49e548ab99988bf2"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/support/privacy_child.rs",
+      "bytes": 2228,
+      "sha256": "845ebe70910ba804299eb206d04f2adf1dba8cd818993c200f47c840d27ba965"
+    },
+    {
+      "path": "rust/docs/embedding.md",
+      "bytes": 24291,
+      "sha256": "92445f540b65a66eddbfd402de2ca47870d9d3f30a1250fcb2c0cac31e51a204"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/test/status-cleanup.test.mjs",
+      "bytes": 4505,
+      "sha256": "38ef4b97693dd5713c812c6550d15d46cd5a745879ac260a4bcdc958b1070c57"
+    }
+  ],
+  "actual_executions": [
+    {
+      "path": "artifacts/rust-rewrite/status-cleanup5-current-20261015-1/additional-executions.json",
+      "bytes": 1033,
+      "sha256": "be0465322db78abdde2d8752fd961eca8bcd998d0d7127fd9892b3542b7b68e8"
+    },
+    {
+      "path": "artifacts/rust-rewrite/status-cleanup5-current-20261015-1/execution.json",
+      "bytes": 754,
+      "sha256": "bc3a9c2e6bbc6744586ba3f5750436920c6329ed52a21bce139f506dfbbba923"
+    },
+    {
+      "path": "artifacts/rust-rewrite/status-cleanup5-current-20261015-1/missing-native.stderr",
+      "bytes": 632,
+      "sha256": "7694ca12b9711d56515dc5c682eee522e242cfb2d48cea25fd448f08b38a11dd"
+    },
+    {
+      "path": "artifacts/rust-rewrite/status-cleanup5-current-20261015-1/missing-native.stdout",
+      "bytes": 201,
+      "sha256": "2d71b251d7759bf1c02ae24e9230bc41a1b0d11cb95efaa0c6f855a59ba95b9c"
+    },
+    {
+      "path": "artifacts/rust-rewrite/status-cleanup5-current-20261015-1/source.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/status-cleanup5-current-20261015-1/source.stdout",
+      "bytes": 330,
+      "sha256": "707db98120bb83a275fcf959e4ad0a7d63d89c6fb88106d63811f129899a49fc"
+    },
+    {
+      "path": "artifacts/rust-rewrite/status-cleanup5-current-20261015-1/stderr.log",
+      "bytes": 753,
+      "sha256": "d578aada1c187b6cfcde6343791ea69d41f8476f190c084593f540737329d4c0"
+    },
+    {
+      "path": "artifacts/rust-rewrite/status-cleanup5-current-20261015-1/stdout.log",
+      "bytes": 348,
+      "sha256": "d8c09bfde14238a20a7404dfea13f70116e4cfe6e00114a3c80888fdce5222dd"
+    }
+  ],
+  "scope": "Only original status-cleanup#5. Source injected Error test and native actual filesystem faults are separate actual executions; no callback/object identity equivalence is claimed. No product or test implementation changed."
+}

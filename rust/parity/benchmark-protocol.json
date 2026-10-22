@@ -1,0 +1,197 @@
+{
+  "schema_version": 1,
+  "status": "initial_driver_implemented_full_matrix_pending",
+  "interface": "xtask benchmark launches the frozen Node CLI and release native executable against identical driver-owned loopback services; measurements use complete processes and HTTP requests.",
+  "implementations": {
+    "node": [
+      "node",
+      "bin/autorouter.mjs"
+    ],
+    "rust": [
+      "rust/target/release/claude-autorouter"
+    ]
+  },
+  "controls": [
+    "direct_upstream",
+    "immediate_mock_evaluator",
+    "fixed_delay_mock_evaluator"
+  ],
+  "workloads": [
+    {
+      "id": "startup_help_version",
+      "kind": "process",
+      "conditions": [
+        "cold",
+        "warm",
+        "unrelated_cwd",
+        "npm_dispatcher",
+        "native_archive"
+      ]
+    },
+    {
+      "id": "startup_status",
+      "kind": "process",
+      "conditions": [
+        "private_synthetic_snapshot",
+        "no_snapshot",
+        "40_80_100_120_columns"
+      ]
+    },
+    {
+      "id": "gateway_ready",
+      "kind": "process_http",
+      "conditions": [
+        "mock_jev",
+        "mock_ollama_warmup"
+      ]
+    },
+    {
+      "id": "small_request",
+      "kind": "http",
+      "conditions": [
+        "immediate_evaluator",
+        "fixed_delay_evaluator"
+      ]
+    },
+    {
+      "id": "large_catalog",
+      "kind": "http",
+      "conditions": [
+        "300_tools",
+        "historical_286807_byte_shape",
+        "near_body_limit"
+      ]
+    },
+    {
+      "id": "cache",
+      "kind": "http",
+      "conditions": [
+        "hit",
+        "miss",
+        "expired",
+        "credential_and_config_isolation"
+      ]
+    },
+    {
+      "id": "concurrent_agents",
+      "kind": "http",
+      "conditions": [
+        "identical_same_agent",
+        "identical_distinct_agents",
+        "distinct_inputs",
+        "1_8_32_128_clients"
+      ]
+    },
+    {
+      "id": "task_continuity",
+      "kind": "http",
+      "conditions": [
+        "new_human",
+        "pinned_tool",
+        "goal_feedback",
+        "expired_classifier_cache",
+        "capacity"
+      ]
+    },
+    {
+      "id": "streaming",
+      "kind": "http",
+      "conditions": [
+        "fragmented_sse",
+        "fragmented_utf8",
+        "json",
+        "compressed_passthrough",
+        "slow_client",
+        "long_stream"
+      ]
+    },
+    {
+      "id": "upstream_failures",
+      "kind": "http",
+      "conditions": [
+        "429",
+        "5xx",
+        "sse_error",
+        "truncated",
+        "malformed_metadata",
+        "timeout"
+      ]
+    },
+    {
+      "id": "cancellation",
+      "kind": "http",
+      "conditions": [
+        "before_evaluation",
+        "one_shared_waiter",
+        "last_shared_waiter",
+        "during_count",
+        "during_forward",
+        "after_terminal_before_flush",
+        "zero_deadline"
+      ]
+    },
+    {
+      "id": "token_count",
+      "kind": "http",
+      "conditions": [
+        "supported",
+        "unsupported",
+        "cached",
+        "timeout",
+        "changed_auth"
+      ]
+    },
+    {
+      "id": "storage",
+      "kind": "http_storage",
+      "conditions": [
+        "normal",
+        "slow",
+        "failed",
+        "blocked_snapshot",
+        "bounded_log_queue",
+        "shutdown"
+      ]
+    },
+    {
+      "id": "history",
+      "kind": "process_storage",
+      "conditions": [
+        "schema1",
+        "schema2",
+        "read_limits",
+        "truncated",
+        "symlink_rejection"
+      ]
+    },
+    {
+      "id": "resource_soak",
+      "kind": "process_http_storage",
+      "conditions": [
+        "mixed_tasks",
+        "capacity_pressure",
+        "repeated_launch_kill",
+        "bounded_retention",
+        "postload_recovery"
+      ]
+    }
+  ],
+  "required_metrics": [
+    "startup_ms",
+    "ready_ms",
+    "route_p50_p95_p99_ms",
+    "first_byte_ms",
+    "stream_stall_ms",
+    "stream_bytes_per_second",
+    "cpu_time_per_request_ms",
+    "idle_rss_bytes",
+    "peak_rss_bytes",
+    "open_file_descriptors",
+    "request_count",
+    "evaluator_call_count",
+    "retained_records",
+    "cleanup_ms"
+  ],
+  "acceptance": "Use performance-gates.json only after settings and noise floors are recorded. Missing workloads/metrics are unmeasured, never passing. Fixture identities and deterministic semantics must agree before timings are comparable.",
+  "local_protocol": "local-benchmark-v1.json"
+}

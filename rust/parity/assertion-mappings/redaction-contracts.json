@@ -1,0 +1,1941 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_redaction_contracts_assertion_mapping",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "scope": "Twelve covered functional definitions and two partial definitions retaining all 28 unexecuted timing assertions. Ninety-three complete pure-call comparisons; review is by root independently of the implementing agent, not two distinct reviewers.",
+  "counts": {
+    "definitions": 14,
+    "static_assertions": 37,
+    "executed_static_assertions": 35,
+    "expanded_functional_assertions": 141,
+    "unexecuted_timing_assertions": 28,
+    "complete_native_result_comparisons": 93,
+    "covered": 12,
+    "partial": 2
+  },
+  "capture_method": {
+    "source": {
+      "path": "rust/parity/capture-redaction-contracts.mjs",
+      "sha256": "23cb574704474cfdb8da9042e5c97b1240ab4ffb871f1840d19503bf15ba5d25",
+      "bytes": 12089
+    },
+    "capture": {
+      "path": "rust/parity/cases/redaction-contracts.capture.json",
+      "sha256": "8718ad76d6d66ab0d8019499b7a8321d95c7944d4a759f9f29f79bdac9d754ea",
+      "bytes": 40585
+    },
+    "cases": {
+      "path": "rust/parity/cases/redaction-contracts.jsonl",
+      "sha256": "ae0ad22d07ba8c36090945501841d498c7a5bc48ed0d220d271f2957320c2951",
+      "bytes": 405686
+    },
+    "repeat": {
+      "path": "artifacts/rust-rewrite/evidence/077f6f00231eb30f3ad436eebab8da19e39b09b69e58201e3690ac4d1feea504.json",
+      "sha256": "077f6f00231eb30f3ad436eebab8da19e39b09b69e58201e3690ac4d1feea504",
+      "bytes": 10064,
+      "original_path": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/redaction-safe-serialization-1/correction.json"
+    },
+    "frozen_manifest_checked_files": 111,
+    "ast": {
+      "path": "artifacts/rust-rewrite/evidence/7338b9a59df331db546abdd5a10b62fb4a4f0cefd799dfed819a7fb83da12b99.json",
+      "sha256": "7338b9a59df331db546abdd5a10b62fb4a4f0cefd799dfed819a7fb83da12b99",
+      "bytes": 17344,
+      "original_path": "/private/tmp/autorouter-redaction-next-ast.json"
+    },
+    "complete_callbacks": [
+      "test/redaction.test.mjs#1",
+      "test/redaction.test.mjs#2",
+      "test/redaction.test.mjs#3",
+      "test/redaction.test.mjs#4",
+      "test/redaction.test.mjs#6",
+      "test/redaction.test.mjs#7",
+      "test/redaction.test.mjs#9",
+      "test/redaction.test.mjs#11",
+      "test/redaction.test.mjs#12",
+      "test/redaction.test.mjs#13",
+      "test/redaction.test.mjs#14",
+      "test/redaction.test.mjs#17"
+    ],
+    "prefixes": [
+      "test/redaction.test.mjs#5",
+      "test/redaction.test.mjs#16"
+    ],
+    "transformations": "Pinned static imports become wrapped exports; original assertions execute through counting wrappers. Exactly two #9 dynamic imports resolve through async wrapper facades. Timed callbacks5/16 are truncated immediately before the original adversarial declaration, retaining exact prefix bytes and suffix hash. No artificial elapsed clock is installed.",
+    "clock": {
+      "now": "2026-10-09T12:00:00.000Z",
+      "scope": "Only normalizeSessionRecord fallback Date; no elapsed-time clock is fabricated."
+    },
+    "shared_case_pointer_semantics": "Each assertion references its definition shared_cases via JSON pointer. Complete exact93case list occurs once per definition; every native actual result is compared with its complete frozen return value. Original functional assertions all execute against those returns; no discarded fields or input echoes are native evidence.",
+    "serialization": {
+      "kind": "json_unicode_escape_known_synthetic_credentials",
+      "credential_values": 26,
+      "source": "Frozen test fake and more dictionaries; only first UTF-16 code unit of exact value occurrences is escaped.",
+      "decoded_values_unchanged": true
+    }
+  },
+  "native_method": {
+    "entrypoint": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+    "operations": [
+      "redaction::redact_sensitive",
+      "prompt_state::build_state_document",
+      "prompt_state::build_ollama_state_document",
+      "prompt_state::prompt_excerpt_document",
+      "telemetry_event::normalize_session_document"
+    ],
+    "comparison": "Exact full serde_json value equality on this scalar-string/safe-integer fixture set. Prompt builders serialize authoritative PromptState first. No tolerant numbers, sanitized-output comparator or input-as-output mock.",
+    "inventory": "Exact93calls, per-definition counts, unique IDs and capture-to-corpus ordered IDs; SHA256 must equal both capture.corpus_sha256 and hardcodedae0ad22d07ba8c36090945501841d498c7a5bc48ed0d220d271f2957320c2951. Corpus bytes capped at512KiB.",
+    "negative_control": "rust/crates/autorouter-core/tests/redaction_contracts.rs#replay_rejects_private_output_lost_state_wrong_clock_and_incomplete_inventory",
+    "negative_cases": [
+      "original unredacted input substituted for expected redacted output",
+      "expected current_task removed",
+      "wrong normalization clock supplied",
+      "unknown operation",
+      "missing case",
+      "duplicate ID",
+      "changed input and matching expected output plus recomputed capture hash (inventory and actual function match but pinned corpus identity rejects)",
+      "corpus beyond512KiB byte bound"
+    ],
+    "production_changes": false
+  },
+  "evidence": {
+    "native": {
+      "path": "artifacts/rust-rewrite/evidence/b50c30ad63bc2624e6ba06961740e19f59f50ac5c054157be518ae505e9c0718.log",
+      "sha256": "b50c30ad63bc2624e6ba06961740e19f59f50ac5c054157be518ae505e9c0718",
+      "bytes": 548,
+      "original_path": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/redaction-safe-serialization-1/native.log"
+    },
+    "clippy": {
+      "path": "artifacts/rust-rewrite/evidence/23dad5b848ff37d70be25b47c3cc362b36123b76cc44a0a21215f17a5d5df41d.log",
+      "sha256": "23dad5b848ff37d70be25b47c3cc362b36123b76cc44a0a21215f17a5d5df41d",
+      "bytes": 172,
+      "original_path": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/redaction-safe-serialization-1/clippy.log"
+    },
+    "frozen": {
+      "path": "artifacts/rust-rewrite/evidence/90447a4e0915147664b3249c046d375e815d03feb5bf788090a803c08a9a18fe.log",
+      "sha256": "90447a4e0915147664b3249c046d375e815d03feb5bf788090a803c08a9a18fe",
+      "bytes": 2512,
+      "original_path": "artifacts/rust-rewrite/tenth-redaction-frozen-control.log"
+    },
+    "frozen_command": {
+      "path": "artifacts/rust-rewrite/evidence/a78a2ac6efcc80edfb2d8c83b5946c69618d52a227528cc5306eabb1e111ae90.json",
+      "sha256": "a78a2ac6efcc80edfb2d8c83b5946c69618d52a227528cc5306eabb1e111ae90",
+      "bytes": 2440,
+      "original_path": "artifacts/rust-rewrite/tenth-redaction-frozen-control.json"
+    },
+    "capture_repeat": {
+      "path": "artifacts/rust-rewrite/evidence/077f6f00231eb30f3ad436eebab8da19e39b09b69e58201e3690ac4d1feea504.json",
+      "sha256": "077f6f00231eb30f3ad436eebab8da19e39b09b69e58201e3690ac4d1feea504",
+      "bytes": 10064,
+      "original_path": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/redaction-safe-serialization-1/correction.json"
+    },
+    "native_result": {
+      "passed": 2,
+      "failed": 0,
+      "CARGO_INCREMENTAL": "0",
+      "command": "cargo test --locked --offline -p autorouter-core --test redaction_contracts"
+    },
+    "clippy_result": {
+      "exit_code": 0,
+      "command": "cargo clippy --locked --offline -p autorouter-core --test redaction_contracts -- -D warnings"
+    },
+    "frozen_result": {
+      "passed": 12,
+      "failed": 0,
+      "selection": "Exact anchored twelve full functional definition names;5/8/10/15/16 excluded, no timed callback/evaluator network path."
+    }
+  },
+  "current_sources": [
+    {
+      "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+      "sha256": "344e26e012d62c666b8b9631b95d25f8d91879a8eaa67fb15404308af74d4d15",
+      "bytes": 7828
+    },
+    {
+      "path": "rust/parity/capture-redaction-contracts.mjs",
+      "sha256": "23cb574704474cfdb8da9042e5c97b1240ab4ffb871f1840d19503bf15ba5d25",
+      "bytes": 12089
+    },
+    {
+      "path": "rust/parity/cases/redaction-contracts.jsonl",
+      "sha256": "ae0ad22d07ba8c36090945501841d498c7a5bc48ed0d220d271f2957320c2951",
+      "bytes": 405686
+    },
+    {
+      "path": "rust/parity/cases/redaction-contracts.capture.json",
+      "sha256": "8718ad76d6d66ab0d8019499b7a8321d95c7944d4a759f9f29f79bdac9d754ea",
+      "bytes": 40585
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/redaction.rs",
+      "sha256": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44",
+      "bytes": 28479
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/prompt_state.rs",
+      "sha256": "56e138cec33a2523892f156bb73369b05827559c7071299d09ef08ea81805127",
+      "bytes": 27400
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/telemetry_event.rs",
+      "sha256": "9ecd66bb91b416a0a5435a134d307aaf8bb2488f02dfc04df3fca3f0bab92640",
+      "bytes": 30138
+    },
+    {
+      "path": "rust/Cargo.lock",
+      "sha256": "35b5acfe78c08826cdc247c91b61ef079eba0d4c6a020a600d491fbaffa80bc3",
+      "bytes": 38341
+    }
+  ],
+  "rows": [
+    {
+      "id": "test/redaction.test.mjs#1",
+      "file": "test/redaction.test.mjs",
+      "name": "redacts recognized credential formats while keeping surrounding task text",
+      "baseline_file_sha256": "2c39564dea427488ffa04caeb78281a77c753d6a9deb61c067e8d1d505dab3a6",
+      "definition_sha256": "2515fd39323b0c068aab68bd886ebdd5624c03a34c2136c0057999fdbf2b1ec6",
+      "statement_sha256": "9cf63b4c500f0079787758079d728c168ed66be32acada9e9d04dbc45e0245b6",
+      "hash_scope": "definition_sha256 is exact AST test call without trailing semicolon; statement_sha256 includes it; assertion SHA covers exact original assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs"
+      ],
+      "shared_cases": [
+        "redaction-contract-1-1",
+        "redaction-contract-1-2",
+        "redaction-contract-1-3",
+        "redaction-contract-1-4",
+        "redaction-contract-1-5",
+        "redaction-contract-1-6",
+        "redaction-contract-1-7",
+        "redaction-contract-1-8",
+        "redaction-contract-1-9",
+        "redaction-contract-1-10",
+        "redaction-contract-1-11",
+        "redaction-contract-1-12"
+      ],
+      "assertions": [
+        {
+          "line": 29,
+          "expression": "assert.ok(!output.includes(value), `${name} must be redacted`)",
+          "sha256": "30f7339dea2923796e379f30975fbb03776ab94a6d2f69e37d7b48383397ff2d",
+          "status": "covered",
+          "expanded_executions": 12,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/0/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#1:assert-1"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        },
+        {
+          "line": 30,
+          "expression": "assert.match(output, /^Rotate this value: .*\\[REDACTED:(?:secret|private_key)\\].* before deploy\\.$/s, name)",
+          "sha256": "f6d2a23a31b91fe62c83d3e035f09da6aafd78b07a749b6064b1a2b736bd7d75",
+          "status": "covered",
+          "expanded_executions": 12,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/0/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#1:assert-2"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/redaction.test.mjs#2",
+      "file": "test/redaction.test.mjs",
+      "name": "redacts secret assignments, authorization headers and URL credentials but keeps their names",
+      "baseline_file_sha256": "2c39564dea427488ffa04caeb78281a77c753d6a9deb61c067e8d1d505dab3a6",
+      "definition_sha256": "10f273366044026050a5db01a7778176bf523907bba0b8e3908286acb0ade8cf",
+      "statement_sha256": "3c3478f1069c525eec7b3c6c54d6269ea5fac79ec52934e6b26d17ec8e3483c7",
+      "hash_scope": "definition_sha256 is exact AST test call without trailing semicolon; statement_sha256 includes it; assertion SHA covers exact original assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs"
+      ],
+      "shared_cases": [
+        "redaction-contract-2-1",
+        "redaction-contract-2-2",
+        "redaction-contract-2-3",
+        "redaction-contract-2-4",
+        "redaction-contract-2-5",
+        "redaction-contract-2-6",
+        "redaction-contract-2-7"
+      ],
+      "assertions": [
+        {
+          "line": 44,
+          "expression": "assert.equal(redactSensitive(input), expected)",
+          "sha256": "85a492937a84bda342374596998955617f35b196928e24c994036df6e8f1b800",
+          "status": "covered",
+          "expanded_executions": 7,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/1/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#2:assert-1"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/redaction.test.mjs#3",
+      "file": "test/redaction.test.mjs",
+      "name": "redacts emails and checksum-valid IBANs and card numbers only",
+      "baseline_file_sha256": "2c39564dea427488ffa04caeb78281a77c753d6a9deb61c067e8d1d505dab3a6",
+      "definition_sha256": "7c3991cef7663237e7d4b653946e2f3de65901c99a3d5e1b7b2bc4bed7ee0092",
+      "statement_sha256": "98f158a61eeee99ab7df413d20a02d2baa3c6a1034ea6b1d0e4b203ae3ea5ce0",
+      "hash_scope": "definition_sha256 is exact AST test call without trailing semicolon; statement_sha256 includes it; assertion SHA covers exact original assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs"
+      ],
+      "shared_cases": [
+        "redaction-contract-3-1",
+        "redaction-contract-3-2",
+        "redaction-contract-3-3",
+        "redaction-contract-3-4",
+        "redaction-contract-3-5",
+        "redaction-contract-3-6",
+        "redaction-contract-3-7",
+        "redaction-contract-3-8",
+        "redaction-contract-3-9",
+        "redaction-contract-3-10",
+        "redaction-contract-3-11"
+      ],
+      "assertions": [
+        {
+          "line": 48,
+          "expression": "assert.equal(redactSensitive('Contact jane.doe@example.com today'), 'Contact [REDACTED:email] today')",
+          "sha256": "df232fed2127354dafdaa51c00e37612393260ea2b733dc3c01038ab0adb2ab1",
+          "status": "covered",
+          "expanded_executions": 1,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/2/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#3:assert-1"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        },
+        {
+          "line": 49,
+          "expression": "assert.equal(redactSensitive('IBAN GB82 WEST 1234 5698 7654 32 on file'), 'IBAN [REDACTED:iban] on file')",
+          "sha256": "2d343b4503c90dcb1758889a2696907e02a56185927a464b885c9bbf24db6876",
+          "status": "covered",
+          "expanded_executions": 1,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/2/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#3:assert-2"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        },
+        {
+          "line": 50,
+          "expression": "assert.equal(redactSensitive('IBAN GB82WEST12345698765432'), 'IBAN [REDACTED:iban]')",
+          "sha256": "e3f21333660ae8247a802963c58543591b6bbda9a5a388046d6cd7d9c56b3c94",
+          "status": "covered",
+          "expanded_executions": 1,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/2/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#3:assert-3"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        },
+        {
+          "line": 51,
+          "expression": "assert.equal(redactSensitive('card 4111 1111 1111 1111 expired'), 'card [REDACTED:card] expired')",
+          "sha256": "1365b9916c84207b096677e1c33693b3f89dd116333dabfa6b193b5363d5ef1a",
+          "status": "covered",
+          "expanded_executions": 1,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/2/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#3:assert-4"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        },
+        {
+          "line": 52,
+          "expression": "assert.equal(redactSensitive('card 4111-1111-1111-1111'), 'card [REDACTED:card]')",
+          "sha256": "92d04f4728d62f1b04db0b1eea0eb2bbb91c42a1eb9c27d95c04984eed5f4a26",
+          "status": "covered",
+          "expanded_executions": 1,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/2/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#3:assert-5"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        },
+        {
+          "line": 56,
+          "expression": "assert.equal(redactSensitive(text), text)",
+          "sha256": "8bf8dc62e788699d51a38f4fafd2278eab94bc11ca3536efdae90f5fa9332bd2",
+          "status": "covered",
+          "expanded_executions": 6,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/2/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#3:assert-6"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/redaction.test.mjs#4",
+      "file": "test/redaction.test.mjs",
+      "name": "keeps ordinary engineering text intact",
+      "baseline_file_sha256": "2c39564dea427488ffa04caeb78281a77c753d6a9deb61c067e8d1d505dab3a6",
+      "definition_sha256": "6a57dd770330bccfc8d0ecaae3b61ca4b17afbacac2d48152904fc61ec05068a",
+      "statement_sha256": "b004492550650b28cb225093696292eb4429f594057508bcb69bf288c6cbd2d4",
+      "hash_scope": "definition_sha256 is exact AST test call without trailing semicolon; statement_sha256 includes it; assertion SHA covers exact original assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs"
+      ],
+      "shared_cases": [
+        "redaction-contract-4-1",
+        "redaction-contract-4-2",
+        "redaction-contract-4-3",
+        "redaction-contract-4-4",
+        "redaction-contract-4-5"
+      ],
+      "assertions": [
+        {
+          "line": 67,
+          "expression": "assert.equal(redactSensitive(text), text)",
+          "sha256": "8bf8dc62e788699d51a38f4fafd2278eab94bc11ca3536efdae90f5fa9332bd2",
+          "status": "covered",
+          "expanded_executions": 5,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/3/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#4:assert-1"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/redaction.test.mjs#5",
+      "file": "test/redaction.test.mjs",
+      "name": "redaction is idempotent and stays linear on adversarial input",
+      "baseline_file_sha256": "2c39564dea427488ffa04caeb78281a77c753d6a9deb61c067e8d1d505dab3a6",
+      "definition_sha256": "0d9fec8f69d65dc344ee7c64b015bd1eafb8295aa5250189ab79be1ea97f945a",
+      "statement_sha256": "6dd638f4c8ed240fe68c693a10032e8914fa6e1c0387a2028908e7b246a08edf",
+      "hash_scope": "definition_sha256 is exact AST test call without trailing semicolon; statement_sha256 includes it; assertion SHA covers exact original assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "partial_assertion_mapping",
+      "execution_scope": "exact_idempotence_prefix_only",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs"
+      ],
+      "shared_cases": [
+        "redaction-contract-5-1",
+        "redaction-contract-5-2"
+      ],
+      "assertions": [
+        {
+          "line": 72,
+          "expression": "assert.equal(redactSensitive(once), once)",
+          "sha256": "0772f64e8cbd7e3879ddfa985bfae77fec313369979552ea7954460e71590a58",
+          "status": "covered",
+          "expanded_executions": 1,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/4/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#5:assert-1"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        },
+        {
+          "line": 79,
+          "expression": "assert.ok(performance.now() - started < 2000, `redaction took too long for ${input.slice(0, 12)}`)",
+          "sha256": "71d53105fb601cbd3c32f49b8b572eb3b0bcd3b268c98bc64b7f9d96aaad91d9",
+          "status": "pending_timing_qualification",
+          "expanded_executions": 0,
+          "evidence": {},
+          "remaining": [
+            "Original 8 per-input performance.now() - started <2000ms assertions and adversarial suffix are explicitly not executed in this deterministic batch. Historical corpus equality/termination is not per-input latency qualification."
+          ],
+          "native_source": null
+        }
+      ],
+      "remaining_assertions": [
+        "Original 8 per-input performance.now() - started <2000ms assertions and adversarial suffix are explicitly not executed in this deterministic batch. Historical corpus equality/termination is not per-input latency qualification."
+      ]
+    },
+    {
+      "id": "test/redaction.test.mjs#6",
+      "file": "test/redaction.test.mjs",
+      "name": "evaluator state never contains a secret from tool output, system text or long excerpts",
+      "baseline_file_sha256": "2c39564dea427488ffa04caeb78281a77c753d6a9deb61c067e8d1d505dab3a6",
+      "definition_sha256": "4176e8ff78c551819a236ea961f8ae1018784c563d7c153e3dba466ce9544951",
+      "statement_sha256": "c3fa7c7b13c73a95fcb6eb8172d4b9f862d6d8672f974db616b7b07a939d4fd8",
+      "hash_scope": "definition_sha256 is exact AST test call without trailing semicolon; statement_sha256 includes it; assertion SHA covers exact original assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs"
+      ],
+      "shared_cases": [
+        "redaction-contract-6-1",
+        "redaction-contract-6-2"
+      ],
+      "assertions": [
+        {
+          "line": 95,
+          "expression": "assert.ok(!serialized.includes(value), `evaluator state leaked ${value.slice(0, 8)}`)",
+          "sha256": "7960f57b4c14f9c8b90398afeb74a4f0c4033a7b7600afdd9b97a94566e7b962",
+          "status": "covered",
+          "expanded_executions": 10,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/5/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#6:assert-1"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        },
+        {
+          "line": 97,
+          "expression": "assert.match(serialized, /\\[REDACTED:/)",
+          "sha256": "708a687e36a7508c574c9e806da91bf1ba9bbe2589af2bffdceb3ba8c15b81be",
+          "status": "covered",
+          "expanded_executions": 2,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/5/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#6:assert-2"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        },
+        {
+          "line": 98,
+          "expression": "assert.match(state.current_task, /^Fix the deploy\\. My email is \\[REDACTED:email\\]$/)",
+          "sha256": "dca94796dfb8e324a9a7d46db2d7898e864100b0744893a95b9007242fa49ba8",
+          "status": "covered",
+          "expanded_executions": 2,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/5/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#6:assert-3"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/redaction.test.mjs#7",
+      "file": "test/redaction.test.mjs",
+      "name": "a private key cut by excerpt windows is redacted at either edge",
+      "baseline_file_sha256": "2c39564dea427488ffa04caeb78281a77c753d6a9deb61c067e8d1d505dab3a6",
+      "definition_sha256": "f7424f06b55648e32f4cbdb35811daa71e1af1e00158997fc414149bfc53415b",
+      "statement_sha256": "e6242028acca27f46f0da8dc95692977a80db57a75104941a5cd4603a6180ac4",
+      "hash_scope": "definition_sha256 is exact AST test call without trailing semicolon; statement_sha256 includes it; assertion SHA covers exact original assert call expression.",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs"
+      ],
+      "shared_cases": [
+        "redaction-contract-7-1",
+        "redaction-contract-7-2"
+      ],
+      "assertions": [
+        {
+          "line": 109,
+          "expression": "assert.ok(!JSON.stringify(state).includes('K'.repeat(64)))",
+          "sha256": "58c697324709ef6b2e9bc13471b6ef14262a73dd0b165ed122fe912bfa87cef0",
+          "status": "covered",
+          "expanded_executions": 2,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/6/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#7:assert-1"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/redaction.test.mjs#9",
+      "file": "test/redaction.test.mjs",
+      "name": "session-log prompt excerpts are redacted, including a secret at the retention boundary",
+      "baseline_file_sha256": "2c39564dea427488ffa04caeb78281a77c753d6a9deb61c067e8d1d505dab3a6",
+      "definition_sha256": "ca4c5d4ebc0e10737ff374395fb7ca78226743d7fb319ab0f23ef34275984978",
+      "statement_sha256": "e375da347822776b0189f305c77d14a6cd16cb763ce273c67b49d6916f5acc8d",
+      "hash_scope": "definition_sha256 is exact AST test call without trailing semicolon; statement_sha256 includes it; assertion SHA covers exact original assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs"
+      ],
+      "shared_cases": [
+        "redaction-contract-9-1",
+        "redaction-contract-9-2",
+        "redaction-contract-9-3"
+      ],
+      "assertions": [
+        {
+          "line": 133,
+          "expression": "assert.equal(promptExcerpt(request(`email jane.doe@example.com token=${fake.github}`)), 'email [REDACTED:email] token=[REDACTED:secret]')",
+          "sha256": "7e53f533ea2a707637962376c63734ed16bae3884db1ea70b2ea90f55d585dd2",
+          "status": "covered",
+          "expanded_executions": 1,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/7/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#9:assert-1"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        },
+        {
+          "line": 137,
+          "expression": "assert.ok(!excerpt.includes(fake.github.slice(0, 12)), 'no fragment of the secret may remain')",
+          "sha256": "cca6c748a6156753826973466598b446b1cfc51487419dd6b86a745a29f9d6ad",
+          "status": "covered",
+          "expanded_executions": 1,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/7/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#9:assert-2"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        },
+        {
+          "line": 138,
+          "expression": "assert.match(excerpt, /\\[REDACTED:/, \"the cut may fall inside the marker, never inside the secret\")",
+          "sha256": "57d0f6ac3dc3d1bec53c6bd8e0b6ca67d722c05299e29d34b8725d15a48344c1",
+          "status": "covered",
+          "expanded_executions": 1,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/7/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#9:assert-3"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        },
+        {
+          "line": 139,
+          "expression": "assert.ok([...excerpt].length <= 501)",
+          "sha256": "56f7956470ed9dbf857870977041ef2f17ba35987487a32d553e1b09987b2dd5",
+          "status": "covered",
+          "expanded_executions": 1,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/7/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#9:assert-4"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        },
+        {
+          "line": 143,
+          "expression": "assert.equal(row.prompt_excerpt, 'use [REDACTED:secret] now')",
+          "sha256": "bd4b637fa66373e2502c0ea4128a1e92747fb839d5f1268ba5585f3b1839645f",
+          "status": "covered",
+          "expanded_executions": 1,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/7/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#9:assert-5"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/redaction.test.mjs#11",
+      "file": "test/redaction.test.mjs",
+      "name": "redacts URL credentials with an empty user or a password containing @",
+      "baseline_file_sha256": "2c39564dea427488ffa04caeb78281a77c753d6a9deb61c067e8d1d505dab3a6",
+      "definition_sha256": "3c0274eb27f895cae0110a6e2733ccef37076d9c7cca3a15ec9b292210ab3c7e",
+      "statement_sha256": "f458cb2ed7d3ad04d9f0949b3dad336173baa0137374deb890db6e2066f87448",
+      "hash_scope": "definition_sha256 is exact AST test call without trailing semicolon; statement_sha256 includes it; assertion SHA covers exact original assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs"
+      ],
+      "shared_cases": [
+        "redaction-contract-11-1",
+        "redaction-contract-11-2",
+        "redaction-contract-11-3",
+        "redaction-contract-11-4",
+        "redaction-contract-11-5",
+        "redaction-contract-11-6",
+        "redaction-contract-11-7"
+      ],
+      "assertions": [
+        {
+          "line": 179,
+          "expression": "assert.equal(redactSensitive(input), expected)",
+          "sha256": "85a492937a84bda342374596998955617f35b196928e24c994036df6e8f1b800",
+          "status": "covered",
+          "expanded_executions": 3,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/8/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#11:assert-1"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        },
+        {
+          "line": 181,
+          "expression": "assert.equal(redactSensitive(text), text)",
+          "sha256": "8bf8dc62e788699d51a38f4fafd2278eab94bc11ca3536efdae90f5fa9332bd2",
+          "status": "covered",
+          "expanded_executions": 4,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/8/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#11:assert-2"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/redaction.test.mjs#12",
+      "file": "test/redaction.test.mjs",
+      "name": "redacts the common setting-name forms the first filter missed, without leaking any part of the value",
+      "baseline_file_sha256": "2c39564dea427488ffa04caeb78281a77c753d6a9deb61c067e8d1d505dab3a6",
+      "definition_sha256": "b51c063e541eee34e06cd7af146a5f0de366fdba00cef71b745393c34d3359ea",
+      "statement_sha256": "e3b1617ca3ffe897c6906cb652e2af7d9f732433d8ce84bb816ac1daf83857a4",
+      "hash_scope": "definition_sha256 is exact AST test call without trailing semicolon; statement_sha256 includes it; assertion SHA covers exact original assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs"
+      ],
+      "shared_cases": [
+        "redaction-contract-12-1",
+        "redaction-contract-12-2",
+        "redaction-contract-12-3",
+        "redaction-contract-12-4",
+        "redaction-contract-12-5",
+        "redaction-contract-12-6",
+        "redaction-contract-12-7",
+        "redaction-contract-12-8",
+        "redaction-contract-12-9",
+        "redaction-contract-12-10",
+        "redaction-contract-12-11",
+        "redaction-contract-12-12",
+        "redaction-contract-12-13",
+        "redaction-contract-12-14",
+        "redaction-contract-12-15"
+      ],
+      "assertions": [
+        {
+          "line": 204,
+          "expression": "assert.ok(!output.includes(leaked), `${input} leaked ${leaked}: ${output}`)",
+          "sha256": "da06476182b34492c91865dd75f1d89cfd3318008f2537efbc963ed861c78870",
+          "status": "covered",
+          "expanded_executions": 14,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/9/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#12:assert-1"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        },
+        {
+          "line": 205,
+          "expression": "assert.match(output, /\\[REDACTED:/, input)",
+          "sha256": "6bc0544f84752084830b79ba773cf7889b8d10a6741c84f4377045dd76f734f9",
+          "status": "covered",
+          "expanded_executions": 14,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/9/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#12:assert-2"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        },
+        {
+          "line": 207,
+          "expression": "assert.match(redactSensitive('DB_PASS=Xk29fjqLm3'), /^DB_PASS=/, 'The setting name stays visible')",
+          "sha256": "ff4d12128fe56e2f16e36b58d3be6e19cd485f30b1d63cc130d1d22def622b06",
+          "status": "covered",
+          "expanded_executions": 1,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/9/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#12:assert-3"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/redaction.test.mjs#13",
+      "file": "test/redaction.test.mjs",
+      "name": "redacts credentials passed on command lines",
+      "baseline_file_sha256": "2c39564dea427488ffa04caeb78281a77c753d6a9deb61c067e8d1d505dab3a6",
+      "definition_sha256": "b409b7c092ae1a8f77ed068ef7300fe7bf6474ef8ffb897cfa86201126e06158",
+      "statement_sha256": "3dd2f55843026098398daf60e55fd0154ad8e696e088d766222b86d284dc22ad",
+      "hash_scope": "definition_sha256 is exact AST test call without trailing semicolon; statement_sha256 includes it; assertion SHA covers exact original assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs"
+      ],
+      "shared_cases": [
+        "redaction-contract-13-1",
+        "redaction-contract-13-2",
+        "redaction-contract-13-3",
+        "redaction-contract-13-4",
+        "redaction-contract-13-5",
+        "redaction-contract-13-6",
+        "redaction-contract-13-7",
+        "redaction-contract-13-8",
+        "redaction-contract-13-9",
+        "redaction-contract-13-10",
+        "redaction-contract-13-11",
+        "redaction-contract-13-12"
+      ],
+      "assertions": [
+        {
+          "line": 222,
+          "expression": "assert.ok(!output.includes(leaked), `${input} leaked: ${output}`)",
+          "sha256": "f83d456f106e6460c97c3c4fc64596f2da5fddc96ef1a5f9fd6f0cdd00b64ec3",
+          "status": "covered",
+          "expanded_executions": 7,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/10/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#13:assert-1"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        },
+        {
+          "line": 225,
+          "expression": "assert.equal(redactSensitive(text), text, text)",
+          "sha256": "04fee1f5ad4b371f1263fb5a3d23718b252df8a0454705e6a7a7e8699fb764f1",
+          "status": "covered",
+          "expanded_executions": 5,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/10/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#13:assert-2"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/redaction.test.mjs#14",
+      "file": "test/redaction.test.mjs",
+      "name": "redacts international phone numbers, Italian tax codes and US social security numbers",
+      "baseline_file_sha256": "2c39564dea427488ffa04caeb78281a77c753d6a9deb61c067e8d1d505dab3a6",
+      "definition_sha256": "190abd4ed0c9d0db6d15cbda8cd3766da2fddc66e181229a4002cdbbb61b2ed5",
+      "statement_sha256": "ddffe245ea5022ef09768f18ab04bd1ac6e30efa80d8de07d6d8052cee29fa4e",
+      "hash_scope": "definition_sha256 is exact AST test call without trailing semicolon; statement_sha256 includes it; assertion SHA covers exact original assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs"
+      ],
+      "shared_cases": [
+        "redaction-contract-14-1",
+        "redaction-contract-14-2",
+        "redaction-contract-14-3",
+        "redaction-contract-14-4",
+        "redaction-contract-14-5",
+        "redaction-contract-14-6",
+        "redaction-contract-14-7",
+        "redaction-contract-14-8",
+        "redaction-contract-14-9",
+        "redaction-contract-14-10",
+        "redaction-contract-14-11"
+      ],
+      "assertions": [
+        {
+          "line": 230,
+          "expression": "assert.equal(redactSensitive('call +39 333 1234567 today'), 'call [REDACTED:phone] today')",
+          "sha256": "966353f4776b9c956abeec02b880ec0439dfbf9ab5dfcde5813c185bb62763b1",
+          "status": "covered",
+          "expanded_executions": 1,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/11/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#14:assert-1"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        },
+        {
+          "line": 231,
+          "expression": "assert.equal(redactSensitive('call +1 (415) 555-0132.'), 'call [REDACTED:phone].')",
+          "sha256": "2837c2ebb1868246c96797e8b9a5805a2015fadbdb493ab8fa6e6be2df167ca6",
+          "status": "covered",
+          "expanded_executions": 1,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/11/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#14:assert-2"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        },
+        {
+          "line": 232,
+          "expression": "assert.equal(redactSensitive('CF RSSMRA85T10A562S ok'), 'CF [REDACTED:national_id] ok')",
+          "sha256": "c6f4044e71f13920b74f1b897f0fad5f420bf5948f591ac7ddc30840797e3c4b",
+          "status": "covered",
+          "expanded_executions": 1,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/11/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#14:assert-3"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        },
+        {
+          "line": 233,
+          "expression": "assert.equal(redactSensitive('SSN 123-45-6789'), 'SSN [REDACTED:national_id]')",
+          "sha256": "148f0093a405060a7bd81ec27eee414a64d24747348ff55c034613172844e347",
+          "status": "covered",
+          "expanded_executions": 1,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/11/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#14:assert-4"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        },
+        {
+          "line": 235,
+          "expression": "assert.equal(redactSensitive(text), text, text)",
+          "sha256": "04fee1f5ad4b371f1263fb5a3d23718b252df8a0454705e6a7a7e8699fb764f1",
+          "status": "covered",
+          "expanded_executions": 7,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/11/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#14:assert-5"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/redaction.test.mjs#16",
+      "file": "test/redaction.test.mjs",
+      "name": "the widened rules are idempotent and stay linear on adversarial input",
+      "baseline_file_sha256": "2c39564dea427488ffa04caeb78281a77c753d6a9deb61c067e8d1d505dab3a6",
+      "definition_sha256": "8dc19f60fc16fb9053096d247311fe8444b4f895448d6ed266bae6886baf8f3a",
+      "statement_sha256": "9daf176d2ba0dfaf8ef9bf7407ce3bf9d21986b4a2fa3fa8d6f5e0165dd2c81c",
+      "hash_scope": "definition_sha256 is exact AST test call without trailing semicolon; statement_sha256 includes it; assertion SHA covers exact original assert call expression.",
+      "previous_status": "partial_assertion_mapping",
+      "status": "partial_assertion_mapping",
+      "execution_scope": "exact_idempotence_prefix_only",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs"
+      ],
+      "shared_cases": [
+        "redaction-contract-16-1",
+        "redaction-contract-16-2"
+      ],
+      "assertions": [
+        {
+          "line": 252,
+          "expression": "assert.equal(redactSensitive(once), once)",
+          "sha256": "0772f64e8cbd7e3879ddfa985bfae77fec313369979552ea7954460e71590a58",
+          "status": "covered",
+          "expanded_executions": 1,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/12/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#16:assert-1"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        },
+        {
+          "line": 261,
+          "expression": "assert.ok(performance.now() - started < 2000, `redaction took ${Math.round(performance.now() - started)} ms for ${JSON.stringify(input.slice(0, 16))}`)",
+          "sha256": "3ec2c9c2a7b5ebaba45d9bac4f6d9b1f19bbacb70a26491ccff47a0ffba3842f",
+          "status": "pending_timing_qualification",
+          "expanded_executions": 0,
+          "evidence": {},
+          "remaining": [
+            "Original 20 per-input performance.now() - started <2000ms assertions and adversarial suffix are explicitly not executed in this deterministic batch. Historical corpus equality/termination is not per-input latency qualification."
+          ],
+          "native_source": null
+        }
+      ],
+      "remaining_assertions": [
+        "Original 20 per-input performance.now() - started <2000ms assertions and adversarial suffix are explicitly not executed in this deterministic batch. Historical corpus equality/termination is not per-input latency qualification."
+      ]
+    },
+    {
+      "id": "test/redaction.test.mjs#17",
+      "file": "test/redaction.test.mjs",
+      "name": "a .env file read as a tool result reaches the evaluator redacted",
+      "baseline_file_sha256": "2c39564dea427488ffa04caeb78281a77c753d6a9deb61c067e8d1d505dab3a6",
+      "definition_sha256": "53bcf0640f6c74cfe0eb5844061dfaf38f96d62d9c94533d9cd7ea9fbc72d7d2",
+      "statement_sha256": "d890654647570e2e5f525a4d992d3a15ac5b8a9eee74adaba457699eded352be",
+      "hash_scope": "definition_sha256 is exact AST test call without trailing semicolon; statement_sha256 includes it; assertion SHA covers exact original assert call expression.",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs"
+      ],
+      "shared_cases": [
+        "redaction-contract-17-1",
+        "redaction-contract-17-2"
+      ],
+      "assertions": [
+        {
+          "line": 276,
+          "expression": "assert.ok(!serialized.includes(value), `evaluator state leaked ${value}`)",
+          "sha256": "8650368ba9cacf2b950d520e2ee1ba3e5966b7c31ea688be569bf57b183c3839",
+          "status": "covered",
+          "expanded_executions": 10,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/13/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#17:assert-1"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        },
+        {
+          "line": 278,
+          "expression": "assert.match(serialized, /APP_NAME=autorouter/, 'ordinary settings stay readable')",
+          "sha256": "0e0756cf7cc3824b3feea85f66d7bac77eaa51aa13ec84f37b6b2c595832b85f",
+          "status": "covered",
+          "expanded_executions": 2,
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+            "shared_cases_pointer": "#/rows/13/shared_cases",
+            "capture_assertion_id": "test/redaction.test.mjs#17:assert-2"
+          },
+          "remaining": [],
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/redaction_contracts.rs",
+            "line": 144,
+            "anchor": "for row in &rows {"
+          }
+        }
+      ],
+      "remaining_assertions": []
+    }
+  ],
+  "preserved_boundaries": [
+    "No per-input2s threshold or complexity claim;28 original timing assertions remain unresolved.",
+    "#8 mocked Router/evaluator request-body assertion set deferred. Existing covered#10/#15 unchanged.",
+    "No real secrets, user configuration, file persistence, provider/model calls or gateway upstream bytes tested by these pure fixtures.",
+    "Source tests contain no selected undefined/accessor/circular/reference-identity assertions; this batch does not close those JS library API boundaries elsewhere."
+  ],
+  "retained_sources": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/344e26e012d62c666b8b9631b95d25f8d91879a8eaa67fb15404308af74d4d15.rs",
+      "sha256": "344e26e012d62c666b8b9631b95d25f8d91879a8eaa67fb15404308af74d4d15",
+      "bytes": 7828,
+      "original_path": "/Users/fabio/AI/claude-autorouter/rust/crates/autorouter-core/tests/redaction_contracts.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/23cb574704474cfdb8da9042e5c97b1240ab4ffb871f1840d19503bf15ba5d25.mjs",
+      "sha256": "23cb574704474cfdb8da9042e5c97b1240ab4ffb871f1840d19503bf15ba5d25",
+      "bytes": 12089,
+      "original_path": "/Users/fabio/AI/claude-autorouter/rust/parity/capture-redaction-contracts.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/ae0ad22d07ba8c36090945501841d498c7a5bc48ed0d220d271f2957320c2951.jsonl",
+      "sha256": "ae0ad22d07ba8c36090945501841d498c7a5bc48ed0d220d271f2957320c2951",
+      "bytes": 405686,
+      "original_path": "/Users/fabio/AI/claude-autorouter/rust/parity/cases/redaction-contracts.jsonl"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/8718ad76d6d66ab0d8019499b7a8321d95c7944d4a759f9f29f79bdac9d754ea.json",
+      "sha256": "8718ad76d6d66ab0d8019499b7a8321d95c7944d4a759f9f29f79bdac9d754ea",
+      "bytes": 40585,
+      "original_path": "/Users/fabio/AI/claude-autorouter/rust/parity/cases/redaction-contracts.capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44.rs",
+      "sha256": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44",
+      "bytes": 28479,
+      "original_path": "/Users/fabio/AI/claude-autorouter/rust/crates/autorouter-core/src/redaction.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/56e138cec33a2523892f156bb73369b05827559c7071299d09ef08ea81805127.rs",
+      "sha256": "56e138cec33a2523892f156bb73369b05827559c7071299d09ef08ea81805127",
+      "bytes": 27400,
+      "original_path": "/Users/fabio/AI/claude-autorouter/rust/crates/autorouter-core/src/prompt_state.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/9ecd66bb91b416a0a5435a134d307aaf8bb2488f02dfc04df3fca3f0bab92640.rs",
+      "sha256": "9ecd66bb91b416a0a5435a134d307aaf8bb2488f02dfc04df3fca3f0bab92640",
+      "bytes": 30138,
+      "original_path": "/Users/fabio/AI/claude-autorouter/rust/crates/autorouter-core/src/telemetry_event.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/35b5acfe78c08826cdc247c91b61ef079eba0d4c6a020a600d491fbaffa80bc3.lock",
+      "sha256": "35b5acfe78c08826cdc247c91b61ef079eba0d4c6a020a600d491fbaffa80bc3",
+      "bytes": 38341,
+      "original_path": "/Users/fabio/AI/claude-autorouter/rust/Cargo.lock"
+    }
+  ],
+  "input_coverage": {
+    "path": "artifacts/rust-rewrite/evidence/9c13d15d45378f169c3ffbeb5ec8e4aaea3d3ba928badb67bc4244e38c04c1e4.json",
+    "sha256": "9c13d15d45378f169c3ffbeb5ec8e4aaea3d3ba928badb67bc4244e38c04c1e4",
+    "bytes": 1275411,
+    "original_path": "rust/parity/coverage.json",
+    "source_commit": "46587867cd0b4db89b273ba293555a5619009a4c"
+  },
+  "status": "Reviewed assertion mapping; full rewrite qualification remains incomplete.",
+  "review": {
+    "proposal": {
+      "path": "artifacts/rust-rewrite/evidence/0ac4a1a8f0c426ef00018591348b9f75bf31494d054303af4eca840d0dbde66a.json",
+      "sha256": "0ac4a1a8f0c426ef00018591348b9f75bf31494d054303af4eca840d0dbde66a",
+      "bytes": 57882,
+      "original_path": "/private/tmp/autorouter-redaction-coverage-proposal-2.json"
+    },
+    "review": {
+      "path": "artifacts/rust-rewrite/evidence/bec4f72d11945ff928cb256b20e6bb8ea8c2ff145f43eb3f661d9b396845b7d1.json",
+      "sha256": "bec4f72d11945ff928cb256b20e6bb8ea8c2ff145f43eb3f661d9b396845b7d1",
+      "bytes": 3317,
+      "original_path": "/private/tmp/autorouter-redaction-root-review.json"
+    },
+    "independent_review": {
+      "path": "artifacts/rust-rewrite/evidence/bec4f72d11945ff928cb256b20e6bb8ea8c2ff145f43eb3f661d9b396845b7d1.json",
+      "sha256": "bec4f72d11945ff928cb256b20e6bb8ea8c2ff145f43eb3f661d9b396845b7d1",
+      "bytes": 3317,
+      "original_path": "/private/tmp/autorouter-redaction-root-review.json"
+    },
+    "serialization_revision": {
+      "root": {
+        "path": "artifacts/rust-rewrite/evidence/c4dfd65861c30177f226f1f9392271bed770da6e4f93bf6c72931750218a23c4.json",
+        "sha256": "c4dfd65861c30177f226f1f9392271bed770da6e4f93bf6c72931750218a23c4",
+        "bytes": 3529,
+        "original_path": "/private/tmp/autorouter-redaction-serialization-root-review.json"
+      },
+      "independent": {
+        "path": "artifacts/rust-rewrite/evidence/684e63ce77bed8eb94f4e4f191ca8dfa6423173a226cbfe68151a2f4c50567fe.json",
+        "sha256": "684e63ce77bed8eb94f4e4f191ca8dfa6423173a226cbfe68151a2f4c50567fe",
+        "bytes": 6043,
+        "original_path": "/private/tmp/autorouter-redaction-serialization-independent-review.json"
+      }
+    }
+  },
+  "previous_coverage_rows": [
+    {
+      "id": "test/redaction.test.mjs#1",
+      "file": "test/redaction.test.mjs",
+      "name": "redacts recognized credential formats while keeping surrounding task text",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/redaction.rs#provider_tokens_and_markers_are_redacted_idempotently",
+        "rust/crates/autorouter-core/src/redaction.rs#private_key_blocks_and_cut_off_tails_are_redacted"
+      ],
+      "shared_cases": [],
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
+      "related_components": [
+        "prompt_redaction"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Missing baseline original-format values: Stripe secret,AWS,GitHub PAT,GitLab,Slack token/webhook,Google API,npm,JWT with exact context/marker assertions."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+      }
+    },
+    {
+      "id": "test/redaction.test.mjs#2",
+      "file": "test/redaction.test.mjs",
+      "name": "redacts secret assignments, authorization headers and URL credentials but keeps their names",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/redaction.rs#names_and_context_survive_while_secret_values_are_removed"
+      ],
+      "shared_cases": [],
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
+      "related_components": [
+        "prompt_redaction"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Missing exact curl -H quoted Bearer example."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+      }
+    },
+    {
+      "id": "test/redaction.test.mjs#3",
+      "file": "test/redaction.test.mjs",
+      "name": "redacts emails and checksum-valid IBANs and card numbers only",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/redaction.rs#formats_checksum_and_boundaries_match_reviewed_rules"
+      ],
+      "shared_cases": [],
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
+      "related_components": [
+        "prompt_redaction"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Missing exact hyphenated-card result and unchanged commit hash/RFC7519; compact-IBAN case differs surrounding string."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+      }
+    },
+    {
+      "id": "test/redaction.test.mjs#4",
+      "file": "test/redaction.test.mjs",
+      "name": "keeps ordinary engineering text intact",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/redaction.rs#ordinary_text_and_boolean_controls_remain_readable"
+      ],
+      "shared_cases": [],
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
+      "related_components": [
+        "prompt_redaction"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Missing exact package.json author sentence,secret-rotation sentence and Bearer tokens ordinary sentence."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+      }
+    },
+    {
+      "id": "test/redaction.test.mjs#5",
+      "file": "test/redaction.test.mjs",
+      "name": "redaction is idempotent and stays linear on adversarial input",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/redaction.rs#provider_tokens_and_markers_are_redacted_idempotently"
+      ],
+      "shared_cases": [],
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          },
+          "prompt-state": {
+            "report": "artifacts/rust-rewrite/evidence/f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b.json",
+            "report_sha256": "f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b",
+            "cases": 3092,
+            "matched": 3092,
+            "cases_sha256": "5be32e7c9604c2ff376e3406a3e173a59c6699e3cf6144e190147b16b98e4354",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/prompt-state.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
+      "related_components": [
+        "prompt_redaction"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Exact password20+email idempotence fixture absent; each individual <2000ms assertion is not supplied by batch differential equality/termination."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+      }
+    },
+    {
+      "id": "test/redaction.test.mjs#6",
+      "file": "test/redaction.test.mjs",
+      "name": "evaluator state never contains a secret from tool output, system text or long excerpts",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          },
+          "prompt-state": {
+            "report": "artifacts/rust-rewrite/evidence/f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b.json",
+            "report_sha256": "f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b",
+            "cases": 3092,
+            "matched": 3092,
+            "cases_sha256": "5be32e7c9604c2ff376e3406a3e173a59c6699e3cf6144e190147b16b98e4354",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/prompt-state.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
+      "related_components": [
+        "prompt_redaction"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Original mixed AWS system/email human/password+PEM+IBAN long tool-output fixture absent; retain all5 leak checks,redaction marker,current_task for Jev12000/Ollama3000."
+      ],
+      "source_hashes": {}
+    },
+    {
+      "id": "test/redaction.test.mjs#7",
+      "file": "test/redaction.test.mjs",
+      "name": "a private key cut by excerpt windows is redacted at either edge",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/redaction.rs#private_key_blocks_and_cut_off_tails_are_redacted"
+      ],
+      "shared_cases": [],
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          },
+          "prompt-state": {
+            "report": "artifacts/rust-rewrite/evidence/f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b.json",
+            "report_sha256": "f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b",
+            "cases": 3092,
+            "matched": 3092,
+            "cases_sha256": "5be32e7c9604c2ff376e3406a3e173a59c6699e3cf6144e190147b16b98e4354",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/prompt-state.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
+      "related_components": [
+        "prompt_redaction"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Both400-line key-body cases with60000-character prefix/suffix and absence of Kx64 in resulting state are missing."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+      }
+    },
+    {
+      "id": "test/redaction.test.mjs#9",
+      "file": "test/redaction.test.mjs",
+      "name": "session-log prompt excerpts are redacted, including a secret at the retention boundary",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          },
+          "prompt-state": {
+            "report": "artifacts/rust-rewrite/evidence/f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b.json",
+            "report_sha256": "f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b",
+            "cases": 3092,
+            "matched": 3092,
+            "cases_sha256": "5be32e7c9604c2ff376e3406a3e173a59c6699e3cf6144e190147b16b98e4354",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/prompt-state.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
+      "related_components": [
+        "prompt_redaction"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Missing exact email+GitHub excerpt,490-prefix/501-limit secret straddle including partial-token check and marker, and schema2 historical AWS excerpt re-redaction."
+      ],
+      "source_hashes": {}
+    },
+    {
+      "id": "test/redaction.test.mjs#11",
+      "file": "test/redaction.test.mjs",
+      "name": "redacts URL credentials with an empty user or a password containing @",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/redaction.rs#names_and_context_survive_while_secret_values_are_removed",
+        "rust/crates/autorouter-core/src/redaction.rs#formats_checksum_and_boundaries_match_reviewed_rules"
+      ],
+      "shared_cases": [],
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
+      "related_components": [
+        "prompt_redaction"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Missing exact amqps multiple-@ password,localhost and ssh://github.com ordinary cases."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+      }
+    },
+    {
+      "id": "test/redaction.test.mjs#12",
+      "file": "test/redaction.test.mjs",
+      "name": "redacts the common setting-name forms the first filter missed, without leaking any part of the value",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/redaction.rs#names_and_context_survive_while_secret_values_are_removed"
+      ],
+      "shared_cases": [],
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
+      "related_components": [
+        "prompt_redaction"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Missing full14 case-list assertions including quoted SIGNING_KEY,DB_AUTH,AUTH,JSON pass/password,connection-string Password and AccountKey exactvalues."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+      }
+    },
+    {
+      "id": "test/redaction.test.mjs#13",
+      "file": "test/redaction.test.mjs",
+      "name": "redacts credentials passed on command lines",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/redaction.rs#names_and_context_survive_while_secret_values_are_removed",
+        "rust/crates/autorouter-core/src/redaction.rs#ordinary_text_and_boolean_controls_remain_readable"
+      ],
+      "shared_cases": [],
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
+      "related_components": [
+        "prompt_redaction"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Missing exact curl --user,tool --db-password=,and quoted --token cases."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+      }
+    },
+    {
+      "id": "test/redaction.test.mjs#14",
+      "file": "test/redaction.test.mjs",
+      "name": "redacts international phone numbers, Italian tax codes and US social security numbers",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/redaction.rs#formats_checksum_and_boundaries_match_reviewed_rules"
+      ],
+      "shared_cases": [],
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
+      "related_components": [
+        "prompt_redaction"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Missing unchanged at +123 ms and ratio3-2-1 exact strings."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+      }
+    },
+    {
+      "id": "test/redaction.test.mjs#16",
+      "file": "test/redaction.test.mjs",
+      "name": "the widened rules are idempotent and stay linear on adversarial input",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/redaction.rs#provider_tokens_and_markers_are_redacted_idempotently"
+      ],
+      "shared_cases": [],
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          },
+          "prompt-state": {
+            "report": "artifacts/rust-rewrite/evidence/f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b.json",
+            "report_sha256": "f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b",
+            "cases": 3092,
+            "matched": 3092,
+            "cases_sha256": "5be32e7c9604c2ff376e3406a3e173a59c6699e3cf6144e190147b16b98e4354",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/prompt-state.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
+      "related_components": [
+        "prompt_redaction"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Native idempotence sample omits --api-key and SSN from original joined input; exact per-input<2000ms assertions remain unqualified."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+      }
+    },
+    {
+      "id": "test/redaction.test.mjs#17",
+      "file": "test/redaction.test.mjs",
+      "name": "a .env file read as a tool result reaches the evaluator redacted",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          },
+          "prompt-state": {
+            "report": "artifacts/rust-rewrite/evidence/f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b.json",
+            "report_sha256": "f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b",
+            "cases": 3092,
+            "matched": 3092,
+            "cases_sha256": "5be32e7c9604c2ff376e3406a3e173a59c6699e3cf6144e190147b16b98e4354",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/prompt-state.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
+      "related_components": [
+        "prompt_redaction"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Original .env tool-result fixture with all5 secret/email absence checks and APP_NAME=autorouter retained in both builders is missing."
+      ],
+      "source_hashes": {}
+    }
+  ],
+  "history_before_serialization": {
+    "pre_pin_retention": {
+      "path": "artifacts/rust-rewrite/tenth-redaction-before-corpus-pin.json",
+      "sha256": "e2b27e70d543d050ab91da2fac0afb444c0a5342e4cc2fe771bb9bbb20f3f59d",
+      "bytes": 1409
+    },
+    "original_proposal": {
+      "path": "artifacts/rust-rewrite/evidence/9fe6077e87508c3960b6e21feb4f5822fe6730d0dd4bfd52813e76de73e0326b.json",
+      "sha256": "9fe6077e87508c3960b6e21feb4f5822fe6730d0dd4bfd52813e76de73e0326b",
+      "bytes": 56836
+    },
+    "scope": "Pre-pin source/log/proposal kept as historical successful functional evidence. Final native2/Clippy2 plus current source qualify corpus pin. Capture/generator/corpus unchanged; no product changes."
+  },
+  "history": {
+    "prior_mapping": {
+      "path": "artifacts/rust-rewrite/evidence/3dfc3ba521d21ca68f2720a9eb1264bb478dae25be1d00803559a3fa6c9c54dd.json",
+      "sha256": "3dfc3ba521d21ca68f2720a9eb1264bb478dae25be1d00803559a3fa6c9c54dd",
+      "bytes": 91842,
+      "original_path": "/Users/fabio/AI/claude-autorouter/rust/parity/assertion-mappings/redaction-contracts.json"
+    },
+    "prior_current_sources": [
+      {
+        "path": "artifacts/rust-rewrite/evidence/8d374aac1abc908f61543486caf21f24b52f9ac3e6e8729c102c2d0e5f1083c3.rs",
+        "sha256": "8d374aac1abc908f61543486caf21f24b52f9ac3e6e8729c102c2d0e5f1083c3",
+        "bytes": 7828,
+        "original_path": "rust/crates/autorouter-core/tests/redaction_contracts.rs"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/212a7078750427a953ad87be5ced467c9d68d846b67e2e7963ca26c8f93ffdfa.mjs",
+        "sha256": "212a7078750427a953ad87be5ced467c9d68d846b67e2e7963ca26c8f93ffdfa",
+        "bytes": 10522,
+        "original_path": "rust/parity/capture-redaction-contracts.mjs"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/6ecd07f19763b97284304c03ee10695dcee04215be4bd8b6e8932863acfc0f96.jsonl",
+        "sha256": "6ecd07f19763b97284304c03ee10695dcee04215be4bd8b6e8932863acfc0f96",
+        "bytes": 405591,
+        "original_path": "rust/parity/cases/redaction-contracts.jsonl"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/a44786a97c311f8ec36a98016556a011ae7f4cfd318da0021287b1591566d1b6.json",
+        "sha256": "a44786a97c311f8ec36a98016556a011ae7f4cfd318da0021287b1591566d1b6",
+        "bytes": 40306,
+        "original_path": "rust/parity/cases/redaction-contracts.capture.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44.rs",
+        "sha256": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44",
+        "bytes": 28479,
+        "original_path": "rust/crates/autorouter-core/src/redaction.rs"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/56e138cec33a2523892f156bb73369b05827559c7071299d09ef08ea81805127.rs",
+        "sha256": "56e138cec33a2523892f156bb73369b05827559c7071299d09ef08ea81805127",
+        "bytes": 27400,
+        "original_path": "rust/crates/autorouter-core/src/prompt_state.rs"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/9ecd66bb91b416a0a5435a134d307aaf8bb2488f02dfc04df3fca3f0bab92640.rs",
+        "sha256": "9ecd66bb91b416a0a5435a134d307aaf8bb2488f02dfc04df3fca3f0bab92640",
+        "bytes": 30138,
+        "original_path": "rust/crates/autorouter-core/src/telemetry_event.rs"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/35b5acfe78c08826cdc247c91b61ef079eba0d4c6a020a600d491fbaffa80bc3.lock",
+        "sha256": "35b5acfe78c08826cdc247c91b61ef079eba0d4c6a020a600d491fbaffa80bc3",
+        "bytes": 38341,
+        "original_path": "rust/Cargo.lock"
+      }
+    ],
+    "push_rejection": {
+      "path": "artifacts/rust-rewrite/evidence/3ac672163a4d6a3362fcbb1762700a831f569ba6e3ad22faad3afc468281a697.json",
+      "sha256": "3ac672163a4d6a3362fcbb1762700a831f569ba6e3ad22faad3afc468281a697",
+      "bytes": 2140,
+      "original_path": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/tenth-push-protection-rejection.json"
+    },
+    "correction": {
+      "path": "artifacts/rust-rewrite/evidence/077f6f00231eb30f3ad436eebab8da19e39b09b69e58201e3690ac4d1feea504.json",
+      "sha256": "077f6f00231eb30f3ad436eebab8da19e39b09b69e58201e3690ac4d1feea504",
+      "bytes": 10064,
+      "original_path": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/redaction-safe-serialization-1/correction.json"
+    },
+    "scope": "Original complete reviewed mapping, functional/pin validations and raw serialized corpus retained. Current corpus escapes only exact constructed synthetic values; decoded93cases, original callbacks/assertions/expectations, native implementation and28unexecuted timing assertions are unchanged."
+  }
+}

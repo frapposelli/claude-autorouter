@@ -1,0 +1,495 @@
+{
+  "schema_version": 1,
+  "kind": "original_router11_real_clock_deadline_per_assertion_supplement",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "only_definition": "test/router.test.mjs#11",
+  "original_definition": {
+    "name": "timeouts fall back promptly and failures are not cached",
+    "statement": "test('timeouts fall back promptly and failures are not cached', async () => {\n  let calls = 0;\n  const router = new Router({ ...config(), jevTimeoutMs: 20 }, { fetchImpl: async (_, { signal }) => {\n    calls++;\n    if (calls > 1) return result('haiku');\n    return new Promise((resolve, reject) => {\n      const keepAlive = setTimeout(resolve, 2000);\n      signal.addEventListener('abort', () => { clearTimeout(keepAlive); reject(signal.reason); }, { once: true });\n    });\n  } });\n  const start = performance.now();\n  const first = await router.route(request('Task'));\n  assert.equal(first.source, 'fallback');\n  assert.equal(first.model, config().models.sonnet);\n  assert.ok(performance.now() - start < 1000);\n  assert.equal((await router.route(request('Task'))).model, config().models.haiku);\n});",
+    "statement_sha256": "79cab3462e54bcf9b0e391ee8edff59787f862ef3bfa016f9e744252bcf3c156",
+    "source": {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/original/router.test.mjs",
+      "bytes": 54848,
+      "sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516"
+    },
+    "assertion_sites": 4,
+    "source_executions": 1,
+    "baseline_files_verified_before_and_after": 111
+  },
+  "historical_mapping_unchanged": {
+    "path": "rust/parity/assertion-mappings/router-contracts.json",
+    "bytes": 171065,
+    "sha256": "6e1c2f8bd229c02fafe382ae618e20a89b6d2a43e49671401d06d50164eff2ab"
+  },
+  "historical_mapping_scope": "The original 47-covered/4-partial main mapping and its historical evidence identities remain unchanged; its missing local historical logs are not reverified or relabeled here. Definition 51 already has its separate count-start supplement. This supplement completes only definition 11.",
+  "previous_coverage_row": {
+    "id": "test/router.test.mjs#11",
+    "file": "test/router.test.mjs",
+    "name": "timeouts fall back promptly and failures are not cached",
+    "parameterized": false,
+    "status": "partial_assertion_mapping",
+    "rust_tests": [
+      "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+      "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::twenty_ms_timeout_cleans_transport_and_same_body_retries_without_cached_failure"
+    ],
+    "shared_cases": [
+      "baseline-router-instance-48"
+    ],
+    "evidence": {
+      "assertion_mapping": "rust/parity/assertion-mappings/router-contracts.json",
+      "assertion_mapping_sha256": "6e1c2f8bd229c02fafe382ae618e20a89b6d2a43e49671401d06d50164eff2ab",
+      "capture": "artifacts/rust-rewrite/evidence/a2b40b92412bfe643f7cb2f256b2c995c103207211b7ec29fcc48991c3d2df7b.json",
+      "capture_sha256": "a2b40b92412bfe643f7cb2f256b2c995c103207211b7ec29fcc48991c3d2df7b",
+      "cases_sha256": "296f68fc81b50e6e24d277c43adb50d9613b4816a1b9d6a1e610299faa6126e3",
+      "native_core_log": "artifacts/rust-rewrite/evidence/360d690c0cfbee0d4d9a8b81b140b52631eecf07319ea7a0b8137966cad4dc7d.log",
+      "native_core_log_sha256": "360d690c0cfbee0d4d9a8b81b140b52631eecf07319ea7a0b8137966cad4dc7d",
+      "native_runtime_log": "artifacts/rust-rewrite/evidence/d6edbb3f5051e75431ebb14bd9e0bd2fcfce1de2f38a61fa8e31c3fa0dd6e5f4.log",
+      "native_runtime_log_sha256": "d6edbb3f5051e75431ebb14bd9e0bd2fcfce1de2f38a61fa8e31c3fa0dd6e5f4",
+      "scope": "All121 Router instances/263 routes and29 pure calls. Complete native policy decisions, actual classifier/cache/count execution and full captured synthetic transport requests. Four literal JavaScript API/clock boundaries remain partial."
+    },
+    "related_components": [
+      "router_continuity"
+    ],
+    "assertion_mapping": "rust/parity/assertion-mappings/router-contracts.json",
+    "remaining_assertions": [
+      "The original assertion performance.now()-start<1000 is a real-clock scheduling condition. Native replay proves a20ms virtual deadline (pending at19ms), dropped transport, fallback and uncached same-body retry; it does not measure host wall-clock scheduling."
+    ]
+  },
+  "per_assertion": [
+    {
+      "id": "test/router.test.mjs#11:assert-1",
+      "source_line": 238,
+      "source_expression": "assert.equal(first.source, 'fallback')",
+      "source_expression_sha256": "a151b9281427d0dab0ceb3d34711630406dd0510647e36d949aa4c1f249169d4",
+      "native_test": "router::contracts::real_twenty_ms_timeout_returns_before_one_second_and_retries_without_cached_failure",
+      "native_predicate": "The complete first frozen decision has source=fallback after the actual evaluator transport is cancelled at its configured 20 ms deadline.",
+      "status": "covered",
+      "source_executions": 1
+    },
+    {
+      "id": "test/router.test.mjs#11:assert-2",
+      "source_line": 239,
+      "source_expression": "assert.equal(first.model, config().models.sonnet)",
+      "source_expression_sha256": "b154f8be51fe8016ad15db150582312ae5da683e47265ed26a1ec311cb4a5b24",
+      "native_test": "router::contracts::real_twenty_ms_timeout_returns_before_one_second_and_retries_without_cached_failure",
+      "native_predicate": "The complete first frozen decision retains the configured Sonnet model.",
+      "status": "covered",
+      "source_executions": 1
+    },
+    {
+      "id": "test/router.test.mjs#11:assert-3",
+      "source_line": 240,
+      "source_expression": "assert.ok(performance.now() - start < 1000)",
+      "source_expression_sha256": "cda0c24fd2c450ecf833e0abdefff9b6a0bd39cecde9a8655a48dcaed1ac5680",
+      "native_test": "router::contracts::real_twenty_ms_timeout_returns_before_one_second_and_retries_without_cached_failure",
+      "native_predicate": "A standard monotonic Instant, started immediately before the caller-owned route future is awaited, must report elapsed strictly below 1000 ms. Tokio time is not paused or advanced in this test.",
+      "status": "covered",
+      "source_executions": 1
+    },
+    {
+      "id": "test/router.test.mjs#11:assert-4",
+      "source_line": 241,
+      "source_expression": "assert.equal((await router.route(request('Task'))).model, config().models.haiku)",
+      "source_expression_sha256": "7a8becdfce1e3ed0ad087e8d47c9af24f0b1a64baae73ecdd448be99e9433b9b",
+      "native_test": "router::contracts::real_twenty_ms_timeout_returns_before_one_second_and_retries_without_cached_failure",
+      "native_predicate": "The exact same original-shaped body is routed again through a second actual evaluator call, returning the complete expected Haiku decision; the failed first evaluation was not cached.",
+      "status": "covered",
+      "source_executions": 1
+    }
+  ],
+  "native_sources": [
+    {
+      "path": "rust/crates/autorouter-runtime/src/router_contracts.rs",
+      "bytes": 14637,
+      "sha256": "998781cf77f06a5978b4f18670a84c1f32f1a801396cccfdd462f60ebbeb8200"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/router.rs",
+      "bytes": 38506,
+      "sha256": "48f16807b128b013efba18e30cea028f05eb239fa549208a27a4d71eec26f546"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/evaluator.rs",
+      "bytes": 43904,
+      "sha256": "61fde01fc4e29420d96369424f8979c8af7025dffcde629fc1925c0f506a18ce"
+    },
+    {
+      "path": "rust/parity/cases/router-contracts.jsonl",
+      "bytes": 2102659,
+      "sha256": "296f68fc81b50e6e24d277c43adb50d9613b4816a1b9d6a1e610299faa6126e3"
+    },
+    {
+      "path": "rust/parity/cases/router-contracts.capture.json",
+      "bytes": 19606,
+      "sha256": "a2b40b92412bfe643f7cb2f256b2c995c103207211b7ec29fcc48991c3d2df7b"
+    }
+  ],
+  "native_test_binary": {
+    "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/native/autorouter-runtime-test",
+    "bytes": 94743792,
+    "sha256": "5108e123467eef277957eded2d6bf091ce0992a793b700087cd9269164c182b5"
+  },
+  "actual_executions": {
+    "original": {
+      "executable": "/Users/fabio.rapposelli/AI/autorouter/artifacts/dev-environment/node-v22.14.0-darwin-arm64/bin/node",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern",
+        "^timeouts fall back promptly and failures are not cached$",
+        "/Users/fabio.rapposelli/AI/autorouter/artifacts/rust-rewrite/reference/test/router.test.mjs"
+      ],
+      "cwd": "/Users/fabio.rapposelli/AI/autorouter",
+      "environment": {
+        "PATH": "/Users/fabio.rapposelli/AI/autorouter/artifacts/dev-environment/node-v22.14.0-darwin-arm64/bin",
+        "TZ": "UTC",
+        "LANG": "C",
+        "LC_ALL": "C"
+      },
+      "timeout_ms": 10000,
+      "max_buffer_bytes": 1048576
+    },
+    "native": [
+      {
+        "label": "fmt",
+        "command": [
+          "/Users/fabio.rapposelli/AI/autorouter/artifacts/dev-environment/run",
+          "cargo",
+          "fmt",
+          "--all",
+          "--check"
+        ],
+        "exit_code": 0,
+        "process_timeout_seconds": 30,
+        "wall_seconds": 1.9203483338933438,
+        "finished_at": "2026-10-17T13:59:41.122448+00:00"
+      },
+      {
+        "label": "build-test",
+        "command": [
+          "/Users/fabio.rapposelli/AI/autorouter/artifacts/dev-environment/run",
+          "cargo",
+          "test",
+          "--jobs",
+          "2",
+          "--locked",
+          "--offline",
+          "--package",
+          "autorouter-runtime",
+          "--lib",
+          "--no-run",
+          "--message-format=json"
+        ],
+        "exit_code": 0,
+        "process_timeout_seconds": 600,
+        "wall_seconds": 141.21175862499513,
+        "finished_at": "2026-10-17T14:06:57.458315+00:00"
+      },
+      {
+        "label": "real-clock",
+        "command": [
+          "/Users/fabio.rapposelli/AI/autorouter/artifacts/rust-rewrite/router-real-deadline-20261017-1/native/autorouter-runtime-test",
+          "--exact",
+          "router::contracts::real_twenty_ms_timeout_returns_before_one_second_and_retries_without_cached_failure",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "process_timeout_seconds": 15,
+        "wall_seconds": 1.0560029158368707,
+        "finished_at": "2026-10-17T14:06:58.631238+00:00"
+      },
+      {
+        "label": "paused-clock",
+        "command": [
+          "/Users/fabio.rapposelli/AI/autorouter/artifacts/rust-rewrite/router-real-deadline-20261017-1/native/autorouter-runtime-test",
+          "--exact",
+          "router::contracts::twenty_ms_timeout_cleans_transport_and_same_body_retries_without_cached_failure",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "process_timeout_seconds": 15,
+        "wall_seconds": 0.0781125829089433,
+        "finished_at": "2026-10-17T14:06:58.711679+00:00"
+      },
+      {
+        "label": "all-router-contracts",
+        "command": [
+          "/Users/fabio.rapposelli/AI/autorouter/artifacts/rust-rewrite/router-real-deadline-20261017-1/native/autorouter-runtime-test",
+          "router::contracts::",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "process_timeout_seconds": 60,
+        "wall_seconds": 1.4325372078455985,
+        "finished_at": "2026-10-17T14:07:00.146349+00:00"
+      }
+    ],
+    "workspace": [
+      {
+        "label": "strict-clippy",
+        "exit_code": 0,
+        "wall_seconds": 24.3751857499592,
+        "finished_at": "2026-10-17T14:12:30.642567+00:00"
+      },
+      {
+        "label": "workspace-tests",
+        "exit_code": 0,
+        "wall_seconds": 131.82837691600434,
+        "finished_at": "2026-10-17T14:14:42.472624+00:00"
+      },
+      {
+        "label": "helper-build",
+        "exit_code": 0,
+        "wall_seconds": 8.014026875142008,
+        "finished_at": "2026-10-17T14:14:50.487338+00:00"
+      }
+    ],
+    "node": [
+      {
+        "label": "node-check",
+        "exit_code": 0,
+        "wall_seconds": 3.5769303750712425,
+        "finished_at": "2026-10-17T14:12:12.574067+00:00"
+      },
+      {
+        "label": "node-tests",
+        "exit_code": 0,
+        "wall_seconds": 5.034419999923557,
+        "finished_at": "2026-10-17T14:12:17.609555+00:00"
+      },
+      {
+        "label": "node-package",
+        "exit_code": 0,
+        "wall_seconds": 6.804471833165735,
+        "finished_at": "2026-10-17T14:12:24.414535+00:00"
+      }
+    ]
+  },
+  "native_execution_evidence": [
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/native/declaration.json",
+      "bytes": 1015,
+      "sha256": "1705ab159dd37a6c95ccc42002f5881583901cc0730c483b481a6748e4d8991a"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/native/build-test.jsonl",
+      "bytes": 164512,
+      "sha256": "1b3818ec1f2f6bb2e1a9a4bfb0bc1a1e09b2ac485e62c579510cd5f471700eac"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/native/build-test.stderr.log",
+      "bytes": 5062,
+      "sha256": "4969d1fd37a355398296681c7660be38de65694850a33f866f576cd541afef08"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/native/binary.json",
+      "bytes": 241,
+      "sha256": "132e54fd7e262dd99c988b77910fef6ceb5cb717cab8ee76c7dee645d3b6d08d"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/native/progress.json",
+      "bytes": 2290,
+      "sha256": "d1a3129c562b8af5e0d098059acf53ccc79f2d396c4a5ac818df47c14baccace"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/native/real-clock.log",
+      "bytes": 229,
+      "sha256": "1aac49aad2e7b1e2eed3dad3fa166707faadad2c7f97bd654adcb33e56111110"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/native/paused-clock.log",
+      "bytes": 225,
+      "sha256": "76e34e2c624ec0adef407cb5508e6421e720d42743b96ed6bab33d18f6bcaeb2"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/native/all-router-contracts.log",
+      "bytes": 952,
+      "sha256": "72adac9e3f0726397cb7b76c1ee37bbe6e7852214c19c7637f12666c7ed99253"
+    }
+  ],
+  "original_execution_evidence": [
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/original/run.mjs",
+      "bytes": 7112,
+      "sha256": "00c5f3276f8b902ce646cea6dab84422c7308eb2043f4e8a1650c1f2d779241a"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/original/declaration.json",
+      "bytes": 12078,
+      "sha256": "151a898ab3a9086ac81a309ee1267612591828938ffe9d1e76387af32aaa7b34"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/original/report.json",
+      "bytes": 15198,
+      "sha256": "27833293ba5704a054c9156737de5cca09cc73aaa07877f87f0f383144038c3a"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/original/stdout.tap",
+      "bytes": 285,
+      "sha256": "92865add5aeb92fa9039663df77e90a2585958f601d49ebf1ab4c44e5896f5bb"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/original/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/original/baseline.json",
+      "bytes": 86691,
+      "sha256": "6722bd7a0109efb4d48e743412fbcc21affb0ceda1058d06726d03375113f588"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/original/inspect-execution.mjs",
+      "bytes": 4400,
+      "sha256": "0504812ae4bed211e69745f2f02ec8711863a69749d55dbdf501b93c7130457f"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/original/execution-inspection.json",
+      "bytes": 6026,
+      "sha256": "00743b6e1a7e413ca6b984713c3cb0b4314a2346ae918ed4eb383afdf5ce77f3"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/original/handoff-index.json",
+      "bytes": 3172,
+      "sha256": "93c844f1d90e639c12a9ebb627947262070c59e9c1a437ed73f0ff10954960fa"
+    }
+  ],
+  "reporting_correction": {
+    "original_report_status": "failed",
+    "cause": "The original capture runner required TAP ordinal 11. Node 22.14.0 filters nonmatching callbacks out of TAP and numbers the single selected callback 1. Exit status and all four original assertions were already successful.",
+    "action": "Independently verified the retained successful execution, exact name, only-one-test TAP count, all baseline/source identities and child status. No callback rerun, clock replacement, assertion changes or evidence replacement."
+  },
+  "independent_review": [
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/review/REVIEW.md",
+      "bytes": 4645,
+      "sha256": "9c26d1b748d58789c2fa74164f9a83f3980de1a330adb3646fedd674df498004"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/review/review.json",
+      "bytes": 2496,
+      "sha256": "2fd81e22d3de7d3ac30179d81d7af89899f6293c337c52cd3adac94d2e6efdd0"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/review/PROOF-REVIEW.md",
+      "bytes": 2882,
+      "sha256": "159e4d58f1423dcdc2f9c025e59d37883ce2fd6a169df5ce4b7898e5c656ed54"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/review/proof-review.json",
+      "bytes": 13801,
+      "sha256": "01107b0f182cad0a96a6884b9e152555959cefac4e188e19d8415b7655075df7"
+    }
+  ],
+  "full_checks": [
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/validation/source-declaration.json",
+      "bytes": 190,
+      "sha256": "f9bc4070ef99fcbabe8b2d6b3dd8c348526858b65b09c92fcb362eece2f11560"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/validation/strict-clippy.log",
+      "bytes": 5066,
+      "sha256": "0c9cca9efc49c721d21778832952b8ace7ad8d38de45e68f4fd18ad68f6f86a7"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/validation/workspace-tests.log",
+      "bytes": 147076,
+      "sha256": "2114078444de4492973c2d234e5e242e0c5f37427139a84292d16670cb4ab21c"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/validation/workspace-counts.json",
+      "bytes": 69,
+      "sha256": "56c56e3656fc7f8f733991a0fc86071a523d0214f200b2ae0b902eaaf66bb1df"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/validation/rust-progress.json",
+      "bytes": 460,
+      "sha256": "407e0da009f1ea144aeac4ff3eef1fdc99f476dacb278a1be54361a5528f4289"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/validation/node-check.log",
+      "bytes": 153,
+      "sha256": "4882654ddbf9853bf4f185dc398c36b83eaa63b59fbb76d525b746ce417b768f"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/validation/node-tests.log",
+      "bytes": 135707,
+      "sha256": "bdde8f907a4d1bd9a63afc6e1e3fcf02e7e97fb38ae00be191121758973b47fe"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/validation/node-package.log",
+      "bytes": 885,
+      "sha256": "35cbf1f6fafd2377825a6093a9b52395792e67af598c52c98c2c1350a1e9b6ba"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/validation/node-progress.json",
+      "bytes": 453,
+      "sha256": "711f504eab41ff3b608391bafbae93c8bcd243a0d4490c8ee67c2c1e845cf65e"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/validation/helper.json",
+      "bytes": 242,
+      "sha256": "6a31561219e723dcefb801ded64a4509802ada700ce5d78e8157ad28ccd2d82c"
+    }
+  ],
+  "fresh_transfer": {
+    "inspection": {
+      "path": "artifacts/rust-rewrite/router-deadline-transfer-evidence-20261017-1/inspection.json",
+      "bytes": 1553,
+      "sha256": "46e887028171a49b676f941201b6b4a7051863a3da9bf26a42c3c7030dfc7579"
+    },
+    "source_inputs_verified": 693,
+    "native_files": 695,
+    "logical_reference_files": 113,
+    "expanded_carrier_bytes": 33550336,
+    "logical_file_bytes": 33416326,
+    "expanded_carrier_limit": 33554432,
+    "logical_file_limit": 33554432,
+    "source_to_binary_provenance": "unverified_prebuilt"
+  },
+  "clock_and_cleanup_review": {
+    "preserved": "Both runtimes check actual monotonic elapsed time for the first request under a 20 ms evaluator timeout, Sonnet fallback and uncached same-body Haiku retry. Native replay additionally compares full frozen decisions, complete classifier request contracts and unchanged body hashes.",
+    "separate_virtual_clock_control": "The existing paused-clock test remains pending at 19 ms and completes after the final 1 ms advance. It does not substitute for the real-clock predicate.",
+    "cooperative_harness_timeout_seconds": 5,
+    "independent_process_timeout_seconds": 15,
+    "all_router_process_timeout_seconds": 60,
+    "cooperative_timeout_limit": "Tokio timeout bounds yielding route/cleanup waits; it cannot preempt synchronous parsing or non-yielding code. The finite SHA-pinned input and independent process ceilings are separate bounds.",
+    "caller_ownership": "Real-clock route is awaited directly rather than detached in a spawned caller. Each route checks no pending classifier flights/waiters before explicit awaited Router close; close joins advisory work and leaves zero active synthetic requests.",
+    "timing_scope": "Only the original strict elapsed predicate is qualified. Neither TAP callback duration nor native test process duration is the private first-route elapsed value; no numerical elapsed value was instrumented or inferred."
+  },
+  "scope": {
+    "only_definition_promoted": "test/router.test.mjs#11",
+    "unchanged_partial_definitions": [
+      "test/router.test.mjs#49",
+      "test/router.test.mjs#50"
+    ],
+    "all_area_statuses_remain_partial": true,
+    "configuration_and_limits_approval": false,
+    "numerical_performance_approval": false,
+    "platform_or_release_approval": false,
+    "provider_calls": 0
+  },
+  "prior_deterministic_validation_reuse": {
+    "helper_sha256": "73488a9782c4a3c759e24849333ba567a1ebca846bfb8fdea5ad81fc459e2c60",
+    "independent_review": {
+      "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/review/helper-reuse-review.json",
+      "bytes": 13136,
+      "sha256": "c7836ea4ef0d7b98e0cf143adc917d59216f4d9eada0db03e5693b7113d71e1f"
+    },
+    "differential_suite": {
+      "path": "artifacts/rust-rewrite/fingerprint-validation-20261016-1/final-differential-all/suite.json",
+      "bytes": 7767,
+      "sha256": "e7f494d2c4db04191c7457d308a513c1931e72d4f6afbcd17806c4622ce1793e"
+    },
+    "whole_connection_validation": {
+      "path": "artifacts/rust-rewrite/fingerprint-validation-20261016-1/final-whole-validation/report.json",
+      "bytes": 160973,
+      "sha256": "db223a941f483299d66db0c1ef3ac3f3bfa19bf389d6aab926930e36448e21b0"
+    },
+    "scope": "Exact helper bytes, all17 family source/case/report identities and Node adapters/protocol controls match. The only changed whole-source manifest row is cfg(test) router_contracts.rs, excluded from this helper. Reuse deterministic results only; no new performance or source-to-binary provenance approval."
+  }
+}

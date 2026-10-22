@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "kind": "frozen_savings_capacity_contracts",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "source": {
+    "path": "test/savings.test.mjs",
+    "sha256": "e0fbfb074a8f06267efbca6d17cf7431577acbd373c376949b593e6a58e651cd"
+  },
+  "selected_definitions": 2,
+  "cases": 2,
+  "trackers": 2,
+  "updates": 1127,
+  "snapshots": 9,
+  "total_steps": 1136,
+  "capture_source_sha256": "d246d2d3655a1bf80fd7002cc7c81c75d6399822464b735e7a31ac0028d91e71",
+  "static_assertions": 9,
+  "expanded_assertions": 9,
+  "corpus_sha256": "e626ef908777de02de8f61a4ca431d6fa140667cbc0802e43e59862b8cec9a55",
+  "corpus_bytes": 292585,
+  "bounds": {
+    "trackers": 2,
+    "steps_per_tracker": 2048,
+    "total_steps": 4096,
+    "value_bytes": 65536,
+    "corpus_bytes": 1048576,
+    "depth": 32,
+    "value_nodes": 4096
+  },
+  "adaptations": [
+    "All original updates and only original snapshot calls are captured. Complete snapshots remain attached to the exact original assertion that requested them; no post-update snapshots are added.",
+    "JavaScript Number values compare to native JSON numbers by exact f64 value, accepting 6 and 6.0 with no tolerance, rounding, missing keys or reordered arrays.",
+    "Only own undefined object fields are omitted at the native JSON boundary and every omitted path is retained. Neither selected definition asserts own-property identity.",
+    "Original missing session access yields undefined; the complete native snapshot must omit that session key. Native maps do not implement JavaScript prototypes or ESM embedding."
+  ],
+  "exclusions": "Only definitions14/15 execute. Finite capacity and late-work schedules do not qualify process memory/RSS, timing, all sessions/workloads, hostile accessors, duplicate-history capacity, live provider or fresh pricing.",
+  "definitions": [
+    {
+      "id": "test/savings.test.mjs#14",
+      "number": 14,
+      "name": "bounds in-flight work and marks evicted requests as unpriced and partial",
+      "definition_call_sha256": "8b44efd7a9999dc91852f19dbc34a84674de6a77c8dc6a1830fa9aaa98138679",
+      "definition_statement_sha256": "e40cf9defccad0bdef9df334ef3f954cb04623c8683301ead9afc8b094028eff",
+      "selected": true,
+      "execution": "complete_unchanged_callback",
+      "assertions": [
+        {
+          "id": "test/savings.test.mjs#14:assert-1",
+          "line": 243,
+          "expression": "assert.equal(current(tracker).unpriced_requests, 1)",
+          "sha256": "792fae5a0cc8d02e2d94445d293f11dbe4405bfe596eeb3ecc83a30ab8bb1f2a",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/savings.test.mjs#14:assert-2",
+          "line": 244,
+          "expression": "assert.equal(current(tracker).partial, true)",
+          "sha256": "78b8b7afb0f989c843f4661a7951fb8e313bbc7df39dcfb27015bc90d48b5811",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/savings.test.mjs#14:assert-3",
+          "line": 247,
+          "expression": "assert.equal(current(tracker).unpriced_requests, 1)",
+          "sha256": "792fae5a0cc8d02e2d94445d293f11dbe4405bfe596eeb3ecc83a30ab8bb1f2a",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/savings.test.mjs#14:assert-4",
+          "line": 248,
+          "expression": "assert.equal(current(tracker).requests, 1)",
+          "sha256": "03d97051c43cc537e57433f73b710a49c7be27d93f2406e9cc14eb2f753f8d33",
+          "expanded_executions": 1
+        }
+      ],
+      "case_ids": [
+        "savings-capacity-14-1"
+      ]
+    },
+    {
+      "id": "test/savings.test.mjs#15",
+      "number": 15,
+      "name": "bounds sessions, ignores late evicted work and marks returning sessions partial",
+      "definition_call_sha256": "18c0a0d057fa28ddb960a464e848f00e684a8d88e5e3dcaa041d6ce82aa24bfc",
+      "definition_statement_sha256": "6d9eb9100f7237354a161c18109e1bc36bfe89ab9c56f7c25e75490eae612c0e",
+      "selected": true,
+      "execution": "complete_unchanged_callback",
+      "assertions": [
+        {
+          "id": "test/savings.test.mjs#15:assert-1",
+          "line": 254,
+          "expression": "assert.equal(Object.keys(tracker.snapshot()).length, 100)",
+          "sha256": "374570cfa0701fcbc675910d31af4fc98de9eac8100bf6afab2a35e3d08bfac9",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/savings.test.mjs#15:assert-2",
+          "line": 256,
+          "expression": "assert.equal(tracker.snapshot()['session-0'], undefined)",
+          "sha256": "9ab278163aa434c04712c915b29d34e78497207e1c9a0c78463ea11474698126",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/savings.test.mjs#15:assert-3",
+          "line": 258,
+          "expression": "assert.equal(tracker.snapshot()['session-0'].requests, 1)",
+          "sha256": "50c33e1fbce76c444e81eab5df1dabccf298d616a664a6861d3d9af29376a443",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/savings.test.mjs#15:assert-4",
+          "line": 259,
+          "expression": "assert.equal(tracker.snapshot()['session-0'].partial, true)",
+          "sha256": "ba7fbca9a2f6817f19d4c1c67e22885f6aa21c5d458f099b3be49ca3fa9a99ea",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/savings.test.mjs#15:assert-5",
+          "line": 260,
+          "expression": "assert.equal(Object.keys(tracker.snapshot()).length, 100)",
+          "sha256": "374570cfa0701fcbc675910d31af4fc98de9eac8100bf6afab2a35e3d08bfac9",
+          "expanded_executions": 1
+        }
+      ],
+      "case_ids": [
+        "savings-capacity-15-1"
+      ]
+    }
+  ]
+}

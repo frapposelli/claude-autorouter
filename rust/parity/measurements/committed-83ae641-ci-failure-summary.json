@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "kind": "committed_83ae641_ci_failure_checkpoint",
+  "date": "2026-10-15",
+  "source_head": "83ae6418dd103b64a3dee9b9ae3744d55be613af",
+  "actual_PR_merge_checkout": "0b16eaba7e140f6e8b6f0872e527a58327418419",
+  "source_tree": "c5b9634dd5f4fa9034b9305b3971f346ac0ba0e6",
+  "merge_checkout_and_pushed_head_trees_equal": true,
+  "status": "terminal_failure_checkpoint_not_native_CI_or_shipping_approval",
+  "run_ids": {
+    "CI": 38698688777,
+    "Rust32bitCore": 38698688477,
+    "RustGNUPortability": 38698688556,
+    "RustMuslPortability": 38698688450
+  },
+  "jobs": {
+    "total": 13,
+    "success": 10,
+    "failure": 3,
+    "successful_domains": "Four required Node jobs, actual i686 core arithmetic, and five of six ordinary Rust/GNU jobs, including both GNU glibc 2.28 jobs. All six ordinary Rust/GNU full-workspace runs pass their named frozen-reference controls; both musl full-workspace runs pass the launcher stderr control.",
+    "failed_domains": {
+      "ordinary_Linux_ARM": "The synthetic config-command comparison stops at case 110 with a parent-side EPIPE while sending unused stdin to an early-rejected positional secret argument. Full workspace, parity, release build, and feature audit finish before this comparison. The failed log does not print the child's status or output; a later driver change requires fresh ARM CI.",
+      "both_musl": "The byte-for-byte second-build check fails after successful workspace tests and ordinary feature audits. Independently downloaded binaries differ only in one OpenSSL MODULESDIR build-output path string (target-main versus target-repro) and the resulting GNU build ID: 132 bytes per pair, confined to .rodata and .note.gnu.build-id. Rebuilding from a fresh tree at the same declared path requires fresh CI."
+    }
+  },
+  "terminal_observation": {
+    "path": "artifacts/rust-rewrite/83ae641-ci-20261015-1/terminal-13-job-observation-1.json",
+    "bytes": 12308,
+    "sha256": "e4a36ad40f2d4e5b80ed696304a6caea886638311ca7b405c697112fb36d1b8c"
+  },
+  "musl_binary_diagnosis": {
+    "path": "artifacts/rust-rewrite/83ae641-ci-20261015-1/musl-repro-diagnosis-1.json",
+    "bytes": 10907,
+    "sha256": "297bd9ee7641eaa4cb755d182403dfaca0aa92020579cdd67d1a7f24409ff6a9"
+  },
+  "bootstrap_graph_scope": "Both actual musl bootstrap compiler reports omit rustix, and their ordinary production-feature audits pass. Other job graphs are not inferred from passing steps; local clean-head dependency audits remain separate evidence.",
+  "all_existing_failed_runs_and_logs_remain_retained": true,
+  "no_retries_or_deadline_target_cap_protection_relaxation": true,
+  "provider_calls": 0,
+  "model_downloads": 0,
+  "scope": "Exact 83ae641 source tree and terminal runs only. Passing source tests are not proof of shipping-binary identity. This checkpoint does not approve the full supported-platform, minimum OS/libc/kernel/CPU, WSL, TLS/CA/PTY, archive, licensing, performance, live-provider, hardware, release, or default-cutover gates."
+}

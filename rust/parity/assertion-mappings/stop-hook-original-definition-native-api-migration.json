@@ -1,0 +1,620 @@
+{
+  "schema_version": 1,
+  "kind": "PROPOSED_ORIGINAL_CONFIG_SIX_STOP_CAP_ASSERTION_AND_NATIVE_API_MIGRATION_SUPPLEMENT",
+  "status": "ACCEPTED_FOR_ONLY_ORIGINAL_CONFIG_SIX_WITH_EXPLICIT_NATIVE_NAN_INPUT_API_MIGRATION",
+  "only_definitions": [
+    "test/config.test.mjs#6"
+  ],
+  "original_historical_mapping_unchanged": {
+    "path": "rust/parity/assertion-mappings/config-auth.json",
+    "bytes": 37647,
+    "sha256": "e0ba7e5ef1bc3c3ab6aab685650a014e7b8f4b748662b92c173a77b71c8d6bfb"
+  },
+  "source_test": {
+    "path": "artifacts/rust-rewrite/reference/test/config.test.mjs",
+    "bytes": 11644,
+    "sha256": "f22354a1e9fa1a4e9a2e27b70737445ee4ec14a467ce70314f098e7277568c29"
+  },
+  "name": "native Stop-hook block cap rejects coercion, nondecimal notation, fractions and unsafe integers",
+  "source_statement_sha256": "57282ae7feccf9a68672d19d9f680106fa43273a2e2ab0c37d30f11e3c457488",
+  "source_assertion_sha256": "894ae380bd3cb5502de3cf05936abdabb8fc1f4cb321e1533391269e34badd33",
+  "source_assertion_sites": 1,
+  "original_loop_arguments": 24,
+  "assertion_site": {
+    "line": 85,
+    "expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+    "expression_utf8_sha256": "894ae380bd3cb5502de3cf05936abdabb8fc1f4cb321e1533391269e34badd33",
+    "observations": 24
+  },
+  "rows": [
+    {
+      "id": "test/config.test.mjs#6/assert-1/input-01",
+      "original_ordinal": 1,
+      "original_literal": "-1",
+      "array_literal_line": 83,
+      "assertion_line": 85,
+      "assertion_expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+      "expected_original_predicate": "readConfig throws an error whose message matches /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/",
+      "disposition": "EXECUTED_NAMED_FINITE_SHARED_CASE",
+      "finite_case_id": "config-6-92",
+      "input": {
+        "env": {
+          "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": -1
+        }
+      },
+      "case_line": 93,
+      "case_canonical_json_sha256": "058b77fcdc1ed92110b29a8e89bfa6dcadad08e10ff3304e47ba5424b818d0cd",
+      "actual_evidence": "Retained exact-case corpus membership and successful full differential report cover this named supplied input. No individually retained finite response stream or fresh current replay is invented."
+    },
+    {
+      "id": "test/config.test.mjs#6/assert-1/input-02",
+      "original_ordinal": 2,
+      "original_literal": "'-1'",
+      "array_literal_line": 83,
+      "assertion_line": 85,
+      "assertion_expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+      "expected_original_predicate": "readConfig throws an error whose message matches /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/",
+      "disposition": "EXECUTED_NAMED_FINITE_SHARED_CASE",
+      "finite_case_id": "config-6-93",
+      "input": {
+        "env": {
+          "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": "-1"
+        }
+      },
+      "case_line": 94,
+      "case_canonical_json_sha256": "58efa60998a6502a369ef7032fe5ef5408ef56fe52e98a07e6718c4a537f4631",
+      "actual_evidence": "Retained exact-case corpus membership and successful full differential report cover this named supplied input. No individually retained finite response stream or fresh current replay is invented."
+    },
+    {
+      "id": "test/config.test.mjs#6/assert-1/input-03",
+      "original_ordinal": 3,
+      "original_literal": "1.5",
+      "array_literal_line": 83,
+      "assertion_line": 85,
+      "assertion_expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+      "expected_original_predicate": "readConfig throws an error whose message matches /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/",
+      "disposition": "EXECUTED_NAMED_FINITE_SHARED_CASE",
+      "finite_case_id": "config-6-94",
+      "input": {
+        "env": {
+          "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": 1.5
+        }
+      },
+      "case_line": 95,
+      "case_canonical_json_sha256": "57db6d570c854b05102e5af1b7a281fde16275a888cfe6905a45228e0d95fade",
+      "actual_evidence": "Retained exact-case corpus membership and successful full differential report cover this named supplied input. No individually retained finite response stream or fresh current replay is invented."
+    },
+    {
+      "id": "test/config.test.mjs#6/assert-1/input-04",
+      "original_ordinal": 4,
+      "original_literal": "'1.5'",
+      "array_literal_line": 83,
+      "assertion_line": 85,
+      "assertion_expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+      "expected_original_predicate": "readConfig throws an error whose message matches /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/",
+      "disposition": "EXECUTED_NAMED_FINITE_SHARED_CASE",
+      "finite_case_id": "config-6-95",
+      "input": {
+        "env": {
+          "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": "1.5"
+        }
+      },
+      "case_line": 96,
+      "case_canonical_json_sha256": "ded41f6f95074ee44b163d83a91bf42189bba3945a30671485bbcc6ba44fbdd5",
+      "actual_evidence": "Retained exact-case corpus membership and successful full differential report cover this named supplied input. No individually retained finite response stream or fresh current replay is invented."
+    },
+    {
+      "id": "test/config.test.mjs#6/assert-1/input-05",
+      "original_ordinal": 5,
+      "original_literal": "'2.0'",
+      "array_literal_line": 83,
+      "assertion_line": 85,
+      "assertion_expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+      "expected_original_predicate": "readConfig throws an error whose message matches /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/",
+      "disposition": "EXECUTED_NAMED_FINITE_SHARED_CASE",
+      "finite_case_id": "config-6-96",
+      "input": {
+        "env": {
+          "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": "2.0"
+        }
+      },
+      "case_line": 97,
+      "case_canonical_json_sha256": "6645f9d0fcd8f984fed4593c6be293b9bdb506ef795be03d25be659a6caf8e81",
+      "actual_evidence": "Retained exact-case corpus membership and successful full differential report cover this named supplied input. No individually retained finite response stream or fresh current replay is invented."
+    },
+    {
+      "id": "test/config.test.mjs#6/assert-1/input-06",
+      "original_ordinal": 6,
+      "original_literal": "'1e2'",
+      "array_literal_line": 83,
+      "assertion_line": 85,
+      "assertion_expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+      "expected_original_predicate": "readConfig throws an error whose message matches /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/",
+      "disposition": "EXECUTED_NAMED_FINITE_SHARED_CASE",
+      "finite_case_id": "config-6-97",
+      "input": {
+        "env": {
+          "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": "1e2"
+        }
+      },
+      "case_line": 98,
+      "case_canonical_json_sha256": "4c72bf9875bbb3ac314f7b90e994e0a9ef133cd2299b81eb3be5593606dd7055",
+      "actual_evidence": "Retained exact-case corpus membership and successful full differential report cover this named supplied input. No individually retained finite response stream or fresh current replay is invented."
+    },
+    {
+      "id": "test/config.test.mjs#6/assert-1/input-07",
+      "original_ordinal": 7,
+      "original_literal": "'1e-999'",
+      "array_literal_line": 83,
+      "assertion_line": 85,
+      "assertion_expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+      "expected_original_predicate": "readConfig throws an error whose message matches /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/",
+      "disposition": "EXECUTED_NAMED_FINITE_SHARED_CASE",
+      "finite_case_id": "config-6-98",
+      "input": {
+        "env": {
+          "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": "1e-999"
+        }
+      },
+      "case_line": 99,
+      "case_canonical_json_sha256": "76d3ff94b507201422f0efcc5514bf1c84e42d7b9ef07e65d567484d6eb486fb",
+      "actual_evidence": "Retained exact-case corpus membership and successful full differential report cover this named supplied input. No individually retained finite response stream or fresh current replay is invented."
+    },
+    {
+      "id": "test/config.test.mjs#6/assert-1/input-08",
+      "original_ordinal": 8,
+      "original_literal": "'-1e-999'",
+      "array_literal_line": 83,
+      "assertion_line": 85,
+      "assertion_expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+      "expected_original_predicate": "readConfig throws an error whose message matches /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/",
+      "disposition": "EXECUTED_NAMED_FINITE_SHARED_CASE",
+      "finite_case_id": "config-6-99",
+      "input": {
+        "env": {
+          "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": "-1e-999"
+        }
+      },
+      "case_line": 100,
+      "case_canonical_json_sha256": "b923c0153afd56f8ad93cb3fe71fe560922c7da2830651132651b8b5d5304381",
+      "actual_evidence": "Retained exact-case corpus membership and successful full differential report cover this named supplied input. No individually retained finite response stream or fresh current replay is invented."
+    },
+    {
+      "id": "test/config.test.mjs#6/assert-1/input-09",
+      "original_ordinal": 9,
+      "original_literal": "'0x2'",
+      "array_literal_line": 83,
+      "assertion_line": 85,
+      "assertion_expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+      "expected_original_predicate": "readConfig throws an error whose message matches /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/",
+      "disposition": "EXECUTED_NAMED_FINITE_SHARED_CASE",
+      "finite_case_id": "config-6-100",
+      "input": {
+        "env": {
+          "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": "0x2"
+        }
+      },
+      "case_line": 101,
+      "case_canonical_json_sha256": "3e029834cbb6bf3d91f06442b0fbfc1e2082124767c56648794098f912a25f10",
+      "actual_evidence": "Retained exact-case corpus membership and successful full differential report cover this named supplied input. No individually retained finite response stream or fresh current replay is invented."
+    },
+    {
+      "id": "test/config.test.mjs#6/assert-1/input-10",
+      "original_ordinal": 10,
+      "original_literal": "'+2'",
+      "array_literal_line": 83,
+      "assertion_line": 85,
+      "assertion_expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+      "expected_original_predicate": "readConfig throws an error whose message matches /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/",
+      "disposition": "EXECUTED_NAMED_FINITE_SHARED_CASE",
+      "finite_case_id": "config-6-101",
+      "input": {
+        "env": {
+          "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": "+2"
+        }
+      },
+      "case_line": 102,
+      "case_canonical_json_sha256": "d8f38a7e7d6b8a289097748d9b859e710594a8f991dded155cf67c700bfaafeb",
+      "actual_evidence": "Retained exact-case corpus membership and successful full differential report cover this named supplied input. No individually retained finite response stream or fresh current replay is invented."
+    },
+    {
+      "id": "test/config.test.mjs#6/assert-1/input-11",
+      "original_ordinal": 11,
+      "original_literal": "''",
+      "array_literal_line": 83,
+      "assertion_line": 85,
+      "assertion_expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+      "expected_original_predicate": "readConfig throws an error whose message matches /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/",
+      "disposition": "EXECUTED_NAMED_FINITE_SHARED_CASE",
+      "finite_case_id": "config-6-102",
+      "input": {
+        "env": {
+          "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": ""
+        }
+      },
+      "case_line": 103,
+      "case_canonical_json_sha256": "e843fe6ffd045c78f276fae9364c173071d9b7804a628562b7ca148847621df7",
+      "actual_evidence": "Retained exact-case corpus membership and successful full differential report cover this named supplied input. No individually retained finite response stream or fresh current replay is invented."
+    },
+    {
+      "id": "test/config.test.mjs#6/assert-1/input-12",
+      "original_ordinal": 12,
+      "original_literal": "' '",
+      "array_literal_line": 83,
+      "assertion_line": 85,
+      "assertion_expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+      "expected_original_predicate": "readConfig throws an error whose message matches /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/",
+      "disposition": "EXECUTED_NAMED_FINITE_SHARED_CASE",
+      "finite_case_id": "config-6-103",
+      "input": {
+        "env": {
+          "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": " "
+        }
+      },
+      "case_line": 104,
+      "case_canonical_json_sha256": "bbddaed158379063d63ced989439d35a93e55956ecb808423d31f2136c2bed90",
+      "actual_evidence": "Retained exact-case corpus membership and successful full differential report cover this named supplied input. No individually retained finite response stream or fresh current replay is invented."
+    },
+    {
+      "id": "test/config.test.mjs#6/assert-1/input-13",
+      "original_ordinal": 13,
+      "original_literal": "'2\\n3'",
+      "array_literal_line": 84,
+      "assertion_line": 85,
+      "assertion_expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+      "expected_original_predicate": "readConfig throws an error whose message matches /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/",
+      "disposition": "EXECUTED_NAMED_FINITE_SHARED_CASE",
+      "finite_case_id": "config-6-104",
+      "input": {
+        "env": {
+          "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": "2\n3"
+        }
+      },
+      "case_line": 105,
+      "case_canonical_json_sha256": "99a35f0a523ee72c5325e44b8c64ce87ad65cb0b19837404bde922e35b7f9c6f",
+      "actual_evidence": "Retained exact-case corpus membership and successful full differential report cover this named supplied input. No individually retained finite response stream or fresh current replay is invented."
+    },
+    {
+      "id": "test/config.test.mjs#6/assert-1/input-14",
+      "original_ordinal": 14,
+      "original_literal": "null",
+      "array_literal_line": 84,
+      "assertion_line": 85,
+      "assertion_expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+      "expected_original_predicate": "readConfig throws an error whose message matches /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/",
+      "disposition": "EXECUTED_NAMED_FINITE_SHARED_CASE",
+      "finite_case_id": "config-6-105",
+      "input": {
+        "env": {
+          "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": null
+        }
+      },
+      "case_line": 106,
+      "case_canonical_json_sha256": "04d6bfc0e6b0fca798a51bfe2d9079449ce2500795e13699689441acd0a6817e",
+      "actual_evidence": "Retained exact-case corpus membership and successful full differential report cover this named supplied input. No individually retained finite response stream or fresh current replay is invented."
+    },
+    {
+      "id": "test/config.test.mjs#6/assert-1/input-15",
+      "original_ordinal": 15,
+      "original_literal": "false",
+      "array_literal_line": 84,
+      "assertion_line": 85,
+      "assertion_expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+      "expected_original_predicate": "readConfig throws an error whose message matches /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/",
+      "disposition": "EXECUTED_NAMED_FINITE_SHARED_CASE",
+      "finite_case_id": "config-6-106",
+      "input": {
+        "env": {
+          "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": false
+        }
+      },
+      "case_line": 107,
+      "case_canonical_json_sha256": "c709fa7d5132e575199e4984e099ab85d4e3eed6029f5b9c6eff97181a84ad8a",
+      "actual_evidence": "Retained exact-case corpus membership and successful full differential report cover this named supplied input. No individually retained finite response stream or fresh current replay is invented."
+    },
+    {
+      "id": "test/config.test.mjs#6/assert-1/input-16",
+      "original_ordinal": 16,
+      "original_literal": "true",
+      "array_literal_line": 84,
+      "assertion_line": 85,
+      "assertion_expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+      "expected_original_predicate": "readConfig throws an error whose message matches /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/",
+      "disposition": "EXECUTED_NAMED_FINITE_SHARED_CASE",
+      "finite_case_id": "config-6-107",
+      "input": {
+        "env": {
+          "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": true
+        }
+      },
+      "case_line": 108,
+      "case_canonical_json_sha256": "b3be6c8904694ac9814ad2262d98b5b7ef642efba003039e43874a59b79ee4b0",
+      "actual_evidence": "Retained exact-case corpus membership and successful full differential report cover this named supplied input. No individually retained finite response stream or fresh current replay is invented."
+    },
+    {
+      "id": "test/config.test.mjs#6/assert-1/input-17",
+      "original_ordinal": 17,
+      "original_literal": "[]",
+      "array_literal_line": 84,
+      "assertion_line": 85,
+      "assertion_expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+      "expected_original_predicate": "readConfig throws an error whose message matches /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/",
+      "disposition": "EXECUTED_NAMED_FINITE_SHARED_CASE",
+      "finite_case_id": "config-6-108",
+      "input": {
+        "env": {
+          "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": []
+        }
+      },
+      "case_line": 109,
+      "case_canonical_json_sha256": "c06358c176728be1b401615626dff49f8a5891fb7fbad892c88b9250917184b0",
+      "actual_evidence": "Retained exact-case corpus membership and successful full differential report cover this named supplied input. No individually retained finite response stream or fresh current replay is invented."
+    },
+    {
+      "id": "test/config.test.mjs#6/assert-1/input-18",
+      "original_ordinal": 18,
+      "original_literal": "{}",
+      "array_literal_line": 84,
+      "assertion_line": 85,
+      "assertion_expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+      "expected_original_predicate": "readConfig throws an error whose message matches /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/",
+      "disposition": "EXECUTED_NAMED_FINITE_SHARED_CASE",
+      "finite_case_id": "config-6-109",
+      "input": {
+        "env": {
+          "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": {}
+        }
+      },
+      "case_line": 110,
+      "case_canonical_json_sha256": "5346946760ee42dc1c73066f0fb646559155a2a6005c2bc96e070c7d9ceb8cd9",
+      "actual_evidence": "Retained exact-case corpus membership and successful full differential report cover this named supplied input. No individually retained finite response stream or fresh current replay is invented."
+    },
+    {
+      "id": "test/config.test.mjs#6/assert-1/input-19",
+      "original_ordinal": 19,
+      "original_literal": "NaN",
+      "array_literal_line": 84,
+      "assertion_line": 85,
+      "assertion_expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+      "expected_original_predicate": "readConfig throws an error whose message matches /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/",
+      "disposition": "PROPOSED_REVIEWED_STOP_SPECIFIC_NATIVE_INPUT_API_MIGRATION",
+      "source_actual": "Original frozen complete test actually passed with this supplied NaN loop item; only its regex assertion outcome is retained, not a separate NaN error envelope.",
+      "native_actual": "NOT_EXECUTED: supported JSON/Value APIs cannot attach a NaN Number to the configuration input. Invalid JSON admission, null projection or Number::from_f64 rejection does not execute this guard.",
+      "migration": "Root already explicitly accepted this STOP-key representational difference and published its specific note. Extending acceptance to original definition#6 requires a new explicit definition decision after this assertion review; no general JSON-domain waiver.",
+      "new_test_needed": "No artificial NaN API or mirror test. A future supported attachable NaN input must gain a direct parser-guard regression before claiming that new domain."
+    },
+    {
+      "id": "test/config.test.mjs#6/assert-1/input-20",
+      "original_ordinal": 20,
+      "original_literal": "Infinity",
+      "array_literal_line": 84,
+      "assertion_line": 85,
+      "assertion_expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+      "expected_original_predicate": "readConfig throws an error whose message matches /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/",
+      "disposition": "EXECUTED_ORIGINAL_NUMBER_KIND_VIA_RAW_DOCUMENT_POSITIVE_OVERFLOW",
+      "raw_control_id": "config-document-claude_code_stop_hook_block_cap-positive-overflow",
+      "raw_json_number": "1e999",
+      "observed_number_ieee754_bits": "7ff0000000000000",
+      "full_actual_outcome": {
+        "kind": "configuration_error",
+        "message": "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP requires a nonnegative safe integer (0 disables the Stop-hook continuation cap)"
+      },
+      "same_complete_Source_native_envelope": true,
+      "input_unchanged": true,
+      "scope": "JSON.parse(1e999) and JsDocument::parse admit the same +Infinity Number kind before readConfig/read_config_document. This executes the native cap guard, unlike serialization of Infinity through Value/null. Additional AUTOROUTER_EVALUATOR=ollama is the same default and does not mask this key."
+    },
+    {
+      "id": "test/config.test.mjs#6/assert-1/input-21",
+      "original_ordinal": 21,
+      "original_literal": "'Infinity'",
+      "array_literal_line": 84,
+      "assertion_line": 85,
+      "assertion_expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+      "expected_original_predicate": "readConfig throws an error whose message matches /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/",
+      "disposition": "EXECUTED_NAMED_FINITE_SHARED_CASE",
+      "finite_case_id": "config-6-110",
+      "input": {
+        "env": {
+          "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": "Infinity"
+        }
+      },
+      "case_line": 111,
+      "case_canonical_json_sha256": "c735b384c58e6b085f3899886ed443ef56f2767fd2afc8ae2814987172280707",
+      "actual_evidence": "Retained exact-case corpus membership and successful full differential report cover this named supplied input. No individually retained finite response stream or fresh current replay is invented."
+    },
+    {
+      "id": "test/config.test.mjs#6/assert-1/input-22",
+      "original_ordinal": 22,
+      "original_literal": "'invalid'",
+      "array_literal_line": 84,
+      "assertion_line": 85,
+      "assertion_expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+      "expected_original_predicate": "readConfig throws an error whose message matches /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/",
+      "disposition": "EXECUTED_NAMED_FINITE_SHARED_CASE",
+      "finite_case_id": "config-6-111",
+      "input": {
+        "env": {
+          "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": "invalid"
+        }
+      },
+      "case_line": 112,
+      "case_canonical_json_sha256": "8657c909ff5df73457f5da708c8a8ed48100e26b391914cdff93994e76399051",
+      "actual_evidence": "Retained exact-case corpus membership and successful full differential report cover this named supplied input. No individually retained finite response stream or fresh current replay is invented."
+    },
+    {
+      "id": "test/config.test.mjs#6/assert-1/input-23",
+      "original_ordinal": 23,
+      "original_literal": "Number.MAX_SAFE_INTEGER + 1",
+      "array_literal_line": 84,
+      "assertion_line": 85,
+      "assertion_expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+      "expected_original_predicate": "readConfig throws an error whose message matches /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/",
+      "disposition": "EXECUTED_NAMED_FINITE_SHARED_CASE",
+      "finite_case_id": "config-6-112",
+      "input": {
+        "env": {
+          "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": 9007199254740992
+        }
+      },
+      "case_line": 113,
+      "case_canonical_json_sha256": "6d5c872bdd15752fd81a1937eebe8f615e842fe5839112efb9e9a1b071247492",
+      "actual_evidence": "Retained exact-case corpus membership and successful full differential report cover this named supplied input. No individually retained finite response stream or fresh current replay is invented."
+    },
+    {
+      "id": "test/config.test.mjs#6/assert-1/input-24",
+      "original_ordinal": 24,
+      "original_literal": "'9007199254740992'",
+      "array_literal_line": 84,
+      "assertion_line": 85,
+      "assertion_expression": "assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/)",
+      "expected_original_predicate": "readConfig throws an error whose message matches /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/",
+      "disposition": "EXECUTED_NAMED_FINITE_SHARED_CASE",
+      "finite_case_id": "config-6-113",
+      "input": {
+        "env": {
+          "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": "9007199254740992"
+        }
+      },
+      "case_line": 114,
+      "case_canonical_json_sha256": "3c5c0e00882ea8942795555c013fcff9b2629d0bf12bf341e0814b01ab5d08e2",
+      "actual_evidence": "Retained exact-case corpus membership and successful full differential report cover this named supplied input. No individually retained finite response stream or fresh current replay is invented."
+    }
+  ],
+  "disposition_counts": {
+    "named_finite_actual_differential_inputs": 22,
+    "actual_infinity_guard_input": 1,
+    "native_unrepresentable_NaN_API_migration_not_native_execution": 1
+  },
+  "actual_evidence": {
+    "finite_cases": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/deterministic/parity-all/config-auth.jsonl",
+      "bytes": 362452,
+      "sha256": "df2b45067f723bdf1bcea56945a51aff925d3c86f2f52f162ae172f7aaf8de23"
+    },
+    "finite_report": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/deterministic/parity-all/config-auth.report.json",
+      "bytes": 458,
+      "sha256": "84e58efca17c82be305dde388129f4b6e8c44ebc6d012ca7051ec409daa01020"
+    },
+    "finite_execution": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/parity-all.json",
+      "bytes": 613,
+      "sha256": "7d4653247f53d956790f2e7087e64572cd1425fcc0ed5c521dce51fdc18e3144"
+    },
+    "Source_original_full_test_record": {
+      "path": "artifacts/rust-rewrite/entropy-hex-sharing-validation-20261018-1/node-tests.json",
+      "bytes": 370,
+      "sha256": "31fbbf302016f4658836efd96873fe925acb58a71d4fcebbbcb63dbcddf58971"
+    },
+    "Source_original_full_test_stdout": {
+      "path": "artifacts/rust-rewrite/entropy-hex-sharing-validation-20261018-1/node-tests.stdout",
+      "bytes": 135699,
+      "sha256": "4d6155ad590b930e2e03f0170fecbccde764c8cade524ac705f3211196721a95"
+    },
+    "Source_original_full_test_pass": {
+      "line": 302,
+      "text": "ok 60 - native Stop-hook block cap rejects coercion, nondecimal notation, fractions and unsafe integers"
+    },
+    "raw_Source_receipt": {
+      "path": "artifacts/rust-rewrite/config-json-text-proof-20261017-1/source.json",
+      "bytes": 1076,
+      "sha256": "9c663ac32c5996bde3367cdff065bfececc1b598c5e16e94dcd4a7b0c1d688f4"
+    },
+    "raw_native_receipt": {
+      "path": "artifacts/rust-rewrite/config-json-text-proof-20261017-1/native.json",
+      "bytes": 963,
+      "sha256": "3be84bfdbceae80bd15c73e36dd5da3463eecf42de1dacaba06bd0ec8b3c4518"
+    },
+    "raw_Source_stdout": {
+      "path": "artifacts/rust-rewrite/config-json-text-proof-20261017-1/source.stdout",
+      "bytes": 140891,
+      "sha256": "7c1d242a19571a1e361fc5bbf812a79600a01b48ebb3be05f91ce6de0e33f4bf"
+    },
+    "raw_native_stdout": {
+      "path": "artifacts/rust-rewrite/config-json-text-proof-20261017-1/native.stdout",
+      "bytes": 140831,
+      "sha256": "ad8643c513b49037f7d7669a8dc29bb06c02cb6ace6bb25bfabc7169cee3af55"
+    },
+    "raw_execution_binding": {
+      "path": "artifacts/rust-rewrite/config-json-text-proof-20261017-1/execution-binding.json",
+      "bytes": 4008,
+      "sha256": "5c01da159f1e9a7281a39519857098998e60d8d7614f3ef9dbb13f9ffbcb934e"
+    }
+  },
+  "accepted_key_native_API_decision": {
+    "path": "artifacts/rust-rewrite/confidence-stop-key-review-20261018-1/root-individual-key-acceptance.json",
+    "bytes": 2881,
+    "sha256": "3cf94e316b976eea00686069c8801c4952d63c40c47ca4264e314d07675201e4"
+  },
+  "accepted_key_summary": {
+    "path": "rust/parity/measurements/native-stop-hook-configuration-key-summary.json",
+    "bytes": 12379,
+    "sha256": "4c333a4ab5ce9a5bdaf7d58cf264ea29aa84297633119b41fe8c242263087070"
+  },
+  "prior_independent_key_review": {
+    "path": "artifacts/rust-rewrite/confidence-stop-key-review-20261018-1/independent-stop-hook-key-review.json",
+    "bytes": 26155,
+    "sha256": "fb0ae5ff04c9c5ac8d1568ed91d05bc5544f3143cdcedc4bc67f05c4c21ecabd"
+  },
+  "current_public_native_API_note": {
+    "file": {
+      "path": "rust/docs/embedding.md",
+      "bytes": 56677,
+      "sha256": "110352ea5ad04ca7d988e7e7242a53c218754789235ad22003588072ea320939"
+    },
+    "exact_note": {
+      "path": "artifacts/rust-rewrite/confidence-stop-key-review-20261018-1/stop-hook-migration-note.draft.md",
+      "bytes": 1116,
+      "sha256": "8701575ebd829a305c73f3aaf5be1438488760cdfef3db6d6e6759f5848e601f"
+    },
+    "scope": "STOP-specific no-native-NaN guard-execution disclaimer remains published; direct public Option<u64> field edits and typed OS parent map limitations remain explicit."
+  },
+  "current_durable_test_corrobation": {
+    "log": {
+      "path": "artifacts/rust-rewrite/session-log-dir-key-validation-20261018-1/workspace.stdout",
+      "bytes": 155473,
+      "sha256": "222ef78e843e0bfe8c204641fcb802674eda9757038bf7b996f56e2b8659f7c6"
+    },
+    "named_actual_passes": [
+      {
+        "name": "config::tests::numeric_semantics_preserve_zero_and_reject_coercion",
+        "line": 33,
+        "text": "test config::tests::numeric_semantics_preserve_zero_and_reject_coercion ... ok"
+      },
+      {
+        "name": "config::tests::numeric_conversion_errors_keep_type_guards_and_backend_order",
+        "line": 42,
+        "text": "test config::tests::numeric_conversion_errors_keep_type_guards_and_backend_order ... ok"
+      }
+    ],
+    "scope": "Existing native unit validates explicit other-kind/string grammar rejection, BOM/NBSP trimming and C1 rejection; numeric order regression checks STOP type-first both Value/document. Do not count these two tests as executing every original loop argument."
+  },
+  "remaining_runtime_assertions": [],
+  "remaining_acceptance_actions": [],
+  "minimum_publication_if_accepted": [
+    "Add this supplemental mapping and a focused evidence summary; leave historical config-auth.json and old finite skips byte-identical.",
+    "Change only definition test/config.test.mjs#6 status to covered with new supplement/evidence/review note; retain all old shared case IDs/history.",
+    "Do not modify any key, fixed-limit or area row, do not add NaN to finite executed rows, and do not imply whole configuration or goal-hook completion."
+  ],
+  "no_new_cases_or_execution": true,
+  "authorship": "remaining_router_count_review authored earlier STOP key proposal/API inventory; this is a new line-level original-definition mapping recommendation, not an independent review of that own proposal. Peer and Root remain necessary.",
+  "historical_pending_actions": [
+    "Independent supplemental assertion review.",
+    "Root explicit decision applying the already-scoped STOP native API migration to original#6, while recording native NaN remains unexecuted."
+  ],
+  "Root_acceptance": {
+    "path": "artifacts/rust-rewrite/local-token-wire-validation-20261018-1/root-acceptance-decisions.json",
+    "bytes": 1662,
+    "sha256": "367ecaec92347ab8854b45b39694898d85b95ed614b784d7bbfc0d69ad3d483c"
+  },
+  "independent_review": {
+    "path": "artifacts/rust-rewrite/config-stop-hook-original-six-review-20261018-1/independent-original-six-per-assertion-review.json",
+    "bytes": 20256,
+    "sha256": "91c1bd2dd38df389091f53cf9c6e2d52da9c595a4e8fe5bdb923f56d0c3923ce"
+  },
+  "original_draft": {
+    "path": "artifacts/rust-rewrite/config-stop-hook-original-six-review-20261018-1/assertion-migration-supplement.draft.json",
+    "bytes": 32674,
+    "sha256": "433e2e13bfec09a6f5f8488e9bc0ce146ac3b6e09d825ae59b27e114fd428277"
+  }
+}

@@ -1,0 +1,354 @@
+{
+  "schema_version": 1,
+  "kind": "explicit_onboarding_15_typed_environment_migration",
+  "status": "reviewed_original_setup_os_environment_migration",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "definition_id": "test/onboarding.test.mjs#15",
+  "native_admission_path": "rust/crates/autorouter-runtime/tests/onboarding_environment_contracts.rs",
+  "sources": [
+    {
+      "path": "artifacts/rust-rewrite/onboarding-environment-draft-20261013/onboarding_environment_contracts.rs",
+      "sha256": "f7c677462f11e4cc9cf2498eac8eb102a9b6b98c96b3b731d4703c5e8131cc0b"
+    },
+    {
+      "path": "artifacts/rust-rewrite/onboarding-environment-draft-20261013/capture-onboarding-environment-contracts.mjs",
+      "sha256": "d25570c581d2b3399165906998708998f5627ce5cb7d8efa38281043cf0675e3"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/auth.rs",
+      "sha256": "433f10300905319780bb4e02b23523571aa136b14c5a4bf2848aff1df324a9ab"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/config.rs",
+      "sha256": "2b0987bf04315f2c505a26a14ecee9a38509f8ce9f68d4438db9b9ce4b9e91be"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/user_config.rs",
+      "sha256": "f72ee8ae0ea0c44938fc5235864649ad644c733b039a81fdc2dde2edeb736939"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/onboarding.rs",
+      "sha256": "0166cf662ab3423d009611170c269e9a7b37d71e7def52131984a1b17e065fcb"
+    }
+  ],
+  "historical_cli_35_scenarios": {
+    "source_changes": "One additional integration-test definition in onboarding_local.rs; no production or support changes.",
+    "baseline_definition": "test/onboarding.test.mjs#15",
+    "runtime_scenarios": {
+      "cli": 22,
+      "environment_strings": 12,
+      "forced_update_saved_bytes": 1,
+      "total": 35
+    },
+    "typed_environment_adaptations_remaining": 4,
+    "validation": {
+      "focused_test_definitions_passed": 1,
+      "scenario_assertions_passed": 35,
+      "scoped_clippy": "passed",
+      "whole_baseline_definition_status": "partial_assertion_mapping"
+    },
+    "log": {
+      "path": "artifacts/rust-rewrite/evidence/20ede64ced8ef7a6f115f989d0bf9c437fed5ee39b013b38f29eacf1f77ee301.log",
+      "sha256": "20ede64ced8ef7a6f115f989d0bf9c437fed5ee39b013b38f29eacf1f77ee301",
+      "path_source": "artifacts/rust-rewrite/cli-invalid-stop-cap-admission-tests.log"
+    },
+    "clippy_log": {
+      "path": "artifacts/rust-rewrite/evidence/eab96c871accc1c2c66645706a752b34e85d624d76de50d33379ee8b098d8a38.log",
+      "sha256": "eab96c871accc1c2c66645706a752b34e85d624d76de50d33379ee8b098d8a38",
+      "path_source": "artifacts/rust-rewrite/cli-invalid-stop-cap-admission-clippy.log"
+    },
+    "prior_six_test_increment_logs": "Preserved unchanged; not rerun for this increment.",
+    "local_availability_review": {
+      "date": "2026-10-14",
+      "original_identities_preserved": true,
+      "test_log_available": false,
+      "clippy_log_available": false,
+      "reason": "Both original and content-addressed local paths are absent; historical report claims cannot be independently verified from those logs in this checkout."
+    }
+  },
+  "draft_native_controls": {
+    "public_raw_json_read_config_rejections": 4,
+    "legal_os_environment_absent_string_controls": 6,
+    "separate_string_false_rejections": 2,
+    "external_compiler_positive_controls": 4,
+    "external_compiler_negative_controls": 8,
+    "negative_types": [
+      "Value from raw null",
+      "Value from raw false",
+      "bool(false)",
+      "Option<OsString>::None"
+    ],
+    "diagnostic": "E0308 on exact Environment insertion; primary label contains expected OsString and declared found type"
+  },
+  "frozen_source_controls": {
+    "planned_operations": 4,
+    "values": [
+      "null",
+      "false"
+    ],
+    "evaluators": [
+      "jev",
+      "ollama"
+    ],
+    "required_observations": [
+      "exact CLAUDE_CODE_STOP_HOOK_BLOCK_CAP error",
+      "no prompt",
+      "no provider call",
+      "no fake Keychain method",
+      "no setup output",
+      "config absent",
+      "input environment unchanged"
+    ],
+    "status": "passed",
+    "operations_executed": 4,
+    "report": "artifacts/rust-rewrite/onboarding-raw-environment-source-20261013-1.json",
+    "sha256": "e72733523d6a1428d6cd159e004e91449f6e2af1239e04eee1cca6d8ae640c63",
+    "bytes": 4541,
+    "executed_by": "root",
+    "report_scope": "Four exact null/false setup operands under both evaluators. Supplemental operations use the original exported source function; this is not a rerun of the entire source callback or the historical35 native CLI scenarios."
+  },
+  "native_domain": {
+    "setup_environment": "BTreeMap<OsString,OsString> via ConfigContext",
+    "conversion": "actual public environment_json; not a mock JSON environment",
+    "raw_configuration_api": "read_config(&Value,...) can represent and reject original null/false values",
+    "pure_config_scope": "No secret prompt/filesystem/network/Keychain entrypoint is called by JSON config controls"
+  },
+  "migration_review": [
+    "Four source null/false setup calls are exact JavaScript API operands; they are not converted to strings or silently omitted.",
+    "Actual native raw configuration API rejects equivalent values; typed setup Environment rejects malformed values at compilation. Root independently reviewed and accepted this explicit input-domain migration, rather than inventing four executed native setup calls.",
+    "Historical35 scenario identities are preserved with both original focused logs explicitly unavailable locally. The current full workspace separately executes the actual35-scenario native CLI matrix successfully.",
+    "Positive and diagnostic-specific negative compiler evidence is local hash-bound API evidence, not source-to-binary or release qualification.",
+    "Root per-assertion migration review establishes original-definition coverage; no blanket waiver or compiler/runtime assertion count mixing."
+  ],
+  "remaining": [
+    "Installed archive and supported-platform execution require separate qualification.",
+    "Final-format source is now bound to the passing default-parallel combined workspace. Earlier focused and formatting-only evidence remains separate.",
+    "No real model, provider, Keychain, user-settings, publication or release qualification. Larger-Mac model measurements are user-deferred and have no result."
+  ],
+  "native_admission_source": {
+    "path": "rust/crates/autorouter-runtime/tests/onboarding_environment_contracts.rs",
+    "sha256": "f834034eca8f6cf07c431ebc492045d0be8451337dc8631720b1a42783f28eaf",
+    "tested_pre_final_format_sha256": "46e4ffd788f2473b53139ec3bb914324e092c06eba7231d32cfd9e0f4e531908",
+    "formatting_only_difference": true
+  },
+  "date": "2026-10-14",
+  "actual_native_results": {
+    "test_definitions_passed": 3,
+    "raw_json_admissions_rejected": 4,
+    "legal_os_inputs_passed": 6,
+    "separate_string_false_rejections": 2,
+    "compiler_positive_consumers": 4,
+    "compiler_negative_consumers": 8,
+    "all_negative_diagnostics": "Exactly one coded E0308 at the insertion; primary labels exactly expected OsString/found Value, bool or Option<OsString>",
+    "compiler_diagnostic_summary": [
+      {
+        "id": "jev_absent",
+        "accepted": true,
+        "expected_found_type": null,
+        "codes": [],
+        "primary_labels": []
+      },
+      {
+        "id": "jev_string",
+        "accepted": true,
+        "expected_found_type": null,
+        "codes": [],
+        "primary_labels": []
+      },
+      {
+        "id": "jev_value_null",
+        "accepted": false,
+        "expected_found_type": "Value",
+        "codes": [
+          "E0308"
+        ],
+        "primary_labels": [
+          "expected `OsString`, found `Value`"
+        ]
+      },
+      {
+        "id": "jev_value_false",
+        "accepted": false,
+        "expected_found_type": "Value",
+        "codes": [
+          "E0308"
+        ],
+        "primary_labels": [
+          "expected `OsString`, found `Value`"
+        ]
+      },
+      {
+        "id": "jev_boolean_false",
+        "accepted": false,
+        "expected_found_type": "bool",
+        "codes": [
+          "E0308"
+        ],
+        "primary_labels": [
+          "expected `OsString`, found `bool`"
+        ]
+      },
+      {
+        "id": "jev_optional_absence",
+        "accepted": false,
+        "expected_found_type": "Option<OsString>",
+        "codes": [
+          "E0308"
+        ],
+        "primary_labels": [
+          "expected `OsString`, found `Option<OsString>`"
+        ]
+      },
+      {
+        "id": "ollama_absent",
+        "accepted": true,
+        "expected_found_type": null,
+        "codes": [],
+        "primary_labels": []
+      },
+      {
+        "id": "ollama_string",
+        "accepted": true,
+        "expected_found_type": null,
+        "codes": [],
+        "primary_labels": []
+      },
+      {
+        "id": "ollama_value_null",
+        "accepted": false,
+        "expected_found_type": "Value",
+        "codes": [
+          "E0308"
+        ],
+        "primary_labels": [
+          "expected `OsString`, found `Value`"
+        ]
+      },
+      {
+        "id": "ollama_value_false",
+        "accepted": false,
+        "expected_found_type": "Value",
+        "codes": [
+          "E0308"
+        ],
+        "primary_labels": [
+          "expected `OsString`, found `Value`"
+        ]
+      },
+      {
+        "id": "ollama_boolean_false",
+        "accepted": false,
+        "expected_found_type": "bool",
+        "codes": [
+          "E0308"
+        ],
+        "primary_labels": [
+          "expected `OsString`, found `bool`"
+        ]
+      },
+      {
+        "id": "ollama_optional_absence",
+        "accepted": false,
+        "expected_found_type": "Option<OsString>",
+        "codes": [
+          "E0308"
+        ],
+        "primary_labels": [
+          "expected `OsString`, found `Option<OsString>`"
+        ]
+      }
+    ],
+    "core_rlib_sha256": "69c40feb326435b9f8f4de2d426f89e9c578e39e5a25b8dcf8d52cca4ede79c5",
+    "focused_strict_clippy_passed": true,
+    "final_fmt_check_passed": true,
+    "first_runtime_compiler_validation_failures": 0,
+    "initial_non_idempotent_formatter_check_retained": true,
+    "no_production_changes": true,
+    "larger_mac_model_trial": "deferred_by_user; no result/inference recorded"
+  },
+  "native_evidence": {
+    "validation.json": {
+      "path": "artifacts/rust-rewrite/onboarding-environment-native-20261014-1/validation.json",
+      "sha256": "6f74f9f8dee55d866ee20ff1464a7070316f05765715aac3f4feaaac7b24cd0a",
+      "bytes": 1423
+    },
+    "source-native-comparison.json": {
+      "path": "artifacts/rust-rewrite/onboarding-environment-native-20261014-1/source-native-comparison.json",
+      "sha256": "fc81080cb7291341c102b5c169f753d6056d9e7bb7fd6acbc14f781202d721e5",
+      "bytes": 5652
+    },
+    "native-raw-admission.json": {
+      "path": "artifacts/rust-rewrite/onboarding-environment-native-20261014-1/native-raw-admission.json",
+      "sha256": "e80127620db76b0e2dbba417587b045d318bdb3b5b02558c3c10b0ebdbab633f",
+      "bytes": 1767
+    },
+    "native-legal-inputs.json": {
+      "path": "artifacts/rust-rewrite/onboarding-environment-native-20261014-1/native-legal-inputs.json",
+      "sha256": "f4a7bb33ac14b42bbf1d3cad6536709a7845b43c5a8ea5afc2f4e769e8d24e2e",
+      "bytes": 1034
+    },
+    "native-compile-controls.json": {
+      "path": "artifacts/rust-rewrite/onboarding-environment-native-20261014-1/native-compile-controls.json",
+      "sha256": "83a78def5a55f010e4346b917e31cbfc67f108d8d5e4e9b73294955bcffb0fce",
+      "bytes": 108051
+    },
+    "focused-tests.log": {
+      "path": "artifacts/rust-rewrite/onboarding-environment-native-20261014-1/focused-tests.log",
+      "sha256": "4cc215255746e1a1a04c7bc23208b15498c994d1aa16e7c0a5c10602a25222f8",
+      "bytes": 1134
+    },
+    "strict-clippy.log": {
+      "path": "artifacts/rust-rewrite/onboarding-environment-native-20261014-1/strict-clippy.log",
+      "sha256": "1b0739374781ffd2c3e0a1506c1a2d2112bc6437fa117396b304b5143912a0d4",
+      "bytes": 682
+    },
+    "formatting-report.json": {
+      "path": "artifacts/rust-rewrite/onboarding-environment-native-20261014-1/formatting-report.json",
+      "sha256": "6a88f1691066b1e1671cfe6ba5c3fd4982388eccd566ace543833e44c87a08b7",
+      "bytes": 847
+    },
+    "initial-fmt-check.log": {
+      "path": "artifacts/rust-rewrite/onboarding-environment-native-20261014-1/initial-fmt-check.log",
+      "sha256": "7dd86f5fd9f324eb2b5a27091a1f656a7658a41db54adcc2db9d4d982d8cbbbc",
+      "bytes": 904
+    },
+    "final-fmt-check.log": {
+      "path": "artifacts/rust-rewrite/onboarding-environment-native-20261014-1/final-fmt-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "tested-source-before-final-fmt.rs": {
+      "path": "artifacts/rust-rewrite/onboarding-environment-native-20261014-1/tested-source-before-final-fmt.rs",
+      "sha256": "46e4ffd788f2473b53139ec3bb914324e092c06eba7231d32cfd9e0f4e531908",
+      "bytes": 10881
+    }
+  },
+  "independent_review": {
+    "path": "artifacts/rust-rewrite/accounting-and-setup-independent-review-20261014.json",
+    "sha256": "5240c0e92c02e74dabfde259b44c41240a548f2aa1adb2dde7af0a6ad8979c9c",
+    "bytes": 1508
+  },
+  "current_cli_35_scenarios": {
+    "date": "2026-10-14",
+    "passed": true,
+    "test": "rust/crates/claude-autorouter/tests/onboarding_local.rs#invalid_stop_cap_admission_matrix_rejects_before_prompts_network_or_persistence",
+    "scenarios": 35,
+    "execution": "Actual native executable matrix within the default-parallel full Rust workspace run; distinct from unavailable historical focused logs.",
+    "source": {
+      "path": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "bytes": 54635,
+      "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1"
+    },
+    "fragment": {
+      "first_line": 729,
+      "last_line": 834,
+      "sha256": "5c995a92228b4ce56e32fcfbe218304957d2e00e16ed726b438adf0db21095d8"
+    },
+    "log": {
+      "path": "artifacts/dev-environment/logs/migration-checkpoint-rust-tests-20261014.log",
+      "bytes": 131371,
+      "sha256": "69d44987934cb7d3732067b022338e798bc079eb95fba9b8780b343d16a5a413"
+    },
+    "scope": "Synthetic isolated fixture homes and loopback-only providers on macOS arm64. No installed archive, real Keychain/provider, other-platform or release qualification."
+  }
+}

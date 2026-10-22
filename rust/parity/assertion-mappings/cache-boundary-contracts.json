@@ -1,0 +1,696 @@
+{
+  "schema_version": 1,
+  "kind": "supplemental_cache_capacity_expiry_ownership_boundaries",
+  "status": "reviewed_focused_source_native_pass",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "scope": "Four original default limits and zero direct embedding options. These are new boundary controls, not a relabeling of original-test assertion coverage.",
+  "source_controls": {
+    "fixtures": 9,
+    "assertions": 24050,
+    "summaries": [
+      {
+        "id": "classifier-default-capacity",
+        "expanded_calls": 2007,
+        "transport_calls": 1003,
+        "final_decision_entries": 1000,
+        "final_continuity": {
+          "records": 0,
+          "attempts": 0,
+          "aliases": 0
+        }
+      },
+      {
+        "id": "classifier-default-ttl",
+        "expanded_calls": 5,
+        "transport_calls": 3,
+        "final_decision_entries": 1,
+        "final_continuity": {
+          "records": 0,
+          "attempts": 0,
+          "aliases": 0
+        }
+      },
+      {
+        "id": "classifier-zero-ttl",
+        "expanded_calls": 2,
+        "transport_calls": 2,
+        "final_decision_entries": 1,
+        "final_continuity": {
+          "records": 0,
+          "attempts": 0,
+          "aliases": 0
+        }
+      },
+      {
+        "id": "classifier-zero-capacity",
+        "expanded_calls": 2,
+        "transport_calls": 2,
+        "final_decision_entries": 0,
+        "final_continuity": {
+          "records": 0,
+          "attempts": 0,
+          "aliases": 0
+        }
+      },
+      {
+        "id": "count-default-capacity",
+        "expanded_calls": 207,
+        "transport_calls": 103
+      },
+      {
+        "id": "count-default-ttl",
+        "expanded_calls": 5,
+        "transport_calls": 3
+      },
+      {
+        "id": "count-zero-ttl",
+        "expanded_calls": 2,
+        "transport_calls": 2
+      },
+      {
+        "id": "count-zero-capacity",
+        "expanded_calls": 2,
+        "transport_calls": 2
+      },
+      {
+        "id": "active-ownership-survives-cache-pressure",
+        "expanded_calls": 1007,
+        "transport_calls": 1006,
+        "final_decision_entries": 1000,
+        "final_continuity": {
+          "records": 4,
+          "attempts": 0,
+          "aliases": 8
+        },
+        "classified_after_expiry": "haiku",
+        "owned_model": "claude-opus-5-5"
+      }
+    ],
+    "raw": {
+      "path": "artifacts/rust-rewrite/cache-boundary-source-20261013-4/raw-observations.json",
+      "sha256": "b747d346573e2350ed4cfe50796d41c9968a2a17d79fe1ebf3908b93ac2f60d4",
+      "bytes": 5849934
+    },
+    "capture": {
+      "path": "artifacts/rust-rewrite/cache-boundary-source-20261013-4/cache-boundary-contracts.capture.json",
+      "sha256": "56cffa6b45599be71f44cbf75219388f0b06123718191800a4a013a8af3f3278",
+      "bytes": 3618
+    },
+    "log": {
+      "path": "artifacts/rust-rewrite/cache-boundary-source-20261013-4.log",
+      "sha256": "25675da1f9f7bf9a832ce64242a7d01ec5e54bb6b634983a788cc7b3e50f1b24",
+      "bytes": 1331
+    },
+    "prior_capture_logs": [
+      {
+        "path": "artifacts/rust-rewrite/cache-boundary-source-20261013-1.log",
+        "sha256": "607b07409c0ec125fb55dc2b30552a2edcaba82f95206471c727756f34607cef",
+        "bytes": 1331
+      },
+      {
+        "path": "artifacts/rust-rewrite/cache-boundary-source-20261013-2.log",
+        "sha256": "2251b89d462e116179ec542ad09eb1aae85562f44fdbd338f71abab428cae2c7",
+        "bytes": 1331
+      },
+      {
+        "path": "artifacts/rust-rewrite/cache-boundary-source-20261013-3.log",
+        "sha256": "c5d748a490127b47853c9c519bffc42b08f2ab7145f21b6e47b9009651704209",
+        "bytes": 1331
+      }
+    ],
+    "note": "Historical private preparatory captures1\u20133 remain immutable. Fresh canonical capture4 reverified all111 baseline files before and after controls and passed all9/24050; its full raw transcript and manifest are bound here."
+  },
+  "sources": {
+    "generator": {
+      "path": "rust/parity/capture-cache-boundary-contracts.mjs",
+      "sha256": "b576b8bb1461bea1e2abdb4b9d5ddb04d7b6f96093f9ca3532c3201e7e52442b",
+      "bytes": 15950
+    },
+    "corpus": {
+      "path": "rust/parity/cases/cache-boundary-contracts.jsonl",
+      "sha256": "0055526eeacc73e787a1a2f78abd0b9555c47c57075054cd60678ed61b8d44e0",
+      "bytes": 8952
+    },
+    "capture": {
+      "path": "rust/parity/cases/cache-boundary-contracts.capture.json",
+      "sha256": "56cffa6b45599be71f44cbf75219388f0b06123718191800a4a013a8af3f3278",
+      "bytes": 3618
+    },
+    "baseline_config": {
+      "path": "artifacts/rust-rewrite/reference/src/config.mjs",
+      "sha256": "66ae50d078c2a3862dc0f6d85e939b08918d842843ed60797eac290a5fe0754e",
+      "bytes": 8055
+    },
+    "baseline_router": {
+      "path": "artifacts/rust-rewrite/reference/src/router.mjs",
+      "sha256": "aebf10268348f00b6c8cdc82ef9ced2d60c8e1cc0ddeee7c3498bcaf100b9d56",
+      "bytes": 27898
+    },
+    "baseline_counter": {
+      "path": "artifacts/rust-rewrite/reference/src/token-counter.mjs",
+      "sha256": "2eb82afbfdd0677135f9e73fbf58692a2e78c7932c500602000b022a0fa3fb73",
+      "bytes": 6113
+    },
+    "baseline_turns": {
+      "path": "artifacts/rust-rewrite/reference/src/turn-state.mjs",
+      "sha256": "c7f5881a2eebcbcf1843de052b0aacb65b772da166fafb96760b6b74445ef3f3",
+      "bytes": 5935
+    },
+    "native_config": {
+      "path": "rust/crates/autorouter-core/src/config.rs",
+      "sha256": "2b0987bf04315f2c505a26a14ecee9a38509f8ce9f68d4438db9b9ce4b9e91be",
+      "bytes": 25747
+    },
+    "native_classifier": {
+      "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+      "sha256": "eecb8b2d02909c0ca5dd347d8eafe7a7918fd7f776150faedc40fd813640269c",
+      "bytes": 39752
+    },
+    "native_counter": {
+      "path": "rust/crates/autorouter-runtime/src/token_counter.rs",
+      "sha256": "f3ae153ed58f3c3f4db51642d5f9d86c94c8cb1c07db14e88009f35d9cb4ae39",
+      "bytes": 44005
+    },
+    "native_router": {
+      "path": "rust/crates/autorouter-runtime/src/router.rs",
+      "sha256": "6705e3bcca2af6141775baf28f0862b8b784edfdf34f836de6e6b2e7dde65852",
+      "bytes": 28678
+    },
+    "native_turns": {
+      "path": "rust/crates/autorouter-core/src/turn_state.rs",
+      "sha256": "167f4f1907bda193015293472611e3b4e7eebabb7b5c9cc75080e4d82ef76978",
+      "bytes": 27407
+    },
+    "native_test": {
+      "path": "rust/crates/autorouter-runtime/tests/cache_boundary_contracts.rs",
+      "sha256": "3b6cbb896898f4d991c78b55db6d77bb2fbb3af29cefacd98a9bc41df783b4ab",
+      "bytes": 19415
+    }
+  },
+  "rows": [
+    {
+      "limit_id": "decision_cache_entries",
+      "default": 1000,
+      "cases": [
+        "classifier-default-capacity",
+        "classifier-zero-capacity"
+      ],
+      "source_enforcement": [
+        {
+          "path": "artifacts/rust-rewrite/reference/src/config.mjs",
+          "file_sha256": "66ae50d078c2a3862dc0f6d85e939b08918d842843ed60797eac290a5fe0754e",
+          "line": 135,
+          "end_line": 137,
+          "fragment": "    cacheEntries: 1000,\n    cacheTtlMs: 5 * 60 * 1000,\n    turnTtlMs: 30 * 60 * 1000,",
+          "fragment_sha256": "731cf955fb6fdcab3773db57ba7db917ebd0280b3ea2c0877468a1d473e92ad5"
+        },
+        {
+          "path": "artifacts/rust-rewrite/reference/src/router.mjs",
+          "file_sha256": "aebf10268348f00b6c8cdc82ef9ced2d60c8e1cc0ddeee7c3498bcaf100b9d56",
+          "line": 109,
+          "end_line": 127,
+          "fragment": "class Cache {\n  constructor(limit, ttl) { this.limit = limit; this.ttl = ttl; this.values = new Map(); }\n  get(key) {\n    const entry = this.values.get(key);\n    if (!entry) return undefined;\n    if (entry.expires <= Date.now()) { this.values.delete(key); return undefined; }\n    this.values.delete(key);\n    this.values.set(key, entry);\n    return entry.value;\n  }\n  set(key, value) {\n    this.values.delete(key);\n    this.values.set(key, { value, expires: Date.now() + this.ttl });\n    while (this.values.size > this.limit) this.values.delete(this.values.keys().next().value);\n  }\n}\n\n// Prompt-cache markers can move from an earlier user message to the latest\n// tool result between requests. They do not identify a different human turn.",
+          "fragment_sha256": "3cfa38f4cc5bf5cf5c369afe949cc57f30908b800bdeadb5767ffd231fbb51cd"
+        },
+        {
+          "path": "artifacts/rust-rewrite/reference/src/router.mjs",
+          "file_sha256": "aebf10268348f00b6c8cdc82ef9ced2d60c8e1cc0ddeee7c3498bcaf100b9d56",
+          "line": 173,
+          "end_line": 174,
+          "fragment": "    this.decisions = new Cache(config.cacheEntries, config.cacheTtlMs);\n    this.turns = new TurnState({ limit: config.turnEntries ?? 1000, idleTtlMs: config.turnTtlMs, now });",
+          "fragment_sha256": "cdc019dffdfdcd1ccd687d0bf00b2dd624dbb55887c6560b6b4dde435d237b94"
+        }
+      ],
+      "native_enforcement": [
+        {
+          "path": "rust/crates/autorouter-core/src/config.rs",
+          "file_sha256": "2b0987bf04315f2c505a26a14ecee9a38509f8ce9f68d4438db9b9ce4b9e91be",
+          "line": 507,
+          "end_line": 509,
+          "fragment": "        cache_entries: 1000,\n        cache_ttl_ms: 5 * 60 * 1000,\n        turn_ttl_ms: 30 * 60 * 1000,",
+          "fragment_sha256": "2abf06e6d7cee5068a6e46a43a4b798f30caaaea254389e4308c0e63937c5ccf"
+        },
+        {
+          "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+          "file_sha256": "eecb8b2d02909c0ca5dd347d8eafe7a7918fd7f776150faedc40fd813640269c",
+          "line": 113,
+          "end_line": 131,
+          "fragment": "    fn cache_set(&mut self, key: Key, value: ClassifierDecision, limit: usize, ttl: Duration) {\n        self.order.retain(|candidate| *candidate != key);\n        self.order.push_back(key);\n        self.cache.insert(\n            key,\n            Cached {\n                value,\n                expires: Instant::now() + ttl,\n            },\n        );\n        while self.cache.len() > limit {\n            if let Some(key) = self.order.pop_front() {\n                self.cache.remove(&key);\n            }\n        }\n    }\n    fn prune_cancelled(&mut self) -> Vec<CancellationToken> {\n        let mut retired = Vec::new();\n        self.pending.retain(|_, pending| {",
+          "fragment_sha256": "71651bbf94efdb2487e5d76e0f18ad68e69559712586c0338f09c091fe2bc6b0"
+        },
+        {
+          "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+          "file_sha256": "eecb8b2d02909c0ca5dd347d8eafe7a7918fd7f776150faedc40fd813640269c",
+          "line": 308,
+          "end_line": 309,
+          "fragment": "                cache_entries: config.cache_entries,\n                cache_ttl: Duration::from_millis(config.cache_ttl_ms),",
+          "fragment_sha256": "5f0631d141522be2fd90aa80a884c004d09d6bb653ba06208917fa514de65682"
+        }
+      ],
+      "native_tests": [
+        "classifier_default_1000_1001_and_touched_lru_eviction",
+        "classifier_default_300000_expiry_and_zero_embedding_options"
+      ],
+      "controls": [
+        "Fill all1000 distinct successful decisions and read every one as a cache hit.",
+        "Touch entry0, insert entry1000, prove entry1 is evicted while2/0/1000 remain cached; reinserting1 then evicts3. This distinguishes refresh-on-hit LRU from FIFO and unbounded storage.",
+        "Direct embedding cache_entries0 causes two identical calls to evaluate twice at one clock instant; source literal cache size is0."
+      ],
+      "status": "reviewed_default_and_zero_boundary_evidence",
+      "native_test_anchors": [
+        {
+          "path": "rust/crates/autorouter-runtime/tests/cache_boundary_contracts.rs",
+          "file_sha256": "3b6cbb896898f4d991c78b55db6d77bb2fbb3af29cefacd98a9bc41df783b4ab",
+          "line": 334,
+          "end_line": 338,
+          "fragment": "async fn classifier_default_1000_1001_and_touched_lru_eviction() {\n    classifier_plan(\"classifier-default-capacity\").await;\n}\n#[tokio::test(start_paused = true)]\nasync fn classifier_default_300000_expiry_and_zero_embedding_options() {",
+          "fragment_sha256": "b90ad2bc4b138bf5c65d6fef633b9c2d502c2ca9499444fd37f3f9291d585a54"
+        },
+        {
+          "path": "rust/crates/autorouter-runtime/tests/cache_boundary_contracts.rs",
+          "file_sha256": "3b6cbb896898f4d991c78b55db6d77bb2fbb3af29cefacd98a9bc41df783b4ab",
+          "line": 338,
+          "end_line": 342,
+          "fragment": "async fn classifier_default_300000_expiry_and_zero_embedding_options() {\n    for id in [\n        \"classifier-default-ttl\",\n        \"classifier-zero-ttl\",\n        \"classifier-zero-capacity\",",
+          "fragment_sha256": "8c88a1ebd77ab2bf26c8606a3459d40b2a5e75cf09a137d066e4fa35c83eb954"
+        }
+      ]
+    },
+    {
+      "limit_id": "decision_cache_ttl_ms",
+      "default": 300000,
+      "cases": [
+        "classifier-default-ttl",
+        "classifier-zero-ttl"
+      ],
+      "source_enforcement": [
+        {
+          "path": "artifacts/rust-rewrite/reference/src/config.mjs",
+          "file_sha256": "66ae50d078c2a3862dc0f6d85e939b08918d842843ed60797eac290a5fe0754e",
+          "line": 136,
+          "end_line": 136,
+          "fragment": "    cacheTtlMs: 5 * 60 * 1000,",
+          "fragment_sha256": "33b7a400bf619996c2ce52a101645773b7102a82a9dcf6876310357938bc949b"
+        },
+        {
+          "path": "artifacts/rust-rewrite/reference/src/router.mjs",
+          "file_sha256": "aebf10268348f00b6c8cdc82ef9ced2d60c8e1cc0ddeee7c3498bcaf100b9d56",
+          "line": 111,
+          "end_line": 124,
+          "fragment": "  get(key) {\n    const entry = this.values.get(key);\n    if (!entry) return undefined;\n    if (entry.expires <= Date.now()) { this.values.delete(key); return undefined; }\n    this.values.delete(key);\n    this.values.set(key, entry);\n    return entry.value;\n  }\n  set(key, value) {\n    this.values.delete(key);\n    this.values.set(key, { value, expires: Date.now() + this.ttl });\n    while (this.values.size > this.limit) this.values.delete(this.values.keys().next().value);\n  }\n}",
+          "fragment_sha256": "056109db67ff3a161fc5301f9010d29b7cb8f69795cb3c133a30ec382b1ed085"
+        }
+      ],
+      "native_enforcement": [
+        {
+          "path": "rust/crates/autorouter-core/src/config.rs",
+          "file_sha256": "2b0987bf04315f2c505a26a14ecee9a38509f8ce9f68d4438db9b9ce4b9e91be",
+          "line": 508,
+          "end_line": 508,
+          "fragment": "        cache_ttl_ms: 5 * 60 * 1000,",
+          "fragment_sha256": "7a00a479118191af60d6f3ad2808ec421d079272d51337309f71ee3f0afc8dc3"
+        },
+        {
+          "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+          "file_sha256": "eecb8b2d02909c0ca5dd347d8eafe7a7918fd7f776150faedc40fd813640269c",
+          "line": 101,
+          "end_line": 117,
+          "fragment": "    fn cache_get(&mut self, key: &Key) -> Option<ClassifierDecision> {\n        let cached = self.cache.remove(key)?;\n        self.order.retain(|candidate| candidate != key);\n        if cached.expires <= Instant::now() {\n            return None;\n        }\n        let mut value = cached.value.clone();\n        value.source = DecisionSource::Cache;\n        self.cache.insert(*key, cached);\n        self.order.push_back(*key);\n        Some(value)\n    }\n    fn cache_set(&mut self, key: Key, value: ClassifierDecision, limit: usize, ttl: Duration) {\n        self.order.retain(|candidate| *candidate != key);\n        self.order.push_back(key);\n        self.cache.insert(\n            key,",
+          "fragment_sha256": "19e4631e26da10ab30dae3c0a110a65baabd69fc17e3d60ebc0746c52ddbc71e"
+        },
+        {
+          "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+          "file_sha256": "eecb8b2d02909c0ca5dd347d8eafe7a7918fd7f776150faedc40fd813640269c",
+          "line": 309,
+          "end_line": 309,
+          "fragment": "                cache_ttl: Duration::from_millis(config.cache_ttl_ms),",
+          "fragment_sha256": "bce9e357cbd75c82a5a8f07f6ba783249c75c3cf6542b18639916e16c67195d5"
+        }
+      ],
+      "native_tests": [
+        "classifier_default_300000_expiry_and_zero_embedding_options"
+      ],
+      "controls": [
+        "Initial successful evaluation at0; cached hit at299999ms does not extend expiry; exact300000ms causes a new evaluation.",
+        "New evaluation at300000ms remains cached at599999ms, expires at600001ms.",
+        "Direct embedding cache_ttl_ms0 produces two fresh evaluations at the same instant; source retains one immediately expired entry until the next lookup, rather than forbidding insertion."
+      ],
+      "status": "reviewed_default_and_zero_boundary_evidence",
+      "native_test_anchors": [
+        {
+          "path": "rust/crates/autorouter-runtime/tests/cache_boundary_contracts.rs",
+          "file_sha256": "3b6cbb896898f4d991c78b55db6d77bb2fbb3af29cefacd98a9bc41df783b4ab",
+          "line": 338,
+          "end_line": 342,
+          "fragment": "async fn classifier_default_300000_expiry_and_zero_embedding_options() {\n    for id in [\n        \"classifier-default-ttl\",\n        \"classifier-zero-ttl\",\n        \"classifier-zero-capacity\",",
+          "fragment_sha256": "8c88a1ebd77ab2bf26c8606a3459d40b2a5e75cf09a137d066e4fa35c83eb954"
+        }
+      ]
+    },
+    {
+      "limit_id": "count_cache_entries",
+      "default": 100,
+      "cases": [
+        "count-default-capacity",
+        "count-zero-capacity"
+      ],
+      "source_enforcement": [
+        {
+          "path": "artifacts/rust-rewrite/reference/src/token-counter.mjs",
+          "file_sha256": "2eb82afbfdd0677135f9e73fbf58692a2e78c7932c500602000b022a0fa3fb73",
+          "line": 76,
+          "end_line": 78,
+          "fragment": "  const cacheEntries = config.tokenCountCacheEntries ?? 100;\n  const cacheTtlMs = config.tokenCountCacheTtlMs ?? 5 * 60 * 1000;\n  const cache = new Map();",
+          "fragment_sha256": "ed2599e14dd62899a1911fd283625f4eb6117f618c862dd24d1ff5a6a751e84a"
+        },
+        {
+          "path": "artifacts/rust-rewrite/reference/src/token-counter.mjs",
+          "file_sha256": "2eb82afbfdd0677135f9e73fbf58692a2e78c7932c500602000b022a0fa3fb73",
+          "line": 100,
+          "end_line": 104,
+          "fragment": "      const cached = cache.get(key);\n      if (cached) {\n        cache.delete(key);\n        if (cached.expires > Date.now()) { cache.set(key, cached); return cached.count; }\n      }",
+          "fragment_sha256": "5449f28a148e10337109ba09989edb3397aebaa3cd92d7420049c3c93baaf3b7"
+        },
+        {
+          "path": "artifacts/rust-rewrite/reference/src/token-counter.mjs",
+          "file_sha256": "2eb82afbfdd0677135f9e73fbf58692a2e78c7932c500602000b022a0fa3fb73",
+          "line": 118,
+          "end_line": 120,
+          "fragment": "          cache.set(key, { count, expires: Date.now() + cacheTtlMs });\n          while (cache.size > cacheEntries) cache.delete(cache.keys().next().value);\n          return count;",
+          "fragment_sha256": "54fa4ba44107698e1cdd163a0626a38000b592aa74e05f71280453a5713cacda"
+        }
+      ],
+      "native_enforcement": [
+        {
+          "path": "rust/crates/autorouter-runtime/src/token_counter.rs",
+          "file_sha256": "f3ae153ed58f3c3f4db51642d5f9d86c94c8cb1c07db14e88009f35d9cb4ae39",
+          "line": 225,
+          "end_line": 233,
+          "fragment": "impl Default for CacheOptions {\n    fn default() -> Self {\n        Self {\n            entries: 100,\n            ttl: Duration::from_secs(300),\n        }\n    }\n}\nstruct Entry {",
+          "fragment_sha256": "cf00db0b382bca71d2db3db18d3104dbcd61166a38a67010fcb02bdd23255de8"
+        },
+        {
+          "path": "rust/crates/autorouter-runtime/src/token_counter.rs",
+          "file_sha256": "f3ae153ed58f3c3f4db51642d5f9d86c94c8cb1c07db14e88009f35d9cb4ae39",
+          "line": 254,
+          "end_line": 272,
+          "fragment": "    fn insert(&mut self, key: [u8; 32], count: u64, options: CacheOptions) {\n        self.order.retain(|candidate| *candidate != key);\n        self.values.insert(\n            key,\n            Entry {\n                count,\n                expires: Instant::now() + options.ttl,\n            },\n        );\n        self.order.push_back(key);\n        while self.values.len() > options.entries {\n            if let Some(key) = self.order.pop_front() {\n                self.values.remove(&key);\n            }\n        }\n    }\n}\n\npub struct TokenCounter<T> {",
+          "fragment_sha256": "58355e7f8da773e5d34d714e160fa0d7a98a7bad4b693820f0fe57a41a314bb6"
+        },
+        {
+          "path": "rust/crates/autorouter-runtime/src/token_counter.rs",
+          "file_sha256": "f3ae153ed58f3c3f4db51642d5f9d86c94c8cb1c07db14e88009f35d9cb4ae39",
+          "line": 284,
+          "end_line": 295,
+          "fragment": "    pub fn with_cache(transport: Arc<T>, config: &RouterConfig, options: CacheOptions) -> Self {\n        Self {\n            transport,\n            upstream: config.upstream.clone(),\n            auto_mode: config.client_profile == ClientProfile::Auto,\n            timeout: Duration::from_millis(config.token_count_timeout_ms),\n            options,\n            cache: Mutex::new(Cache::default()),\n        }\n    }\n    pub async fn count(\n        &self,",
+          "fragment_sha256": "3905b713410e518abc642456bf40b75f326ebe7ad4304595a58cf37063bd3b79"
+        }
+      ],
+      "native_tests": [
+        "count_default_100_101_and_touched_lru_eviction",
+        "count_default_300000_expiry_and_zero_embedding_options"
+      ],
+      "controls": [
+        "Populate100 distinct requests, read all100 original retained counts with no extra HTTP, touch0, insert100.",
+        "Entry1 must call HTTP again,2/0/100 must retain old counts; reinserting1 evicts3. Synthetic returned counts equal actual wire-call ordinal, making unintended misses visible.",
+        "Direct native CacheOptions.entries0 and source tokenCountCacheEntries0 return fresh counts1 then2 for identical requests at one instant."
+      ],
+      "status": "reviewed_default_and_zero_boundary_evidence",
+      "native_test_anchors": [
+        {
+          "path": "rust/crates/autorouter-runtime/tests/cache_boundary_contracts.rs",
+          "file_sha256": "3b6cbb896898f4d991c78b55db6d77bb2fbb3af29cefacd98a9bc41df783b4ab",
+          "line": 348,
+          "end_line": 352,
+          "fragment": "async fn count_default_100_101_and_touched_lru_eviction() {\n    count_plan(\"count-default-capacity\").await;\n}\n#[tokio::test(start_paused = true)]\nasync fn count_default_300000_expiry_and_zero_embedding_options() {",
+          "fragment_sha256": "81c078b4206cb7d627f8a6141af69cb9667e1284121c7b3d407cf11cab5f0e03"
+        },
+        {
+          "path": "rust/crates/autorouter-runtime/tests/cache_boundary_contracts.rs",
+          "file_sha256": "3b6cbb896898f4d991c78b55db6d77bb2fbb3af29cefacd98a9bc41df783b4ab",
+          "line": 352,
+          "end_line": 356,
+          "fragment": "async fn count_default_300000_expiry_and_zero_embedding_options() {\n    for id in [\"count-default-ttl\", \"count-zero-ttl\", \"count-zero-capacity\"] {\n        count_plan(id).await;\n    }\n}",
+          "fragment_sha256": "389151e475a2c8c42784d7ff4dbbf489b224bccaae70bd5560a79e5e4117d14b"
+        }
+      ]
+    },
+    {
+      "limit_id": "count_cache_ttl_ms",
+      "default": 300000,
+      "cases": [
+        "count-default-ttl",
+        "count-zero-ttl"
+      ],
+      "source_enforcement": [
+        {
+          "path": "artifacts/rust-rewrite/reference/src/token-counter.mjs",
+          "file_sha256": "2eb82afbfdd0677135f9e73fbf58692a2e78c7932c500602000b022a0fa3fb73",
+          "line": 77,
+          "end_line": 77,
+          "fragment": "  const cacheTtlMs = config.tokenCountCacheTtlMs ?? 5 * 60 * 1000;",
+          "fragment_sha256": "61b253da7a7238b5b10de7a894116850756c3a1d4a232b0f3b9216e6dbe1c1d5"
+        },
+        {
+          "path": "artifacts/rust-rewrite/reference/src/token-counter.mjs",
+          "file_sha256": "2eb82afbfdd0677135f9e73fbf58692a2e78c7932c500602000b022a0fa3fb73",
+          "line": 100,
+          "end_line": 104,
+          "fragment": "      const cached = cache.get(key);\n      if (cached) {\n        cache.delete(key);\n        if (cached.expires > Date.now()) { cache.set(key, cached); return cached.count; }\n      }",
+          "fragment_sha256": "5449f28a148e10337109ba09989edb3397aebaa3cd92d7420049c3c93baaf3b7"
+        },
+        {
+          "path": "artifacts/rust-rewrite/reference/src/token-counter.mjs",
+          "file_sha256": "2eb82afbfdd0677135f9e73fbf58692a2e78c7932c500602000b022a0fa3fb73",
+          "line": 118,
+          "end_line": 120,
+          "fragment": "          cache.set(key, { count, expires: Date.now() + cacheTtlMs });\n          while (cache.size > cacheEntries) cache.delete(cache.keys().next().value);\n          return count;",
+          "fragment_sha256": "54fa4ba44107698e1cdd163a0626a38000b592aa74e05f71280453a5713cacda"
+        }
+      ],
+      "native_enforcement": [
+        {
+          "path": "rust/crates/autorouter-runtime/src/token_counter.rs",
+          "file_sha256": "f3ae153ed58f3c3f4db51642d5f9d86c94c8cb1c07db14e88009f35d9cb4ae39",
+          "line": 225,
+          "end_line": 233,
+          "fragment": "impl Default for CacheOptions {\n    fn default() -> Self {\n        Self {\n            entries: 100,\n            ttl: Duration::from_secs(300),\n        }\n    }\n}\nstruct Entry {",
+          "fragment_sha256": "cf00db0b382bca71d2db3db18d3104dbcd61166a38a67010fcb02bdd23255de8"
+        },
+        {
+          "path": "rust/crates/autorouter-runtime/src/token_counter.rs",
+          "file_sha256": "f3ae153ed58f3c3f4db51642d5f9d86c94c8cb1c07db14e88009f35d9cb4ae39",
+          "line": 243,
+          "end_line": 255,
+          "fragment": "    fn get(&mut self, key: &[u8; 32]) -> Option<u64> {\n        let entry = self.values.remove(key)?;\n        self.order.retain(|candidate| candidate != key);\n        if entry.expires <= Instant::now() {\n            return None;\n        }\n        let count = entry.count;\n        self.values.insert(*key, entry);\n        self.order.push_back(*key);\n        Some(count)\n    }\n    fn insert(&mut self, key: [u8; 32], count: u64, options: CacheOptions) {\n        self.order.retain(|candidate| *candidate != key);",
+          "fragment_sha256": "226231081fdab46fa46a0f872377474d1dfe2def0b24bdc38acab6a714c00a42"
+        },
+        {
+          "path": "rust/crates/autorouter-runtime/src/token_counter.rs",
+          "file_sha256": "f3ae153ed58f3c3f4db51642d5f9d86c94c8cb1c07db14e88009f35d9cb4ae39",
+          "line": 254,
+          "end_line": 267,
+          "fragment": "    fn insert(&mut self, key: [u8; 32], count: u64, options: CacheOptions) {\n        self.order.retain(|candidate| *candidate != key);\n        self.values.insert(\n            key,\n            Entry {\n                count,\n                expires: Instant::now() + options.ttl,\n            },\n        );\n        self.order.push_back(key);\n        while self.values.len() > options.entries {\n            if let Some(key) = self.order.pop_front() {\n                self.values.remove(&key);\n            }",
+          "fragment_sha256": "a60f4f46ec46f766a32fb23543322e5c060dbc51e416635ebfa810c68920009f"
+        }
+      ],
+      "native_tests": [
+        "count_default_300000_expiry_and_zero_embedding_options"
+      ],
+      "controls": [
+        "Default TokenCounter::new uses actual100/300000 defaults. CacheOptions overrides are used only for the separately declared zero embedding cases.",
+        "Count1 at0 is retained at299999ms; expiry equality300000ms returns fresh count2; hit599999ms retains2, just-after600001ms returns3.",
+        "ZeroTTL returns counts1 then2 at one instant. Cancellation/deadlines/response byte bounds remain enabled; no transport timer disabling is introduced."
+      ],
+      "status": "reviewed_default_and_zero_boundary_evidence",
+      "native_test_anchors": [
+        {
+          "path": "rust/crates/autorouter-runtime/tests/cache_boundary_contracts.rs",
+          "file_sha256": "3b6cbb896898f4d991c78b55db6d77bb2fbb3af29cefacd98a9bc41df783b4ab",
+          "line": 352,
+          "end_line": 356,
+          "fragment": "async fn count_default_300000_expiry_and_zero_embedding_options() {\n    for id in [\"count-default-ttl\", \"count-zero-ttl\", \"count-zero-capacity\"] {\n        count_plan(id).await;\n    }\n}",
+          "fragment_sha256": "389151e475a2c8c42784d7ff4dbbf489b224bccaae70bd5560a79e5e4117d14b"
+        }
+      ]
+    }
+  ],
+  "continuity_supplement": {
+    "case": "active-ownership-survives-cache-pressure",
+    "native_test": "cache_eviction_and_expiry_preserve_confirmed_active_tasks_and_tool_ownership",
+    "source_public_calls": 1007,
+    "source_evaluator_calls": 1006,
+    "conditions": [
+      "Separate active-tool-scope and active-human-scope retain independent confirmed Opus tasks; filler tasks use filler-scope.",
+      "1001 new filler prompts route to Haiku and complete successfully. Source literal cache reaches1000; turn idleTTL0 retires older inactive filler records without evicting the confirmed tool owner or separate latest human task.",
+      "After300001ms cache expiry, actual classifier returns Haiku but confirmed tool continuation still chooses Opus; same active human prompt remains Opus. Both failed completion callbacks return false and retire attempts without overwriting confirmed ownership.",
+      "A new human ID in active-human-scope chooses Haiku. Another actual cached continuation for owned-tool still chooses Opus, proving ownership after that switch. Superseded human tasks are not asserted active.",
+      "Every authoritative body, route decision, actual completion argument/acceptance and numerical continuity snapshot is retained; all attempts are0 before shutdown."
+    ],
+    "source_anchors": [
+      {
+        "path": "artifacts/rust-rewrite/reference/src/turn-state.mjs",
+        "file_sha256": "c7f5881a2eebcbcf1843de052b0aacb65b772da166fafb96760b6b74445ef3f3",
+        "line": 18,
+        "end_line": 29,
+        "fragment": "  get(key) {\n    const record = this.aliases.get(key);\n    if (!record) return undefined;\n    if (!record.active && !record.pending && record.expires <= this.now()) {\n      this.remove(record);\n      return undefined;\n    }\n    if (this.ambiguous(key)) return undefined;\n    return record.pin;\n  }\n\n  ambiguous(key) {",
+        "fragment_sha256": "babd704930ca6ceaefe284c6161c2eaf1433215f7d9a7c8c9d900650a64af982"
+      },
+      {
+        "path": "artifacts/rust-rewrite/reference/src/turn-state.mjs",
+        "file_sha256": "c7f5881a2eebcbcf1843de052b0aacb65b772da166fafb96760b6b74445ef3f3",
+        "line": 35,
+        "end_line": 41,
+        "fragment": "  toolOwner(scope, ids) {\n    if (!ids.length) return undefined;\n    const matches = [...this.records].filter(record => record.scope === scope && record.pin?.confirmed\n      && ids.every(id => record.pin.toolModels?.some(tool => tool.id === id)));\n    return matches.length === 1 ? { key: matches[0].keys[0], pin: matches[0].pin }\n      : matches.length > 1 ? { ambiguous: true } : undefined;\n  }",
+        "fragment_sha256": "e72db1b7793d9c178192221fcb41b0e6b8873ffc4f9d1abc87a080cde21ea1d6"
+      },
+      {
+        "path": "artifacts/rust-rewrite/reference/src/turn-state.mjs",
+        "file_sha256": "c7f5881a2eebcbcf1843de052b0aacb65b772da166fafb96760b6b74445ef3f3",
+        "line": 89,
+        "end_line": 110,
+        "fragment": "  commit(record, pin, sequence) {\n    if (sequence !== record.sequence) return;\n    record.pin = pin;\n    for (const key of record.keys) {\n      const current = this.aliases.get(key);\n      if (!current || !current.pin || current === record || record.createdSequence >= current.createdSequence) this.aliases.set(key, record);\n    }\n    // Task age, not the order of later tool requests, determines retirement.\n    record.active = Boolean(pin.toolModels?.length) || ![...this.records].some(other =>\n      other !== record && other.scope === record.scope && other.pin && other.createdSequence > record.createdSequence);\n    if (!record.active) record.expires = this.now() + this.idleTtlMs;\n    for (const old of this.records) {\n      if (old !== record && old.scope === record.scope && old.createdSequence < record.createdSequence && !old.pending && !old.pin?.toolModels?.length) {\n        old.active = false;\n        old.expires = this.now() + this.idleTtlMs;\n      }\n    }\n  }\n\n  complete(requestId, evidence) {\n    const attempt = this.attempts.get(requestId);\n    if (!attempt) return false;",
+        "fragment_sha256": "4bf0c96ec90eeedbf8b6b679335935c0d3530c7bf261857208488e1f18af738e"
+      }
+    ],
+    "native_anchors": [
+      {
+        "path": "rust/crates/autorouter-runtime/src/router.rs",
+        "file_sha256": "6705e3bcca2af6141775baf28f0862b8b784edfdf34f836de6e6b2e7dde65852",
+        "line": 82,
+        "end_line": 91,
+        "fragment": "    pub fn continuity_snapshot(&self) -> ContinuitySnapshot {\n        let policy = self.policy.lock().unwrap();\n        ContinuitySnapshot {\n            records: policy.turns.record_count(),\n            attempts: policy.turns.attempt_count(),\n            aliases: policy.turns.alias_count(),\n        }\n    }\n    pub fn new(transport: Arc<T>, config: RouterConfig) -> Self {\n        Self::with_clock(",
+        "fragment_sha256": "88dd1d825de1fee4f805f30f80c45923264e1119f198755e23c493214f5c0025"
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/src/router.rs",
+        "file_sha256": "6705e3bcca2af6141775baf28f0862b8b784edfdf34f836de6e6b2e7dde65852",
+        "line": 146,
+        "end_line": 153,
+        "fragment": "    pub fn complete(&self, request_id: &str, evidence: &Value) -> bool {\n        self.policy\n            .lock()\n            .unwrap()\n            .complete(request_id, evidence, (self.now)())\n    }\n    pub fn complete_exact(\n        &self,",
+        "fragment_sha256": "e768d7ed2a4a6dcef26f0a6eb2d2e304d54c059a49e992d03fc90399e1f75867"
+      }
+    ],
+    "native_test_anchor": {
+      "path": "rust/crates/autorouter-runtime/tests/cache_boundary_contracts.rs",
+      "file_sha256": "3b6cbb896898f4d991c78b55db6d77bb2fbb3af29cefacd98a9bc41df783b4ab",
+      "line": 417,
+      "end_line": 428,
+      "fragment": "async fn cache_eviction_and_expiry_preserve_confirmed_active_tasks_and_tool_ownership() {\n    let (plan, exact) = case(\"active-ownership-survives-cache-pressure\");\n    let mut config = configuration(&plan);\n    config.turn_ttl_ms = plan[\"turn_ttl_ms\"].as_u64().unwrap();\n    let opus = config.models.opus.clone();\n    let haiku = config.models.haiku.clone();\n    let clock = Arc::new(AtomicU64::new(ORIGIN));\n    let now = clock.clone();\n    let wire = Arc::new(Wire::new(Kind::Continuity, clock.clone()));\n    let router = Router::with_clock(\n        wire.clone(),\n        config,",
+      "fragment_sha256": "494622b761ede3f46e1d061772d56f2002015b53934ffd4800baa20178bc5893"
+    }
+  },
+  "comparison_contract": [
+    "Source and native full mock evaluator/count wire URL/method/header/body/response strings must compare exactly for every call in order; compact programs only compress repeated schedule description, not evidence.",
+    "Source and native public API input bodies, all returned classifier/count facts and actual call counts must compare exactly. Route-only measured nonnegative finite latency fields have no cross-engine equality oracle and must remain raw in both artifacts; only comparisons may omit these named timing keys.",
+    "Capacity eviction victims and before/equality/after TTL assertions are predeclared in the corpus before native compilation. No tuned/relabelled cases or live model claims."
+  ],
+  "native_api_differences": [
+    {
+      "boundary": "classifier public API split",
+      "source": "Router.classify uses Date.now for decision cache and owns a separate unused TurnState; source records literal cache counts and empty continuity.",
+      "native": "Standalone Classifier caches privately and has no TurnState. All resident hits and known-LRU victim/call counts provide observable native cache semantics, without fabricating source storage snapshots. Actual Router continuity tests separately record real numeric state."
+    },
+    {
+      "boundary": "token count cache override",
+      "source": "Direct closure configuration accepts tokenCountCacheEntries/tokenCountCacheTtlMs properties not exposed as CLI environment settings.",
+      "native": "TokenCounter::with_cache takes CacheOptions{entries:usize,ttl:Duration}; new uses100/300000 defaults. Zero native typed options correspond exactly to zero source embedding properties, not newly added user configuration."
+    },
+    {
+      "boundary": "clocks",
+      "source": "One isolated capture process replaces Date.now; Router.now is separately injected for human-task continuity. Cache absolute origin1000000ms.",
+      "native": "Paused Tokio Instant drives classifier/count expiry; separate exact u64 wall clock drives Router continuity. All tested clock values are finite nonnegative safe integers. Each operation asserts no implicit Tokio time advance. Arbitrary JS malformed/fractional/negative or huge Duration domains are not qualified by this slice."
+    }
+  ],
+  "remaining": [
+    "Full workspace/default-parallel/remote CI and source archive gate qualification remain root-owned; do not mark shared coverage merely from this mapping.",
+    "Private native cache storage counts are not exposed and are not fabricated; source literal counts and native exact observable hit/miss/eviction/expiry semantics remain distinct evidence.",
+    "Extreme unchecked Instant+Duration addition remains outside the safe default/zero cases; no overflow qualification or production change is claimed."
+  ],
+  "native_evidence": {
+    "comparison": {
+      "path": "artifacts/rust-rewrite/cache-boundary-comparison-20261013.json",
+      "sha256": "f20eefc5fe35eefe9679bec1897141423314a208b7e48acbe13e2544f2453d0e",
+      "bytes": 312523
+    },
+    "checks": {
+      "focused_native": {
+        "path": "artifacts/rust-rewrite/cache-boundary-native-20261013-1.log",
+        "sha256": "780e3a37d30c27313cd93f588de0059c2f6f0e23039e9af61ffc167a6b3f5827",
+        "bytes": 1222
+      },
+      "strict_focused_clippy": {
+        "path": "artifacts/rust-rewrite/cache-boundary-clippy-20261013-1.log",
+        "sha256": "3fefe5e42c7ca0bbf34b302077fb9ceb0ace02c400dabbf376feb9db06093d6e",
+        "bytes": 670
+      },
+      "fresh_source": {
+        "path": "artifacts/rust-rewrite/cache-boundary-source-20261013-4.log",
+        "sha256": "25675da1f9f7bf9a832ce64242a7d01ec5e54bb6b634983a788cc7b3e50f1b24",
+        "bytes": 1331
+      }
+    },
+    "native_tests_passed": 5,
+    "fixtures_passed": 9,
+    "totals": {
+      "expanded_public_calls": 3239,
+      "full_wire_calls": 2126,
+      "ordered_steps_including_advances": 3248,
+      "advance_steps": 9,
+      "actual_route_completion_calls": 1007
+    },
+    "every_record_compared": true,
+    "native_raw_artifacts": [
+      {
+        "path": "artifacts/rust-rewrite/cache-boundary-native-20261013-1/native-active-ownership-survives-cache-pressure.json",
+        "sha256": "90c7750e88f2524aa3d07bd756f29dce3ad7f414697d39a556039a9fa17a5adc",
+        "bytes": 2515474
+      },
+      {
+        "path": "artifacts/rust-rewrite/cache-boundary-native-20261013-1/native-classifier-default-capacity.json",
+        "sha256": "de3a340592c19490451584cc28b98b563a6b845bbedcabab98170886e25ac261",
+        "bytes": 2669894
+      },
+      {
+        "path": "artifacts/rust-rewrite/cache-boundary-native-20261013-1/native-classifier-default-ttl.json",
+        "sha256": "5859163c4aadaec6a520081ff60fdd77294b1c0c7564a1ba0ec472f44468032a",
+        "bytes": 8139
+      },
+      {
+        "path": "artifacts/rust-rewrite/cache-boundary-native-20261013-1/native-classifier-zero-capacity.json",
+        "sha256": "7acfe16985fcbb422e5fb69faabbee69b326fb19172e2de55481d0f0f8df4550",
+        "bytes": 4543
+      },
+      {
+        "path": "artifacts/rust-rewrite/cache-boundary-native-20261013-1/native-classifier-zero-ttl.json",
+        "sha256": "3e1d6f676ae844d979b4c24beaffc7a61818e644c211de4667cd9ae4a57459ef",
+        "bytes": 4538
+      },
+      {
+        "path": "artifacts/rust-rewrite/cache-boundary-native-20261013-1/native-count-default-capacity.json",
+        "sha256": "fa7c87efba791cf5beacfa635a5f2b56930c04f56a9feeb78cdae92d5f8e2427",
+        "bytes": 148495
+      },
+      {
+        "path": "artifacts/rust-rewrite/cache-boundary-native-20261013-1/native-count-default-ttl.json",
+        "sha256": "68ce1ba81ae7a63ef214316f1e763d8e5132bf96593a7c98b1618d16738a69e7",
+        "bytes": 4492
+      },
+      {
+        "path": "artifacts/rust-rewrite/cache-boundary-native-20261013-1/native-count-zero-capacity.json",
+        "sha256": "01422025ff0bca4cbdfe3b9a755ad317fa7e0c27efea549374928aa4d174732d",
+        "bytes": 2273
+      },
+      {
+        "path": "artifacts/rust-rewrite/cache-boundary-native-20261013-1/native-count-zero-ttl.json",
+        "sha256": "0155ff9df445b79410a5b3e278c913563f1ef645cfa6aee0e464b7b41347a215",
+        "bytes": 2268
+      }
+    ]
+  },
+  "independent_review": {
+    "path": "artifacts/rust-rewrite/cache-boundary-independent-review-20261013.json",
+    "sha256": "15eab192e9c3586b51fc644fda8d319fc51f813ccae4aba5658f4dc875a7c366",
+    "bytes": 983
+  }
+}

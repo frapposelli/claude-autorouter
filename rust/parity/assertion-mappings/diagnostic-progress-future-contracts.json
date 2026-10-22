@@ -1,0 +1,372 @@
+{
+  "schema_version": 1,
+  "kind": "diagnostic_progress_future_per_assertion_migration",
+  "status": "reviewed_exact_assertion_mapping_under_explicit_native_api_migration",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "original_definition": {
+    "id": "test/local-diagnostic.test.mjs#14",
+    "number": 14,
+    "name": "progress callback throws or rejected promises cannot prevent diagnostic completion",
+    "selected": true,
+    "statement": "test('progress callback throws or rejected promises cannot prevent diagnostic completion', async () => {\n  const config = configFor();\n  for (const onProgress of [() => { throw new Error('unavailable'); }, async () => { throw new Error('unavailable'); }]) {\n    const report = await runLocalDiagnostic(config, { fetchImpl: fixture(config).fetchImpl, onProgress });\n    assert.equal(report.passed, true);\n  }\n});",
+    "statement_sha256": "3955e3bb617efd48905f00589f54e9e33dd0fdcb189bcb080f5efbf5c7b0046b",
+    "call_sha256": "9a280dad8abb33024f9c948623cf77a6bac39f623b14512e868a66b9aa6b4884",
+    "source_line": 243,
+    "assertions": [
+      {
+        "id": "test/local-diagnostic.test.mjs#14:assert-1",
+        "line": 247,
+        "expression": "assert.equal(report.passed, true)",
+        "sha256": "30095a40b0e4d8fd8ba33255448fc341c72ff18f8ed9205db71fb17401fb56a1",
+        "expanded_executions": 2
+      }
+    ]
+  },
+  "previous_coverage_row": {
+    "id": "test/local-diagnostic.test.mjs#14",
+    "file": "test/local-diagnostic.test.mjs",
+    "name": "progress callback throws or rejected promises cannot prevent diagnostic completion",
+    "parameterized": false,
+    "status": "partial_assertion_mapping",
+    "rust_tests": [
+      "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#original_progress_callback_panic_cannot_prevent_complete_diagnostic",
+      "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#original_rejected_progress_promise_migrates_to_synchronous_result_error",
+      "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#callback_panic_containment_covers_each_original_progress_site_and_repeats"
+    ],
+    "shared_cases": [
+      "operation-9",
+      "operation-10"
+    ],
+    "evidence": {
+      "assertion_mapping": "rust/parity/assertion-mappings/local-diagnostic-boundary-contracts.json",
+      "assertion_mapping_sha256": "226ebadf69dc58c5fde1f4f3acd1fb544ec31703aef45132db6517bf81b1ec13",
+      "independent_review": {
+        "path": "artifacts/rust-rewrite/evidence/b003b009a8b6f6092569224bfd056e654f5ed9dc5ca8f1d44dbbb3f50c3262c4.json",
+        "sha256": "b003b009a8b6f6092569224bfd056e654f5ed9dc5ca8f1d44dbbb3f50c3262c4",
+        "bytes": 10456,
+        "original_path": "/private/tmp/autorouter-local-diagnostic-boundary-independent-review.json"
+      },
+      "scope": "Reviewed partial correspondence only; explicit API boundaries remain."
+    },
+    "related_components": [
+      "evaluators",
+      "native_cli_package"
+    ],
+    "remaining_assertions": [
+      "The source assertion executes for both a throwing callback and a rejected async Promise. Native ordinary unwind containment covers the first; synchronous Result Err is separate migration evidence and does not qualify async Promise rejection."
+    ],
+    "assertion_mapping": "rust/parity/assertion-mappings/local-diagnostic-boundary-contracts.json"
+  },
+  "previous_mapping_definition": {
+    "id": "test/local-diagnostic.test.mjs#14",
+    "statement_sha256": "3955e3bb617efd48905f00589f54e9e33dd0fdcb189bcb080f5efbf5c7b0046b",
+    "assertions": [
+      {
+        "id": "test/local-diagnostic.test.mjs#14:assert-1",
+        "line": 247,
+        "expression": "assert.equal(report.passed, true)",
+        "sha256": "30095a40b0e4d8fd8ba33255448fc341c72ff18f8ed9205db71fb17401fb56a1",
+        "source_executions": 2,
+        "api_boundaries": [
+          "First source callback is represented by an ordinary unwinding panic, with caller hook still executing. Second source async Promise rejection is not represented; synchronous Result Err is separate API migration evidence."
+        ],
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#original_progress_callback_panic_cannot_prevent_complete_diagnostic",
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#original_rejected_progress_promise_migrates_to_synchronous_result_error",
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#callback_panic_containment_covers_each_original_progress_site_and_repeats"
+        ],
+        "status": "partial_explicit_api_boundary"
+      }
+    ],
+    "status": "partial_assertion_mapping",
+    "rust_tests": [
+      "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#original_progress_callback_panic_cannot_prevent_complete_diagnostic",
+      "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#original_rejected_progress_promise_migrates_to_synchronous_result_error",
+      "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#callback_panic_containment_covers_each_original_progress_site_and_repeats"
+    ],
+    "shared_cases": [
+      "operation-9",
+      "operation-10"
+    ],
+    "remaining_assertions": [
+      "The source assertion executes for both a throwing callback and a rejected async Promise. Native ordinary unwind containment covers the first; synchronous Result Err is separate migration evidence and does not qualify async Promise rejection."
+    ]
+  },
+  "source_executions": 2,
+  "source_assertion_site_count": 1,
+  "source_callback_variants": [
+    {
+      "operation": "operation-9",
+      "callback_source": "() => { throw new Error('unavailable'); }",
+      "passed": true,
+      "progress_events": 15,
+      "requests": 24
+    },
+    {
+      "operation": "operation-10",
+      "callback_source": "async () => { throw new Error('unavailable'); }",
+      "passed": true,
+      "progress_events": 15,
+      "requests": 24
+    }
+  ],
+  "per_assertion": [
+    {
+      "id": "test/local-diagnostic.test.mjs#14:assert-1",
+      "expression": "assert.equal(report.passed, true)",
+      "assertion_sha256": "30095a40b0e4d8fd8ba33255448fc341c72ff18f8ed9205db71fb17401fb56a1",
+      "source_executions": 2,
+      "proposed_status": "covered_under_explicit_native_api_migration",
+      "synchronous_throw": "Actual callback_case ordinary unwinding panic runs inside run_local_diagnostic_with_progress, preserving passed=true/complete report and request/body release; dedicated pass plus per-progress-site repetition pass retained.",
+      "async_rejection": "Actual public ObserverTasks record_sink factory returns RejectedProgress; only Future::poll yields Err(ObserverRejected). External15polls/15drops/15rejections, zero completed/panic/cancel/timeout counters, no pending or charged bytes and joined worker prove real owned rejection; reportpassedtrue and exact24request/request-drop/body-drop/fullprogress/report fixtures remain.",
+      "not_async_evidence": "The retained synchronous Result Err test is separate historical API evidence; it is not the basis for the new async promotion.",
+      "migration_boundary": "Original exact predicate concerns diagnostic completion, not Promise identity, Error identity, rejection reason payload or precise microtask ordering. Rust uses ordinary unwind and explicit owned Send+static Future adapter composition. Source ordinary-Error mechanism and Rust panic/typed rejection are different APIs; root acceptance is required."
+    }
+  ],
+  "native_anchors": [
+    {
+      "file": "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs",
+      "function": "callback_case",
+      "line": 137,
+      "fragment": {
+        "path": "artifacts/rust-rewrite/diagnostic-progress-migration-20261014-1/native-fragments/callback_case.rs",
+        "bytes": 2572,
+        "sha256": "d68c4fa3bb518e0e29c69f03bdf3104b52b38dd20c098c3504da99795a6304e0"
+      },
+      "exact_pass_line": null,
+      "helper_executed_by_named_tests": true
+    },
+    {
+      "file": "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs",
+      "function": "original_progress_callback_panic_cannot_prevent_complete_diagnostic",
+      "line": 200,
+      "fragment": {
+        "path": "artifacts/rust-rewrite/diagnostic-progress-migration-20261014-1/native-fragments/original_progress_callback_panic_cannot_prevent_complete_diagnostic.rs",
+        "bytes": 124,
+        "sha256": "720a8830e78aed31c306eff03c0ff6135c01a44fa4f2bfb813b67a1aa5e18386"
+      },
+      "exact_pass_line": "test original_progress_callback_panic_cannot_prevent_complete_diagnostic ... ok",
+      "helper_executed_by_named_tests": false
+    },
+    {
+      "file": "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs",
+      "function": "callback_panic_containment_covers_each_original_progress_site_and_repeats",
+      "line": 208,
+      "fragment": {
+        "path": "artifacts/rust-rewrite/diagnostic-progress-migration-20261014-1/native-fragments/callback_panic_containment_covers_each_original_progress_site_and_repeats.rs",
+        "bytes": 280,
+        "sha256": "54427e070d60d98a7c1a1b7bb10ec4d5ff54a9e87c7c48bc35efb11816d84ab3"
+      },
+      "exact_pass_line": "test callback_panic_containment_covers_each_original_progress_site_and_repeats ... ok",
+      "helper_executed_by_named_tests": false
+    },
+    {
+      "file": "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs",
+      "function": "original_rejected_progress_future_is_owned_polled_and_cannot_fail_diagnostic",
+      "line": 221,
+      "fragment": {
+        "path": "artifacts/rust-rewrite/diagnostic-progress-migration-20261014-1/native-fragments/original_rejected_progress_future_is_owned_polled_and_cannot_fail_diagnostic.rs",
+        "bytes": 3767,
+        "sha256": "3e62059927a2507204fd6f31628fd426247ce6f382022f17fa81726c293af7f3"
+      },
+      "exact_pass_line": "test original_rejected_progress_future_is_owned_polled_and_cannot_fail_diagnostic ... ok",
+      "helper_executed_by_named_tests": false
+    }
+  ],
+  "focused_execution": {
+    "command": [
+      "/Users/fabio.rapposelli/AI/autorouter/artifacts/dev-environment/run",
+      "cargo",
+      "test",
+      "--offline",
+      "--locked",
+      "--package",
+      "autorouter-runtime",
+      "--test",
+      "local_diagnostic_boundary_contracts"
+    ],
+    "started_at": "2026-10-14T13:43:50.461388+00:00",
+    "completed_at": "2026-10-14T13:44:09.907269+00:00",
+    "exit_code": 0,
+    "group": "local_diagnostic_boundary_contracts",
+    "passed": 8,
+    "failed": 0,
+    "ignored": 0,
+    "provider_calls": 0,
+    "model_downloads": 0,
+    "logs": [
+      {
+        "path": "artifacts/rust-rewrite/count-progress-admission-20261014-1/progress-tests.log",
+        "bytes": 808,
+        "sha256": "6a371333da3e38cb2f85022d193873d170ad0e24f13246f69fbb191532f041df"
+      },
+      {
+        "path": "artifacts/rust-rewrite/count-progress-admission-20261014-1/progress-tests.stderr",
+        "bytes": 779,
+        "sha256": "317cf815d74ab7b5c55db66557ef8b4cddd8b61d0bd133f936f53cc4bbb1b409"
+      },
+      {
+        "path": "artifacts/rust-rewrite/count-progress-admission-20261014-1/progress-tests-execution.json",
+        "bytes": 423,
+        "sha256": "1aa036d86eaf9878d227000100fc2984764bad7efe56971f83230c468b3b7b70"
+      }
+    ]
+  },
+  "inputs": [
+    {
+      "path": "rust/parity/coverage.json",
+      "bytes": 1754479,
+      "sha256": "447a59e2fdc7d4c01c6b1b87e934210d0740621fdd80ed88dd4bd78f00785c3b"
+    },
+    {
+      "path": "rust/parity/assertion-mappings/local-diagnostic-boundary-contracts.json",
+      "bytes": 45206,
+      "sha256": "226ebadf69dc58c5fde1f4f3acd1fb544ec31703aef45132db6517bf81b1ec13"
+    },
+    {
+      "path": "rust/parity/cases/local-diagnostic-boundary-contracts.capture.json",
+      "bytes": 412582,
+      "sha256": "e9bb29cb50f70124c39ee8e4d908fd1e6a38e627870f6eb507318c77957fd072"
+    },
+    {
+      "path": "rust/parity/cases/local-diagnostic-boundary-contracts.jsonl",
+      "bytes": 175319,
+      "sha256": "e1c1a0da3844383e3a0a965135ba30583a89a1048bd540c44ebb967995481da6"
+    },
+    {
+      "path": "rust/parity/capture-local-diagnostic-boundary-contracts.mjs",
+      "bytes": 22729,
+      "sha256": "b61114e5cc8f3b6bed73327885a2cb894073a650a8c2efe5cfa886821e0826d7"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/test/local-diagnostic.test.mjs",
+      "bytes": 14316,
+      "sha256": "b2f198cd7200a4bede5b6c038a96db989f778ce50ef710d2d0cf0fa2ebdf748e"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/src/local-diagnostic.mjs",
+      "bytes": 13079,
+      "sha256": "d2cdb6df3081e23aaf81c91305717a4dd1d3f5d89320b3b0747b7957f93f22c5"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs",
+      "bytes": 12504,
+      "sha256": "e1f52306051d8f586a4af00e981a36f51469aa9b26308113280b56b8b6599fad"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/support/local_diagnostic_boundary.rs",
+      "bytes": 13153,
+      "sha256": "6c4eced5aa908f773a91c541fe2ee4f9e09a8b27d7ce7c886f74baa23e29c4e2"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/local_diagnostic.rs",
+      "bytes": 35721,
+      "sha256": "503dd0117488b7700087a4f39202d58c2a8c9f7e8c4f74c29cc2880b4d2759ea"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/observer_tasks.rs",
+      "bytes": 33217,
+      "sha256": "623314674a4ba3ec94440e2dea24595377a1aa68e9f7aed8dd159905ec6ffd9d"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/async_observers.rs",
+      "bytes": 8212,
+      "sha256": "ddb0e37fe75124dc7ea519493d1727ea2711565907b9238c71a29196350b0199"
+    },
+    {
+      "path": "rust/docs/embedding.md",
+      "bytes": 22433,
+      "sha256": "798046a489032d4d3f341ee9fa873d0f1ec150a93eaf0ebd742acdb84b0aa95e"
+    },
+    {
+      "path": "artifacts/rust-rewrite/count-progress-admission-20261014-1/progress-tests.log",
+      "bytes": 808,
+      "sha256": "6a371333da3e38cb2f85022d193873d170ad0e24f13246f69fbb191532f041df"
+    },
+    {
+      "path": "artifacts/rust-rewrite/count-progress-admission-20261014-1/progress-tests-execution.json",
+      "bytes": 423,
+      "sha256": "1aa036d86eaf9878d227000100fc2984764bad7efe56971f83230c468b3b7b70"
+    },
+    {
+      "path": "artifacts/rust-rewrite/count-progress-admission-20261014-1/progress-tests.stderr",
+      "bytes": 779,
+      "sha256": "317cf815d74ab7b5c55db66557ef8b4cddd8b61d0bd133f936f53cc4bbb1b409"
+    }
+  ],
+  "proposed_coverage_row": {
+    "id": "test/local-diagnostic.test.mjs#14",
+    "file": "test/local-diagnostic.test.mjs",
+    "name": "progress callback throws or rejected promises cannot prevent diagnostic completion",
+    "parameterized": false,
+    "status": "covered",
+    "rust_tests": [
+      "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#original_progress_callback_panic_cannot_prevent_complete_diagnostic",
+      "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#original_rejected_progress_promise_migrates_to_synchronous_result_error",
+      "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#callback_panic_containment_covers_each_original_progress_site_and_repeats",
+      "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#original_rejected_progress_future_is_owned_polled_and_cannot_fail_diagnostic"
+    ],
+    "shared_cases": [
+      "operation-9",
+      "operation-10"
+    ],
+    "evidence": {
+      "assertion_mapping": "rust/parity/assertion-mappings/local-diagnostic-boundary-contracts.json",
+      "assertion_mapping_sha256": "226ebadf69dc58c5fde1f4f3acd1fb544ec31703aef45132db6517bf81b1ec13",
+      "independent_review": {
+        "path": "artifacts/rust-rewrite/evidence/b003b009a8b6f6092569224bfd056e654f5ed9dc5ca8f1d44dbbb3f50c3262c4.json",
+        "sha256": "b003b009a8b6f6092569224bfd056e654f5ed9dc5ca8f1d44dbbb3f50c3262c4",
+        "bytes": 10456,
+        "original_path": "/private/tmp/autorouter-local-diagnostic-boundary-independent-review.json"
+      },
+      "scope": "Exact sole Source assertion executed for both callback variants; ordinary panic containment and actual owned Future rejection preserve diagnostic completion under reviewed Rust API migration. No Promise/Error identity or scheduling equivalence claim.",
+      "supplemental_assertion_mapping": "rust/parity/assertion-mappings/diagnostic-progress-future-contracts.json"
+    },
+    "related_components": [
+      "evaluators",
+      "native_cli_package"
+    ],
+    "remaining_assertions": [],
+    "assertion_mapping": "rust/parity/assertion-mappings/local-diagnostic-boundary-contracts.json"
+  },
+  "proposed_counts_only_if_root_accepts": {
+    "before": {
+      "covered": 521,
+      "partial": 67
+    },
+    "after": {
+      "covered": 522,
+      "partial": 66
+    },
+    "total": 588,
+    "changed_definitions": [
+      "test/local-diagnostic.test.mjs#14"
+    ]
+  },
+  "docs_patch": {
+    "path": "artifacts/rust-rewrite/diagnostic-progress-migration-20261014-1/embedding-migration.patch",
+    "bytes": 3073,
+    "sha256": "7b4687a0db1ca636ffba00102d1d7b14f75bdcc5c755472e5731383761027209"
+  },
+  "history_preservation": "Older partial mapping/row and its Source/native proof remain historical and bound above. No other definition or area/platform/release/performance claim is promoted. Root central ledgers/docs are untouched by this agent.",
+  "qualification_limits": [
+    "The focused8-test run is synthetic transport/callback evidence, not real Ollama/Jev/Claude/task quality or platform qualification.",
+    "The new test uses the existing synchronous progress API plus explicit public owned adapter; no automatic async progress callback overload was introduced.",
+    "Source promises/JavaScript errors retain no object-identity counterpart in the chosen Rust API. The original assertion does not inspect those identities.",
+    "This proposed coverage change is not applied canonically; root must explicitly accept the per-assertion language/API migration."
+  ],
+  "independent_review": {
+    "path": "artifacts/rust-rewrite/evidence/199f0152d39fc554667ba0cbc346372e6eae03cf2f0c12388f2f6458d865df53.json",
+    "sha256": "199f0152d39fc554667ba0cbc346372e6eae03cf2f0c12388f2f6458d865df53",
+    "bytes": 11024,
+    "original_path": "artifacts/rust-rewrite/diagnostic-progress-migration-20261014-1/peer-review-parity-1.json"
+  },
+  "root_acceptance": {
+    "accepted_at": "2026-10-14T14:55:33.391883+00:00",
+    "source_head": "2286fd91d8165b4b56b273c2ebe5fb4f462ed672",
+    "worktree_dirty": true,
+    "sole_original_definition_promoted": "test/local-diagnostic.test.mjs#14",
+    "other_definitions_unchanged": 587,
+    "full_rewrite_approved": false
+  }
+}

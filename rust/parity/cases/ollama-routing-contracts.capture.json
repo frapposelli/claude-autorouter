@@ -1,0 +1,522 @@
+{
+  "schema_version": 1,
+  "kind": "frozen_finite_ollama_routing_contract_capture",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "baseline_test": "test/ollama-routing.test.mjs",
+  "baseline_sha256": "a32e4cf40d44971fc7f720058e7cedc444977753b9b2d3d8f65db7841511513b",
+  "source_inputs": [
+    {
+      "path": "scripts/test-ollama-routing.mjs",
+      "sha256": "5fa48431fcc953f2d84455e44f44a54fbde3fc3194a9e591267860b260e75507"
+    },
+    {
+      "path": "test/fixtures/ollama-integration.json",
+      "sha256": "88e12f962fb42b36a00edd6b8c2560e54620d90c978b1ff13a1ddf31ee46b585"
+    },
+    {
+      "path": "src/router.mjs",
+      "sha256": "aebf10268348f00b6c8cdc82ef9ced2d60c8e1cc0ddeee7c3498bcaf100b9d56"
+    },
+    {
+      "path": "src/ollama-evaluator.mjs",
+      "sha256": "6c983ddab7e9d01a667d9f890deb7b40e85c1d7dee5373cf34642eb588cb7652"
+    }
+  ],
+  "generator_sha256": "51ab27fef9d34f4ae434b1f2bbcd9425b8d110970ccca0135f1d9108f91816c1",
+  "node_version": "v22.14.0",
+  "typescript_version": "6.0.3",
+  "cases_sha256": "88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a",
+  "selected_definitions": [
+    1,
+    2,
+    4
+  ],
+  "cases": 26,
+  "router_instances": 26,
+  "steps": 29,
+  "requests": 58,
+  "static_assertions": 12,
+  "helper_static_assertions": 9,
+  "direct_executed_assertions": 138,
+  "helper_executed_assertions": 406,
+  "executed_assertions": 544,
+  "helper": {
+    "name": "localFixture",
+    "sha256": "7ad1ef0f734c8644fc8858816c4996f4bad165e4bc95a1d8d72a100d4125b21b",
+    "assertions": [
+      {
+        "line": 16,
+        "expression": "assert.equal(new URL(url).origin, config.ollamaEndpoint)",
+        "sha256": "932b3aec52d59f8ec98cae431c87f27b6df60d003a2ef59ba4cdadc7ee40a7ab"
+      },
+      {
+        "line": 17,
+        "expression": "assert.equal(options.redirect, 'error')",
+        "sha256": "8867547a8dffc17a3aa008e64a715fe5a4f24738ba0b79b5257a046a95a1b00a"
+      },
+      {
+        "line": 18,
+        "expression": "assert.equal(options.headers?.authorization, undefined)",
+        "sha256": "335ef9966f146e39b68c63e5041e39e49bc3b45d105df36dfa34818524eb5253"
+      },
+      {
+        "line": 19,
+        "expression": "assert.equal(options.headers?.['x-api-key'], undefined)",
+        "sha256": "50c1f55f687f7ab26a64692f6bd9f3c3108797a8a63a43d5b8bd6a809cade439"
+      },
+      {
+        "line": 26,
+        "expression": "assert.equal(payload.model, config.ollamaModel)",
+        "sha256": "d0e971608d0223d1a26e5bb400050bcef1590314ee7784054ca11884bbc49747"
+      },
+      {
+        "line": 28,
+        "expression": "assert.equal(path, '/v1/systemone', 'No downloads, unloads, Jev, chat or Anthropic calls are allowed')",
+        "sha256": "68e72967d2bae1d37d4a98a9e82b69afe249f9b7111e27cf287ac9e9ed2c6365"
+      },
+      {
+        "line": 33,
+        "expression": "assert.ok(choice, 'The actual human task must survive Claude-shaped background')",
+        "sha256": "1657552a2b1f17268ed40cac801cbbb0efa73b9bcb3b50b97b0bfea58fc0c5ac"
+      },
+      {
+        "line": 34,
+        "expression": "assert.ok(!JSON.stringify(payload.state).includes('SYNTHETIC_REMINDER_ONLY'))",
+        "sha256": "33d53058dc7f74d17b6c2b1fde857a32aaeb16cfb9a8d583e4ebc7444df39e27"
+      },
+      {
+        "line": 35,
+        "expression": "assert.ok(!JSON.stringify(payload.state).includes('PRIVATE_THINKING'))",
+        "sha256": "44178e2de10d1dded802ab8e354825219addbec6eb4bbfbbd6a8c0c7def02466"
+      }
+    ]
+  },
+  "tests": [
+    {
+      "id": "test/ollama-routing.test.mjs#1",
+      "number": 1,
+      "name": "Claude-shaped requests preserve native Haiku, Sonnet and Opus decisions for every supported model family",
+      "selected": true,
+      "line": 43,
+      "statement": "test('Claude-shaped requests preserve native Haiku, Sonnet and Opus decisions for every supported model family', async () => {\n  for (const model of MODELS) {\n    const config = configFor(model);\n    const fixture = localFixture(config);\n    for (const item of cases) {\n      const router = new Router(config, { fetchImpl: fixture.fetchImpl });\n      const result = await router.route(buildRoutingRequest(item, config), { scope: item.id, requestClass: 'main' });\n      assert.equal(result.model, config.models[item.expected], `${model}/${item.id}`);\n      assert.equal(result.classified_tier, item.expected);\n      assert.equal(result.source, 'ollama');\n      assert.equal(result.reason, 'classified');\n      assert.equal(result.classifier_error, undefined);\n    }\n    assert.equal(fixture.calls.filter(call => call.path === '/v1/systemone').length, cases.length);\n  }\n});",
+      "statement_sha256": "477323cf8483dc6178a1fb353331dfa459dfb5ce119d25165e632cbf9e6a84ae",
+      "call_sha256": "aad1004a924980dcf0b84c8800b93b772748b346c6007ab6ea28d3e0d0104626",
+      "assertions": [
+        {
+          "line": 50,
+          "expression": "assert.equal(result.model, config.models[item.expected], `${model}/${item.id}`)",
+          "sha256": "e3d681bec1c75dd06e068b6fa806bee95b0ef68cf7f9f57941acb0ee5999ad52"
+        },
+        {
+          "line": 51,
+          "expression": "assert.equal(result.classified_tier, item.expected)",
+          "sha256": "1ced4b259133f256c92412b3c3f71e34471d62605083014b00163177fd229d91"
+        },
+        {
+          "line": 52,
+          "expression": "assert.equal(result.source, 'ollama')",
+          "sha256": "6771833cb80721cec1f3d0708472977878f60cda285e039792a40dbe4a2de8f6"
+        },
+        {
+          "line": 53,
+          "expression": "assert.equal(result.reason, 'classified')",
+          "sha256": "7c5ebf5a4868e39cf4320da2364953dd9a7e8ee2c4da05b296d4d96c4de6ca11"
+        },
+        {
+          "line": 54,
+          "expression": "assert.equal(result.classifier_error, undefined)",
+          "sha256": "7496907dfea985d325cffac653511896ea584ad917efb7109fb22c23296c54a4"
+        },
+        {
+          "line": 56,
+          "expression": "assert.equal(fixture.calls.filter(call => call.path === '/v1/systemone').length, cases.length)",
+          "sha256": "60a8a0c3e4ec48db0a5accb47020245f90b95064b0a3c299024a019a561d7f57"
+        }
+      ],
+      "case_ids": [
+        "baseline-ollama-routing-1-1",
+        "baseline-ollama-routing-1-2",
+        "baseline-ollama-routing-1-3",
+        "baseline-ollama-routing-1-4",
+        "baseline-ollama-routing-1-5",
+        "baseline-ollama-routing-1-6",
+        "baseline-ollama-routing-1-7",
+        "baseline-ollama-routing-1-8",
+        "baseline-ollama-routing-1-9",
+        "baseline-ollama-routing-1-10",
+        "baseline-ollama-routing-1-11",
+        "baseline-ollama-routing-1-12",
+        "baseline-ollama-routing-1-13",
+        "baseline-ollama-routing-1-14",
+        "baseline-ollama-routing-1-15",
+        "baseline-ollama-routing-1-16",
+        "baseline-ollama-routing-1-17",
+        "baseline-ollama-routing-1-18",
+        "baseline-ollama-routing-1-19",
+        "baseline-ollama-routing-1-20",
+        "baseline-ollama-routing-1-21",
+        "baseline-ollama-routing-1-22",
+        "baseline-ollama-routing-1-23",
+        "baseline-ollama-routing-1-24"
+      ],
+      "executed_assertions": 460,
+      "helper_assertions": 336,
+      "direct_assertions": 124
+    },
+    {
+      "id": "test/ollama-routing.test.mjs#2",
+      "number": 2,
+      "name": "new human prompts in one session may move from Sonnet to Opus to Haiku without stale turn pinning",
+      "selected": true,
+      "line": 60,
+      "statement": "test('new human prompts in one session may move from Sonnet to Opus to Haiku without stale turn pinning', async () => {\n  const config = configFor(MODELS[1]);\n  const fixture = localFixture(config);\n  const router = new Router(config, { fetchImpl: fixture.fetchImpl });\n  let body;\n  for (const [index, id] of ['bounded-feature', 'distributed-fencing', 'array-length'].entries()) {\n    const item = byId(id);\n    const current = buildRoutingRequest(item, config);\n    body = body ? { ...current, messages: [...body.messages, { role: 'assistant', content: 'Synthetic task completed.' }, current.messages.at(-1)] } : current;\n    const result = await router.route(body, { scope: 'one-session', promptId: `human-${index}`, requestClass: 'main' });\n    assert.equal(result.source, 'ollama');\n    assert.equal(result.classified_tier, item.expected);\n    assert.equal(result.model, config.models[item.expected]);\n    assert.equal(result.reason, 'classified');\n  }\n  assert.equal(fixture.calls.filter(call => call.path === '/v1/systemone').length, 3);\n});",
+      "statement_sha256": "623740b96ab73896c4323205bf8d93e0456896a09b0d04365c6a8deea8a25025",
+      "call_sha256": "7f33da1682471fccf1838830fe26ee190d6d9e5b7a539080010116f72b7139c2",
+      "assertions": [
+        {
+          "line": 70,
+          "expression": "assert.equal(result.source, 'ollama')",
+          "sha256": "6771833cb80721cec1f3d0708472977878f60cda285e039792a40dbe4a2de8f6"
+        },
+        {
+          "line": 71,
+          "expression": "assert.equal(result.classified_tier, item.expected)",
+          "sha256": "1ced4b259133f256c92412b3c3f71e34471d62605083014b00163177fd229d91"
+        },
+        {
+          "line": 72,
+          "expression": "assert.equal(result.model, config.models[item.expected])",
+          "sha256": "ac0debeb68ca538603fb735c86c95ff1acd2fc9053f2104aa7b51bc8734fbf85"
+        },
+        {
+          "line": 73,
+          "expression": "assert.equal(result.reason, 'classified')",
+          "sha256": "7c5ebf5a4868e39cf4320da2364953dd9a7e8ee2c4da05b296d4d96c4de6ca11"
+        },
+        {
+          "line": 75,
+          "expression": "assert.equal(fixture.calls.filter(call => call.path === '/v1/systemone').length, 3)",
+          "sha256": "4a7dbe7f5fe24b16c16a7551bf5d09f7bab6683a1f07a703bea3560bb1393ea1"
+        }
+      ],
+      "case_ids": [
+        "baseline-ollama-routing-2-1"
+      ],
+      "executed_assertions": 55,
+      "helper_assertions": 42,
+      "direct_assertions": 13
+    },
+    {
+      "id": "test/ollama-routing.test.mjs#3",
+      "number": 3,
+      "name": "legitimate Sonnet, timeout fallback, recovery and a compatibility override remain distinguishable",
+      "selected": false,
+      "line": 78,
+      "statement": "test('legitimate Sonnet, timeout fallback, recovery and a compatibility override remain distinguishable', async () => {\n  const config = configFor(MODELS[2]);\n  const fixture = localFixture(config);\n  const router = new Router({ ...config, ollamaTimeoutMs: 5 }, { fetchImpl: fixture.fetchImpl });\n  const sonnet = await router.route(buildRoutingRequest(byId('bounded-feature'), config));\n  assert.deepEqual([sonnet.source, sonnet.classified_tier, sonnet.model, sonnet.reason], ['ollama', 'sonnet', config.models.sonnet, 'classified']);\n\n  fixture.mode = 'timeout';\n  const body = buildRoutingRequest(byId('array-length'), config);\n  const fallback = await router.route(body);\n  assert.equal(fallback.model, config.models.sonnet);\n  assert.equal(fallback.source, 'fallback');\n  assert.equal(fallback.classified_tier, undefined);\n  assert.equal(fallback.classifier_error, 'timeout');\n  fixture.mode = 'normal';\n  const recovered = await router.route(body);\n  assert.equal(recovered.model, config.models.haiku);\n  assert.equal(recovered.source, 'ollama', 'Timeout fallbacks must not be cached');\n\n  const guarded = await router.route({ ...body, thinking: { type: 'adaptive' } });\n  assert.equal(guarded.source, 'ollama');\n  assert.equal(guarded.classified_tier, 'haiku');\n  assert.equal(guarded.model, config.models.sonnet);\n  assert.equal(guarded.reason, 'requires_sonnet_capabilities');\n  assert.equal(guarded.classifier_error, undefined);\n});",
+      "statement_sha256": "e7238bc662b5520c21a93925b1224a57fee69117d847ae997a59ca86d67bc9de",
+      "call_sha256": "d06d7bbef67cfc57c797c43ab52a34bb79f6d45c8e9a29863dd9e5fec126b1bc",
+      "assertions": [
+        {
+          "line": 83,
+          "expression": "assert.deepEqual([sonnet.source, sonnet.classified_tier, sonnet.model, sonnet.reason], ['ollama', 'sonnet', config.models.sonnet, 'classified'])",
+          "sha256": "80dcb9a3d9933f1755be64998b2338de5c3dc69d6ffc460fa84eb52fcbf9b8ff"
+        },
+        {
+          "line": 88,
+          "expression": "assert.equal(fallback.model, config.models.sonnet)",
+          "sha256": "3bac01a6fc1ffb1f0d71c48f3c0de73cf3d5b58cd500adb9d66f357bb53bb36e"
+        },
+        {
+          "line": 89,
+          "expression": "assert.equal(fallback.source, 'fallback')",
+          "sha256": "a5a0e8c3feff575f6bdba4c08692998b5144c798b79dcb2eeab57dd532f1339f"
+        },
+        {
+          "line": 90,
+          "expression": "assert.equal(fallback.classified_tier, undefined)",
+          "sha256": "8c0f53efdae82b5611750352b4712b89b500860a5d7f7735dc673c9e41674555"
+        },
+        {
+          "line": 91,
+          "expression": "assert.equal(fallback.classifier_error, 'timeout')",
+          "sha256": "28d39f68826ca4f7e2af1e5415129473549fac2c93c3839cea87d7b3724d42d0"
+        },
+        {
+          "line": 94,
+          "expression": "assert.equal(recovered.model, config.models.haiku)",
+          "sha256": "63cc62884d118dc48f45d46f474521291426b62c7288fa8a60a1939003f600c5"
+        },
+        {
+          "line": 95,
+          "expression": "assert.equal(recovered.source, 'ollama', 'Timeout fallbacks must not be cached')",
+          "sha256": "7644d7e1997aeb61795e70e7a502fcc4b8cd29601128f62c3025c295bead656f"
+        },
+        {
+          "line": 98,
+          "expression": "assert.equal(guarded.source, 'ollama')",
+          "sha256": "2fdb3b23c8566dbd3c82e5a6c4a9d47121214778c5ef9990ff8b50c0215a7768"
+        },
+        {
+          "line": 99,
+          "expression": "assert.equal(guarded.classified_tier, 'haiku')",
+          "sha256": "94bdb1c3fdffcb858c41fe19a6cf1a6a41e2f0124bb77103a78ca71fca80c215"
+        },
+        {
+          "line": 100,
+          "expression": "assert.equal(guarded.model, config.models.sonnet)",
+          "sha256": "b6589200f4016976e223b66a73c04e2d0cacc4cc14a0dbae472f96eba2ab7501"
+        },
+        {
+          "line": 101,
+          "expression": "assert.equal(guarded.reason, 'requires_sonnet_capabilities')",
+          "sha256": "57e199fcb6e7650ce920295f419fd93ac305dc75feec01649d6bd701e5ca73bd"
+        },
+        {
+          "line": 102,
+          "expression": "assert.equal(guarded.classifier_error, undefined)",
+          "sha256": "4635191cabd7deace1bfebbaa429d364436e93d941f6d0f1e01558f6b4e135dd"
+        }
+      ],
+      "case_ids": [],
+      "executed_assertions": 0,
+      "helper_assertions": 0,
+      "direct_assertions": 0
+    },
+    {
+      "id": "test/ollama-routing.test.mjs#4",
+      "number": 4,
+      "name": "signed thinking preserves the earlier model while exposing the fresh classifier choice",
+      "selected": true,
+      "line": 105,
+      "statement": "test('signed thinking preserves the earlier model while exposing the fresh classifier choice', async () => {\n  const config = configFor(MODELS[0]);\n  const fixture = localFixture(config);\n  const router = new Router(config, { fetchImpl: fixture.fetchImpl });\n  const initial = buildRoutingRequest(byId('bounded-feature'), config);\n  await router.route(initial, { scope: 'thinking-session' });\n  const simple = buildRoutingRequest(byId('array-length'), config);\n  const result = await router.route({ ...simple, messages: [...initial.messages,\n    { role: 'assistant', content: [{ type: 'thinking', thinking: 'PRIVATE_THINKING', signature: 'PRIVATE_THINKING_SIGNATURE' }, { type: 'text', text: 'Done.' }] },\n    simple.messages.at(-1),\n  ] }, { scope: 'thinking-session' });\n  assert.deepEqual([result.source, result.classified_tier, result.model, result.reason], ['ollama', 'haiku', config.models.sonnet, 'thinking_history']);\n});",
+      "statement_sha256": "2822b321374a7ca4ce187ad701df57c145b2de9063c233f739bea6fe53a50e78",
+      "call_sha256": "ff1f01686f7349a59de7beed131280c745b34eda610ec503d159aa830f2b9306",
+      "assertions": [
+        {
+          "line": 116,
+          "expression": "assert.deepEqual([result.source, result.classified_tier, result.model, result.reason], ['ollama', 'haiku', config.models.sonnet, 'thinking_history'])",
+          "sha256": "7022629449554d56728221096663bc900304e0163057187d7ad473029731e11e"
+        }
+      ],
+      "case_ids": [
+        "baseline-ollama-routing-4-1"
+      ],
+      "executed_assertions": 29,
+      "helper_assertions": 28,
+      "direct_assertions": 1
+    },
+    {
+      "id": "test/ollama-routing.test.mjs#5",
+      "number": 5,
+      "name": "the opt-in live harness warms once, routes every case, and reports only metadata",
+      "selected": false,
+      "line": 119,
+      "statement": "test('the opt-in live harness warms once, routes every case, and reports only metadata', async () => {\n  const config = configFor(MODELS[3]);\n  const fixture = localFixture(config, { resident: [config.ollamaModel] });\n  const report = await runRoutingTests(config, { fetchImpl: fixture.fetchImpl, write: () => {}, cases, fixtureHash: sha256 });\n  assert.equal(report.passed, true);\n  assert.deepEqual(report.missing_tiers, []);\n  assert.equal(report.timeout_ms, config.ollamaTimeoutMs);\n  assert.equal(report.resident_before, true);\n  assert.equal(report.rows.length, cases.length);\n  assert.ok(report.rows.every(row => row.source === 'ollama' && row.current_task_matches));\n  assert.equal(fixture.calls.filter(call => call.path === '/v1/systemone').length, cases.length + 1);\n  for (const item of cases) assert.ok(!JSON.stringify(report).includes(item.prompt));\n  assert.ok(!JSON.stringify(report).includes('Synthetic coding assistant guidance'));\n});",
+      "statement_sha256": "f3015f21369b05914cbf7c55374ce4943ad3bfcc0cdcb7f69c0c7fa1a1e104f1",
+      "call_sha256": "5398fa7eba0adeb7dcac244b8e45a11578fafd2dd433b304582e115f21925fa0",
+      "assertions": [
+        {
+          "line": 123,
+          "expression": "assert.equal(report.passed, true)",
+          "sha256": "30095a40b0e4d8fd8ba33255448fc341c72ff18f8ed9205db71fb17401fb56a1"
+        },
+        {
+          "line": 124,
+          "expression": "assert.deepEqual(report.missing_tiers, [])",
+          "sha256": "4d42e55662d21d091a42404dbb796942873be9724f309b5dfd3ecc0ab63b6754"
+        },
+        {
+          "line": 125,
+          "expression": "assert.equal(report.timeout_ms, config.ollamaTimeoutMs)",
+          "sha256": "78747225a15c972b634ed4022fb8b10698ab384d7602352e6d339fae07726879"
+        },
+        {
+          "line": 126,
+          "expression": "assert.equal(report.resident_before, true)",
+          "sha256": "8e78cedf7cc13338f820587b9b07feaafe00edfd032441444d5e84cdae074978"
+        },
+        {
+          "line": 127,
+          "expression": "assert.equal(report.rows.length, cases.length)",
+          "sha256": "dd43feba2786cbe1ffe0cec0c16b24b3d60c33552b64bdc404f18f69a8f17746"
+        },
+        {
+          "line": 128,
+          "expression": "assert.ok(report.rows.every(row => row.source === 'ollama' && row.current_task_matches))",
+          "sha256": "4920ec2bce89722b5560fc55c2f45432cd0e238052db011dd97aa24136eb037c"
+        },
+        {
+          "line": 129,
+          "expression": "assert.equal(fixture.calls.filter(call => call.path === '/v1/systemone').length, cases.length + 1)",
+          "sha256": "9dd511daf0c541ae859a108f3e54a9374d3b6cded97784d66304541a779ed09e"
+        },
+        {
+          "line": 130,
+          "expression": "assert.ok(!JSON.stringify(report).includes(item.prompt))",
+          "sha256": "4438ba84d5e60404c158758da2d0efcf2946841d7c4788dae67363b59be5b5fc"
+        },
+        {
+          "line": 131,
+          "expression": "assert.ok(!JSON.stringify(report).includes('Synthetic coding assistant guidance'))",
+          "sha256": "03a258627c9ebde519ab1624a0ddc42584e171ef98b6d4448cf5dd68cca536e6"
+        }
+      ],
+      "case_ids": [],
+      "executed_assertions": 0,
+      "helper_assertions": 0,
+      "direct_assertions": 0
+    },
+    {
+      "id": "test/ollama-routing.test.mjs#6",
+      "number": 6,
+      "name": "the live harness fails honestly when native answers collapse to Sonnet or become fallbacks",
+      "selected": false,
+      "line": 134,
+      "statement": "test('the live harness fails honestly when native answers collapse to Sonnet or become fallbacks', async () => {\n  const config = configFor(MODELS[1]);\n  const collapsed = localFixture(config, { answer: 'sonnet' });\n  const report = await runRoutingTests(config, { fetchImpl: collapsed.fetchImpl, write: () => {}, cases });\n  assert.equal(report.passed, false);\n  assert.deepEqual(report.missing_tiers, ['haiku', 'opus']);\n  assert.equal(report.rows.find(row => row.case === 'bounded-feature').result, 'pass');\n  assert.ok(report.rows.filter(row => row.expected !== 'sonnet').every(row => row.result === 'classification_mismatch' && row.source === 'ollama'));\n\n  const invalid = localFixture(config);\n  invalid.mode = 'invalid';\n  const fallback = await runRoutingTests(config, { fetchImpl: invalid.fetchImpl, write: () => {}, cases: [byId('array-length')] });\n  assert.equal(fallback.passed, false);\n  assert.equal(fallback.rows[0].result, 'fallback');\n  assert.equal(fallback.rows[0].classifier_error, 'invalid_response');\n  assert.deepEqual(fallback.missing_tiers, ['haiku', 'sonnet', 'opus']);\n  assert.ok(!JSON.stringify(fallback).includes('SYNTHETIC_PRIVATE_RESPONSE'));\n});",
+      "statement_sha256": "52d18bc3c1e1af11db46e3cf2005155f7754cb4cf8786b6ce20e0f0aa7d79b68",
+      "call_sha256": "d71d9cc7d859499403da713f0444521507b57b8c0e7d9506be6ab459c99c1538",
+      "assertions": [
+        {
+          "line": 138,
+          "expression": "assert.equal(report.passed, false)",
+          "sha256": "a5cd1a59c13df045b8c6b34d3205aa168ecac43f8534c32e3cf87970c04aa98f"
+        },
+        {
+          "line": 139,
+          "expression": "assert.deepEqual(report.missing_tiers, ['haiku', 'opus'])",
+          "sha256": "d7cc58984fc52dd994883e45122a7b19564765fc24597f9e757fb242bb99a692"
+        },
+        {
+          "line": 140,
+          "expression": "assert.equal(report.rows.find(row => row.case === 'bounded-feature').result, 'pass')",
+          "sha256": "9ccec5acd7fcc077b6bb036d644f36471d38f2e3686fd1126c52e793bb9d8303"
+        },
+        {
+          "line": 141,
+          "expression": "assert.ok(report.rows.filter(row => row.expected !== 'sonnet').every(row => row.result === 'classification_mismatch' && row.source === 'ollama'))",
+          "sha256": "399d6ad20a24a54b701e4247d6f98faf3aa8acab7cc44f619baed94f6504f981"
+        },
+        {
+          "line": 146,
+          "expression": "assert.equal(fallback.passed, false)",
+          "sha256": "af9ef7ad2bfe41d0d487ee388d333035c1d485580f693273fe15472d0a217fe4"
+        },
+        {
+          "line": 147,
+          "expression": "assert.equal(fallback.rows[0].result, 'fallback')",
+          "sha256": "5d1b91cc43880db1899743d265b2f26c64a0986e0a9f421c22325fad2be25934"
+        },
+        {
+          "line": 148,
+          "expression": "assert.equal(fallback.rows[0].classifier_error, 'invalid_response')",
+          "sha256": "de1d4d70d89c5d76f1c501dca9ee3f0a79fe45b778c3ed05dfc820998210eaa7"
+        },
+        {
+          "line": 149,
+          "expression": "assert.deepEqual(fallback.missing_tiers, ['haiku', 'sonnet', 'opus'])",
+          "sha256": "7fb7bf3e4133a6a2fdba559be5f3a8791042e8abef9a3117417327b02dd3d7d8"
+        },
+        {
+          "line": 150,
+          "expression": "assert.ok(!JSON.stringify(fallback).includes('SYNTHETIC_PRIVATE_RESPONSE'))",
+          "sha256": "55709fe8b943bc1692089fd66110a94ff970cc16d5ef06f6822ec8a33a866840"
+        }
+      ],
+      "case_ids": [],
+      "executed_assertions": 0,
+      "helper_assertions": 0,
+      "direct_assertions": 0
+    },
+    {
+      "id": "test/ollama-routing.test.mjs#7",
+      "number": 7,
+      "name": "duplicate live cases still perform native evaluations instead of passing from the router cache",
+      "selected": false,
+      "line": 153,
+      "statement": "test('duplicate live cases still perform native evaluations instead of passing from the router cache', async () => {\n  const config = configFor(MODELS[1]);\n  const fixture = localFixture(config);\n  const original = byId('literal');\n  const report = await runRoutingTests(config, { fetchImpl: fixture.fetchImpl, write: () => {}, cases: [original, { ...original, id: 'literal-repeat' }] });\n  assert.equal(fixture.calls.filter(call => call.path === '/v1/systemone').length, 3);\n  assert.ok(report.rows.every(row => row.source === 'ollama'));\n  assert.equal(report.passed, false, 'Two Haiku decisions alone do not establish all-tier coverage');\n});",
+      "statement_sha256": "d99a3d05518c6f4e4f6ac5a8e125525384bc0f28103f5c57369dde2c8d0d306b",
+      "call_sha256": "d73ad33a0c13421c486d353f73c3edc428204beea9916b505042cb4e16b1db7b",
+      "assertions": [
+        {
+          "line": 158,
+          "expression": "assert.equal(fixture.calls.filter(call => call.path === '/v1/systemone').length, 3)",
+          "sha256": "4a7dbe7f5fe24b16c16a7551bf5d09f7bab6683a1f07a703bea3560bb1393ea1"
+        },
+        {
+          "line": 159,
+          "expression": "assert.ok(report.rows.every(row => row.source === 'ollama'))",
+          "sha256": "0a0fef9d00fe51940445acee01b3845ffef643f17c3eef2d8519377a56f600da"
+        },
+        {
+          "line": 160,
+          "expression": "assert.equal(report.passed, false, 'Two Haiku decisions alone do not establish all-tier coverage')",
+          "sha256": "997e2b9d64e88d8e5911d2a75439a08d7a3d99911be8ae3ad9c44c016ca84db4"
+        }
+      ],
+      "case_ids": [],
+      "executed_assertions": 0,
+      "helper_assertions": 0,
+      "direct_assertions": 0
+    },
+    {
+      "id": "test/ollama-routing.test.mjs#8",
+      "number": 8,
+      "name": "live preflight never unloads another resident model or downloads a missing selected model",
+      "selected": false,
+      "line": 163,
+      "statement": "test('live preflight never unloads another resident model or downloads a missing selected model', async () => {\n  const config = configFor(MODELS[0]);\n  const busy = localFixture(config, { resident: ['other-local-model:latest'] });\n  await assert.rejects(runRoutingTests(config, { fetchImpl: busy.fetchImpl, write: () => {}, cases }), /Other Ollama models are resident/);\n  assert.deepEqual(busy.calls.map(call => call.path), ['/api/ps']);\n  const missing = localFixture(config, { installed: false });\n  await assert.rejects(runRoutingTests(config, { fetchImpl: missing.fetchImpl, write: () => {}, cases }), error => error.code === 'OLLAMA_MODEL_MISSING');\n  assert.deepEqual(missing.calls.map(call => call.path), ['/api/ps', '/api/version', '/api/tags']);\n});",
+      "statement_sha256": "bfc3d07899d866d04c636c2a5c6cc08f9c2e062278abe662c8f2925bdc47887b",
+      "call_sha256": "dfab4dcddaac7748a505b31a24d6547e9169ddbad69177dcd9264943e73f954f",
+      "assertions": [
+        {
+          "line": 166,
+          "expression": "assert.rejects(runRoutingTests(config, { fetchImpl: busy.fetchImpl, write: () => {}, cases }), /Other Ollama models are resident/)",
+          "sha256": "c18c7a1eef53b2e704b0a3f815ddc503e29019147a583f37a3831b03f7cc7791"
+        },
+        {
+          "line": 167,
+          "expression": "assert.deepEqual(busy.calls.map(call => call.path), ['/api/ps'])",
+          "sha256": "b3a39db4d6379fd417f09b0626ef2411c86b39fe0382843d04e8a5360646af23"
+        },
+        {
+          "line": 169,
+          "expression": "assert.rejects(runRoutingTests(config, { fetchImpl: missing.fetchImpl, write: () => {}, cases }), error => error.code === 'OLLAMA_MODEL_MISSING')",
+          "sha256": "82dc1307109c058390931c70d16b34a076bae4051e1bd802b1ecceafeef1eda8"
+        },
+        {
+          "line": 170,
+          "expression": "assert.deepEqual(missing.calls.map(call => call.path), ['/api/ps', '/api/version', '/api/tags'])",
+          "sha256": "0b4adb340c5ef4d509055ed0369819fb727e960858f2a7a309fd4fac6941e681"
+        }
+      ],
+      "case_ids": [],
+      "executed_assertions": 0,
+      "helper_assertions": 0,
+      "direct_assertions": 0
+    }
+  ],
+  "limits": {
+    "cases": 26,
+    "steps_per_router": 3,
+    "requests_per_step": 2,
+    "requests": 58,
+    "field_bytes": 65536,
+    "response_bytes": 65536,
+    "response_snapshot_bytes": 131072,
+    "aggregate_bytes": 16777216,
+    "corpus_bytes": 8388608,
+    "case_bytes": 262144,
+    "snapshot_nodes": 4096,
+    "snapshot_depth": 32
+  },
+  "excluded_fields": [
+    "Only unasserted route latency_ms/evaluation_latency_ms after finite/nonnegative validation"
+  ],
+  "boundaries": [
+    "Three complete unchanged original callbacks, localFixture, model loops and assertions execute after static import replacement; original Router performs each route.",
+    "Original buildRoutingRequest/readRoutingFixtures are imported from the verified opt-in script without invoking its main or runRoutingTests; no fixture labels are changed.",
+    "Each source Router instance, route options scope/promptId/requestClass, complete body and complete outcome are retained; no completion evidence is fabricated.",
+    "Response observer returns identical finite Response instances without clone/tee/read; full raw and parsed request bodies and headers independently recorded.",
+    "No timed definition3, live harness definitions5–8, cancellation/body streaming, real model/service/provider/download, OS or numerical performance qualification."
+  ]
+}

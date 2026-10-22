@@ -1,0 +1,330 @@
+{
+  "kind": "native_individual_operational_evaluator_response_limits_acceptance",
+  "recorded_at_utc": "2026-10-18T00:14:48.380916+00:00",
+  "accepted_limits": [
+    {
+      "id": "decision_response_bytes",
+      "baseline_value": 65536,
+      "scope": "Decoded JSON bytes for actual Jev and Ollama decision paths: exact65536 accepted,65537 rejected with conservative requested-Opus fallback."
+    },
+    {
+      "id": "model_metadata_bytes",
+      "baseline_value": 1048576,
+      "scope": "Ollama local-model metadata decoded JSON bytes:1048576 accepted then inference,1048577 rejected before inference."
+    }
+  ],
+  "root_decision": "Accept only these two operational byte ceilings after actual predeclared Source/native controls, unchanged reader/deadline/cancellation composition and independent result review.",
+  "source_snapshot": {
+    "path": "artifacts/rust-rewrite/evaluator-operational-byte-boundary-validation-20261018-1/candidate-source.json",
+    "bytes": 116612,
+    "sha256": "71dc5df4d405c94ad8d44903e73c01b180b93bbbb2fd9a7a87dcd2592f41c3f2"
+  },
+  "declaration": {
+    "path": "artifacts/rust-rewrite/evaluator-operational-byte-boundary-draft-20261018-1/declaration.json",
+    "bytes": 8165,
+    "sha256": "5fe6a0484206786e48a20c44bafca3745351883a634b8339da4b14874e865888"
+  },
+  "independent_review": {
+    "path": "artifacts/rust-rewrite/evaluator-operational-byte-boundary-validation-20261018-1/independent-operational-results-and-limit-recommendation.json",
+    "bytes": 21444,
+    "sha256": "a3595331d7f476dbd7acc661c7f4aae6f78f59702fb95ad5769f3c341fc61cc7"
+  },
+  "actual_comparison": {
+    "path": "artifacts/rust-rewrite/evaluator-operational-byte-boundary-validation-20261018-1/actual-comparison.json",
+    "bytes": 7585,
+    "sha256": "1b97e2b4f18de097c76b23dfc93d63920ab97cae7d2d5251cb7b4064909e4117"
+  },
+  "execution_binding": {
+    "path": "artifacts/rust-rewrite/evaluator-operational-byte-boundary-source-supervision-draft-20261018-1/execution-binding.json",
+    "bytes": 6905,
+    "sha256": "1f2281e22df7cb64bd96f4bd182502cfa9d571669a8d9437264d8bed331dcebf"
+  },
+  "root_admission": {
+    "path": "artifacts/rust-rewrite/evaluator-operational-byte-boundary-source-supervision-draft-20261018-1/root-admission.json",
+    "bytes": 1585,
+    "sha256": "2724a46258f45c1976ae504fa94e0b27d6e041c991dae699a5b6e426a10ce6df"
+  },
+  "source_process": {
+    "path": "artifacts/rust-rewrite/evaluator-operational-byte-boundary-source-supervision-draft-20261018-1/source-boundaries.json",
+    "bytes": 2132,
+    "sha256": "a0e98d3cd7727228189ba8afbbbb055ee9bc2371fa35e4495755422eb9612066"
+  },
+  "native_process": {
+    "path": "artifacts/rust-rewrite/evaluator-operational-byte-boundary-source-supervision-draft-20261018-1/native-boundaries.json",
+    "bytes": 2121,
+    "sha256": "cb11219f0daca10d374fd200e7eb62aac15fcf669a45c2f3985980154274dc70"
+  },
+  "raw_results": [
+    {
+      "path": "artifacts/rust-rewrite/evaluator-operational-byte-boundary-source-supervision-draft-20261018-1/source-boundaries.stdout",
+      "bytes": 1832,
+      "sha256": "d075ef72df89d0a3db886830e0921ed35b6e56568c5931bca749997afd534635"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-operational-byte-boundary-source-supervision-draft-20261018-1/source-boundaries.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-operational-byte-boundary-source-supervision-draft-20261018-1/native-boundaries.stdout",
+      "bytes": 334,
+      "sha256": "c97dc7967e2b90c6c3d38178666d50874d03b70dcc392df410f12d6888fdcafe"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-operational-byte-boundary-source-supervision-draft-20261018-1/native-boundaries.stderr",
+      "bytes": 1656,
+      "sha256": "2633141ea5684e4f2dee2d6cbf2a3fbec7f98fb4912de1f8970defe27ddf0d4b"
+    }
+  ],
+  "native_binary_binding": {
+    "path": "artifacts/rust-rewrite/evaluator-operational-byte-boundary-validation-20261018-1/native-binary-binding.json",
+    "bytes": 2615,
+    "sha256": "1e684eed45487b734cb2c469ad1de23f923eaefadeaf2b2eed25560e7b04224c"
+  },
+  "focused_checks": [
+    {
+      "path": "artifacts/rust-rewrite/evaluator-operational-byte-boundary-validation-20261018-1/compile.json",
+      "bytes": 493,
+      "sha256": "9426e3ef6fa65a73b1bc2ef0140a979d9c1d541f852f2b3e1cf14ce20a35ba56"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-operational-byte-boundary-validation-20261018-1/fmt.json",
+      "bytes": 383,
+      "sha256": "3396a1ca218970dbbe30ffcdc52203e1c56aacd2ab6dcaac3c15bef60e7376bd"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-operational-byte-boundary-validation-20261018-1/clippy.json",
+      "bytes": 500,
+      "sha256": "8bf826faaf2ebc1e312cb4fc0e01a05696ea1cb29c31100deda7968c1451ced9"
+    }
+  ],
+  "native_tests": [
+    "evaluator::tests::exact_operational_decision_bytes_accept_65536_reject_65537_for_both_evaluators",
+    "evaluator::tests::exact_operational_metadata_bytes_accept_1048576_reject_1048577_before_inference"
+  ],
+  "native_test_counts": {
+    "passed": 2,
+    "failed": 0,
+    "ignored": 0,
+    "filtered_out": 529
+  },
+  "actual_cases": [
+    {
+      "case": {
+        "backend": "jev",
+        "phase": "decision",
+        "bytes": 65536,
+        "accepted": true,
+        "request_count": 1
+      },
+      "complete_decision": {
+        "tier": "haiku",
+        "classified_tier": "haiku",
+        "evaluator": "jev",
+        "source": "jev",
+        "reason": "classified",
+        "confidence": 0.9
+      },
+      "source_requests": [
+        "/v1/systemone"
+      ],
+      "source_locks_released": 1,
+      "source_stalled_bodies_cancelled": 0,
+      "native_dropped_bodies": 1
+    },
+    {
+      "case": {
+        "backend": "jev",
+        "phase": "decision",
+        "bytes": 65537,
+        "accepted": false,
+        "request_count": 1
+      },
+      "complete_decision": {
+        "tier": "opus",
+        "evaluator": "jev",
+        "source": "fallback",
+        "reason": "classifier_unavailable",
+        "classifier_error": "invalid_response"
+      },
+      "source_requests": [
+        "/v1/systemone"
+      ],
+      "source_locks_released": 1,
+      "source_stalled_bodies_cancelled": 1,
+      "native_dropped_bodies": 1
+    },
+    {
+      "case": {
+        "backend": "ollama",
+        "phase": "decision",
+        "bytes": 65536,
+        "accepted": true,
+        "request_count": 2
+      },
+      "complete_decision": {
+        "tier": "haiku",
+        "classified_tier": "haiku",
+        "evaluator": "ollama",
+        "source": "ollama",
+        "reason": "classified"
+      },
+      "source_requests": [
+        "/api/show",
+        "/v1/systemone"
+      ],
+      "source_locks_released": 2,
+      "source_stalled_bodies_cancelled": 0,
+      "native_dropped_bodies": 2
+    },
+    {
+      "case": {
+        "backend": "ollama",
+        "phase": "decision",
+        "bytes": 65537,
+        "accepted": false,
+        "request_count": 2
+      },
+      "complete_decision": {
+        "tier": "opus",
+        "evaluator": "ollama",
+        "source": "fallback",
+        "reason": "classifier_unavailable",
+        "classifier_error": "invalid_response"
+      },
+      "source_requests": [
+        "/api/show",
+        "/v1/systemone"
+      ],
+      "source_locks_released": 2,
+      "source_stalled_bodies_cancelled": 1,
+      "native_dropped_bodies": 2
+    },
+    {
+      "case": {
+        "backend": "ollama",
+        "phase": "metadata",
+        "bytes": 1048576,
+        "accepted": true,
+        "request_count": 2
+      },
+      "complete_decision": {
+        "tier": "haiku",
+        "classified_tier": "haiku",
+        "evaluator": "ollama",
+        "source": "ollama",
+        "reason": "classified"
+      },
+      "source_requests": [
+        "/api/show",
+        "/v1/systemone"
+      ],
+      "source_locks_released": 2,
+      "source_stalled_bodies_cancelled": 0,
+      "native_dropped_bodies": 2
+    },
+    {
+      "case": {
+        "backend": "ollama",
+        "phase": "metadata",
+        "bytes": 1048577,
+        "accepted": false,
+        "request_count": 1
+      },
+      "complete_decision": {
+        "tier": "opus",
+        "evaluator": "ollama",
+        "source": "fallback",
+        "reason": "classifier_unavailable",
+        "classifier_error": "invalid_response"
+      },
+      "source_requests": [
+        "/api/show"
+      ],
+      "source_locks_released": 1,
+      "source_stalled_bodies_cancelled": 1,
+      "native_dropped_bodies": 1
+    }
+  ],
+  "actual_counts_per_engine": {
+    "cases": 6,
+    "accepted": 3,
+    "invalid_response_fallbacks": 3,
+    "ordered_transport_requests": 9,
+    "released_bodies": 9,
+    "stalled_oversize_bodies_released": 3
+  },
+  "flow_contract": "ValidJSON+trailingASCIIspace to exact literal UTF8 sizes,997-byte chunks, no Content-Length or encoding hints. Exact-cap bodies close; cap+1 bodies stall after all bytes. Actual parsed positive Jev1500/Ollama30000 timers and live caller cancellation remain; paused native time is asserted unchanged.",
+  "ownership_contract": "Source asserts unlocked readers and exactly one underlying cancel for each stalled body. Native asserts actual body Drop counts equal issued requests, queue drained and exact count/order. Printed native counts follow assertions; these are adapter-specific release observations, not reader/drop object identity.",
+  "existing_reader_cancellation_evidence": {
+    "historical_snapshot": {
+      "path": "artifacts/rust-rewrite/entropy-hex-sharing-validation-20261018-1/candidate-source.json",
+      "bytes": 116612,
+      "sha256": "c45dcebe8467a7a78c043c5a56917b9a6a9a2279849b5f30672f2e18f7c7c80b"
+    },
+    "actual_raw_workspace": {
+      "path": "artifacts/rust-rewrite/entropy-hex-sharing-validation-20261018-1/workspace.stdout",
+      "bytes": 146669,
+      "sha256": "583fbfd1485ecd2d3c1e13cdfb8e639582f72f7048bfb1429a7b565d55690c8c"
+    },
+    "historical_workspace_exit": 101,
+    "historical_workspace_counts": {
+      "passed": 1393,
+      "failed": 1,
+      "ignored": 11,
+      "groups": 64
+    },
+    "sole_failure": "bundle::transfer::tests::transfer_has_only_verified_sources_a_shared_budget_and_create_only_evidence",
+    "named_actual_passes": [
+      "bounded_json::tests::exact_limit_and_many_tiny_chunks_parse_without_retaining_chunk_objects",
+      "bounded_json::tests::streamed_limit_is_authoritative_and_all_failures_drop_the_body",
+      "bounded_json::tests::cancellation_interrupts_stalled_body_without_waiting_for_cleanup",
+      "bounded_json::tests::cancelled_and_malformed_inputs_are_distinct_safe_errors",
+      "bounded_json::tests::supported_decoders_handle_every_chunk_boundary_stacks_and_gzip_members",
+      "bounded_json::tests::decoded_byte_bound_and_compressed_header_hint_are_both_enforced",
+      "bounded_json::tests::unknown_coding_skips_the_whole_decode_chain_like_fetch",
+      "bounded_json::tests::decoder_eof_never_hides_stalled_or_failed_http_body",
+      "bounded_json::tests::clean_truncated_trailer_matches_fetch_flush_but_invalid_json_and_reset_do_not",
+      "evaluator::tests::one_deadline_includes_metadata_then_inference_and_body_consumption",
+      "evaluator::tests::zero_deadline_still_accepts_delayed_valid_work_and_retains_byte_limits",
+      "evaluator::tests::zero_deadline_cancellation_stops_metadata_or_inference_reads_without_fallback",
+      "evaluator::tests::already_cancelled_work_makes_no_request_and_metadata_limit_is_separate"
+    ],
+    "semantic_link": "Current bounded_json.rs is byte-identical and prior evaluator module prefix (including all original cancellation/deadline tests and production reader use) is byte-identical; only appended new helpers/tests differ. No full current-workspace green is claimed.",
+    "scope": "Existing actual passes supply streaming/header authority, tiny chunks, body-drop/cancellation, supported decoder/decoded-byte checks, malformed distinctions, one shared deadline, disabled Ollama timer retaining byte limits and cancellation. New operational controls supply the previously missing real-default boundary values in actual evaluator flows. These are composed contracts, not a new all-encoding × default-size Cartesian execution."
+  },
+  "historical_evaluator_preimage": {
+    "path": "artifacts/rust-rewrite/evaluator-operational-byte-boundary-validation-20261018-1/evaluator-preimage.rs",
+    "bytes": 55399,
+    "sha256": "f0d5760d91ead1f9e8f8ea9392645fc90c322f826d75a0880a86cc9f53bc6098"
+  },
+  "historical_evidence_composition": "Only test helpers/two tests appended to existing evaluator module; all pre-existing production and test bytes except final module brace remain identical to c45. bounded_json.rs is byte-identical. Thirteen named actual historical reader/decoder/cancellation/deadline passes compose, not a new full-workspace green or all-encoding/default-size Cartesian execution.",
+  "source_transfer_census": {
+    "census": {
+      "path": "artifacts/rust-rewrite/source-transfer-census-20261018-6/census.json",
+      "bytes": 13951,
+      "sha256": "b8893bfe138ed0287e2531a9ba472c01d0a28ac00f219dc45b9f079340499c67"
+    },
+    "review": {
+      "path": "artifacts/rust-rewrite/source-transfer-census-20261018-6/review.json",
+      "bytes": 4037,
+      "sha256": "3ed844655da6faf4588d008550510ee8f7c77950d80f90155b5898b15de52168"
+    },
+    "logical_bytes": 33627928,
+    "logical_overage_bytes": 73496,
+    "expanded_carrier_bytes": 33602560,
+    "expanded_carrier_overage_bytes": 48128,
+    "formatted_test_bytes_added": 6927,
+    "caps_unchanged": true,
+    "actual_export_restore_executed": false
+  },
+  "coverage_effect": "Only two of53limits change from pending to covered:8covered/45pending. All588definitions (539covered/49partial),27configurationkeys (10covered/17pending),13partialareas and all unrelated limits remain unchanged.",
+  "limits_and_nonclaims": [
+    "Synthetic in-memory transports; no actual provider/model/wire/performance, RSS/allocator, new platform or full task-quality evidence.",
+    "No new header/chunk/encoding Cartesian product or timer-expiry/caller-abort experiment. Existing production limits/timers/cancellation/corpus/assertions unchanged.",
+    "Source guards record zero default-network and child-process attempts. Root supervision finishes both runs with exit0/error0/fullEOF/reaped and695/111before-after checks. Exact runtime no-child scope does not admit compiler/ToolSearch group cleanup or arbitrary EPERM normalization.",
+    "Focused runtime Clippy exits0 while retaining the existing vendored hyper-util unused-variable warning; no warning-free dependency claim.",
+    "Prior c45 workspace remains exit101 with1393pass/1source-cap-fail/11ignored. New focused2passes are not a1395-pass current workspace run;529filtered is not executed coverage. Node checks/package results remain historical unchanged JavaScript evidence.",
+    "Source-transfer caps, fresh current-source CI, complete protocol/platform/resource/performance/provider/provenance/rollback/stabilization/cutover gates remain open. JavaScript0.5.2 remains shipping default; no commit/push/release performed."
+  ]
+}

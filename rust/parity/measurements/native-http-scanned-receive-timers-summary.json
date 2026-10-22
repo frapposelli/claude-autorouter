@@ -1,0 +1,347 @@
+{
+  "schema_version": 1,
+  "kind": "NATIVE_HTTP_SCANNED_RECEIVE_TIMERS_SUMMARY",
+  "status": "ACCEPTED_ONLY_TWO_NUMERIC_DEFAULT_LIMIT_ROWS",
+  "root_acceptance": {
+    "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-3/root-two-timer-acceptance-v2.json",
+    "bytes": 6167,
+    "sha256": "48dded95624d5f080c3453bd49200e8a7dd563bf7b92e13d27d4159644ad3de5"
+  },
+  "source_snapshot": {
+    "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-3/candidate-source.json",
+    "bytes": 118744,
+    "sha256": "020f8351be2415dab509a59b8baa57ffaf40c90b7c22985b0099f846565d8648"
+  },
+  "decision": "Accept only10000ms header and30000ms total-message receipt defaults, interpreted as strict receipt ages at shared30000ms listener scans. Three reproduced native defects are fixed. Complete raw A408 matches Source; status/whole15B and99B B/C entities match with explicit CL-versus-chunked and Date/header-case normalization. No complete wire, HTTP/TLS/platform/resource/performance qualification.",
+  "repairs": [
+    "Initial blank connections now participate in the listener scanner and receive the same healthy-loopback raw408/EOF before37s; old native stayed open and empty until fixture cleanup.",
+    "Partial headers completed at20s now produce the complete200 health reply, replacing native zero-byte EOF near11s from its hard header timer.",
+    "A body completed at35s now produces the complete400 invalid-model reply, replacing the premature native genericJSON408 near31s. Header receipt and total body receipt follow the same parser-age/scanner policy."
+  ],
+  "default_policy": {
+    "headers_timeout_ms": 10000,
+    "receive_timeout_ms": 30000,
+    "shared_listener_scan_ms": 30000,
+    "strict_age_greater_than": true,
+    "initial_blank_receipt_active": true,
+    "message_age_resets_at": "first byte other than CR or LF, before method validation",
+    "leading_crlf_resets_age": false,
+    "complete_headers": "clear only header criterion",
+    "complete_message": "clear receipt eligibility",
+    "next_scan": "actual callback start+30000ms, no missed-tick burst",
+    "prepared_response": "one marker per response; only current response preparation controls the latched408 decision, independently of later queued markers and physical flush",
+    "raw408": "one best-effort write of51fixed bytes, no retry/flush/shutdown wait; pending delivery records claimed failed before terminal publication",
+    "keepalive": "separate6000ms idle deadline after response completion with no queued outgoing response, even when next header partial"
+  },
+  "shared_recipe": {
+    "path": "artifacts/rust-rewrite/http-default-timer-diagnostic-handoff-20261018-1/shared-recipe.json",
+    "bytes": 3662,
+    "sha256": "d35342624378ae45a29f5ed94f4437c14ae0261e64155317dc4d41f4b582159f"
+  },
+  "actuals": [
+    {
+      "path": "artifacts/rust-rewrite/http-default-timer-diagnostic-validation-20261018-1/source-v3.json",
+      "bytes": 1903,
+      "sha256": "367d5bc5f728fe04f9960eb30291a0ba00fefa5347f24cf94bdfcfc59e252758"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-default-timer-diagnostic-validation-20261018-1/source-v3.stdout",
+      "bytes": 7087,
+      "sha256": "75719b262d6097e8671724fd8745609fbc92ee6f86bb82b7b0c5370b0bb5cabe"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-default-timer-diagnostic-validation-20261018-1/native.json",
+      "bytes": 1750,
+      "sha256": "36bd3eaacafaa5cc92f0ee8e2f4437a11621bcc876bc4404baf368b0204f8be9"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-default-timer-diagnostic-validation-20261018-1/native.stdout",
+      "bytes": 9325,
+      "sha256": "f31fa6606b2b07c618d1eef1349a94f32e058a7226d9d255ad6458dc37fe8b06"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-1/build-default.json",
+      "bytes": 1185,
+      "sha256": "1127c06326107a408a01f651c321f9e6399ebeb259b11693205016b082e1f7ff"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-1/compile-native.json",
+      "bytes": 3296,
+      "sha256": "4a007aee17ec019af067eed8837bea0afdd31c9e2fd4186b117359a343714afe"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-1/native.json",
+      "bytes": 1705,
+      "sha256": "b12bbffb1c85fdfd98cca9b54f65ab153b760c8c21774dabebb06857b85ffaa1"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-1/native.stdout",
+      "bytes": 11219,
+      "sha256": "bc49980af228b2af80836c3cb9aa014991a710d9b3c6103366257c6f47ec215b"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-2/auditor-build.json",
+      "bytes": 1422,
+      "sha256": "77299eecad96ef41c2708db63d7f8bff0df3573bc0a1437609dd7ad914a58005"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-2/auditor-build.stdout",
+      "bytes": 74764,
+      "sha256": "2ad2f46b4173cbd0443be0c0c3f4c66b424cea58d3934b58d25f7a83b17dad2c"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-2/auditor-build.stderr",
+      "bytes": 758,
+      "sha256": "57ac985f3f35a195b9ccafffbffd36815f3eb3d265db908a2005413fd2e12d29"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-2/bootstrap.json",
+      "bytes": 1457,
+      "sha256": "09aa3a918cd91ba0e0387ed3663d89d9dcbc8d9a4c3f8a5034a6f4d18533bcd8"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-2/bootstrap.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-2/bootstrap.stderr",
+      "bytes": 49,
+      "sha256": "929ea914516e0100f718fce2205a38518e343419ad6553aa7d2aafba250b250d"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-2/bootstrap-pinned-env.json",
+      "bytes": 1533,
+      "sha256": "c88d36d17586521f75d91d9c88fe954cb20b366c300ba6f0eea652121b6bc9a9"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-2/bootstrap-pinned-env.stdout",
+      "bytes": 965,
+      "sha256": "aa788f72140e0113a06954ac45390ed4f635a790a76f334a3f220d9dc1276a74"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-2/bootstrap-pinned-env.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-2/vendor-pinned-env.json",
+      "bytes": 1377,
+      "sha256": "6b36d2bc7002d6dbf6f7d296347895993a169c05a7a73e48b391e4feb70ae44b"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-2/vendor-pinned-env.stdout",
+      "bytes": 4263,
+      "sha256": "761a7efb7196391d8defe0cca4e2ee6494bbd1612545191581d3dbbacca8c062"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-2/vendor-pinned-env.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-2/features-selftest-pinned-env.json",
+      "bytes": 1409,
+      "sha256": "530a197bcc1b89bcacd00155641544e2dad5adc2f9307db5d0e9b99df7a72663"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-2/features-selftest-pinned-env.stdout",
+      "bytes": 158,
+      "sha256": "82bf79eb19f1e32e25ab31dc80a53acca9249f079b9d6cff76bba44edbc37ff4"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-2/features-selftest-pinned-env.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-2/runtime.json",
+      "bytes": 1370,
+      "sha256": "f78c9ebf740758f755aa8fe68db11196ee7a7dafbdec56d02abadab81da7a46f"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-2/runtime.stdout",
+      "bytes": 137980,
+      "sha256": "0975941092b314a6447f4611876d3d78d748e0cd51ed1bb17129d00288f97837"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-2/runtime.stderr",
+      "bytes": 860,
+      "sha256": "5449c1f4dbcc4e19d6090679d61576b33c3b217b1b63caaaa9ecd0a3779cc56c"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-2/runtime-loopback.json",
+      "bytes": 1478,
+      "sha256": "7d58a606fc208d1e64d504ecd3a2bf4d48fc94cd6498dbbd698d229134603f74"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-2/runtime-loopback.stdout",
+      "bytes": 62327,
+      "sha256": "89451418a371bc6c58d3d49360b9d484b6ac31e93d25d00a5ab1a811f917f117"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-2/runtime-loopback.stderr",
+      "bytes": 627,
+      "sha256": "f19ec405e5024b0ebf740376afb8697bb689849a3ce5903ce3729a5e934a76ab"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-3/workspace.json",
+      "bytes": 1284,
+      "sha256": "38759f6f8564121dbc98c80242bbd2e61cd2fb47aae1494b8f3c99f7b3c5306a"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-3/workspace.stdout",
+      "bytes": 158039,
+      "sha256": "b2200cfc322e3d42ef904d8aeee9d29712e4a18f9048198a61a404396b3c2f47"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-3/workspace.stderr",
+      "bytes": 7946,
+      "sha256": "8068331ea2cb08beebca0a5804c4b79dc1b7f2fba99ecdaf65e6d2d790d87ba6"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-3/clippy.json",
+      "bytes": 1371,
+      "sha256": "54f052f04fc77c8a29a86bc880f97885577993e687ac9444bcc4abfd895eedb8"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-3/clippy.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-3/clippy.stderr",
+      "bytes": 856,
+      "sha256": "bb7c153ac016712b2e21edb98dc12dbdbb0e53332f466fa9c9b017e8fd29f738"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-3/fmt.json",
+      "bytes": 1284,
+      "sha256": "6a723f52cad7e0a869631c9e346317f432fd7c29a9e3f9a05145cbe70c2fe147"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-3/fmt.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-3/fmt.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-3/build-default.json",
+      "bytes": 1369,
+      "sha256": "e14de5226d34a54e17ae4561eb1933ce96112f516d365528b5f649d81a0014e3"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-3/build-default.stdout",
+      "bytes": 162945,
+      "sha256": "d8d6ab9ddc708c0484d841aa82f2bc04fe5ee892bec89ab0361dc50a2eae74b1"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-3/build-default.stderr",
+      "bytes": 278,
+      "sha256": "b9c77189e165f16c225e77d14ad9c7c4b1194bc8df25bcf2e970c0ad2871674f"
+    }
+  ],
+  "reviews": [
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-1/independent-postfix-native-Source-actual-review-v2.json",
+      "bytes": 12742,
+      "sha256": "44707ce85e4aceab7242e3bdca6324c821403ce94529303b38936b421cde68c1"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-1/independent-runtime-actual-results-review.json",
+      "bytes": 13951,
+      "sha256": "0f8cfe9c21d4d31b22ac09006f2c32d9d66e999eb9726f0e8a3b8742ce7236a2"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-parser-timing-runtime-port-draft-20261018-1/v2/independent-static-review.json",
+      "bytes": 8522,
+      "sha256": "e4ba39fee65bfc3f0725444c554bc8171a69c7a5d8f377cded55dbdf2de1f5b2"
+    },
+    {
+      "path": "artifacts/rust-rewrite/hyper-scanned-timing-provenance-refresh-20261018-1/independent-metadata-review.json",
+      "bytes": 5991,
+      "sha256": "296f9a60bb892575de7d3b4733daa0202bc03f9ae76688ae051dc6cb3614368e"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-2/independent-701-adoption-and-production-composition-review.json",
+      "bytes": 16709,
+      "sha256": "94b281350c9d8e06b90edc7586aa5757c4b73b94c903a83d7e5e8dc4afe0307e"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-3/independent-three-Clippy-corrections-composition-review.json",
+      "bytes": 12633,
+      "sha256": "1c66bed8f792a8c6bd064e2b5fa80c23e4d0d71c703ffda896de6148d52df833"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-3/independent-workspace-actual-results-review.json",
+      "bytes": 21447,
+      "sha256": "2160aa25ed52b41f0fa13cfd47b8089af994e13802bd27ec346294d35590ce11"
+    },
+    {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-3/independent-public-summary-v2-candidate-review.json",
+      "bytes": 8094,
+      "sha256": "87894cfabc5382282f78a67c4bdf72ec137bed4e0b368158d3d504ffcfc4d329"
+    }
+  ],
+  "current_validation": {
+    "workspace": {
+      "result_groups": 66,
+      "totals": {
+        "passed": 1497,
+        "failed": 1,
+        "ignored": 11,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "failed_names": [
+        "bundle::transfer::tests::transfer_has_only_verified_sources_a_shared_budget_and_create_only_evidence"
+      ]
+    },
+    "ordinary_runtime_unit": {
+      "passed": 578,
+      "failed": 0,
+      "ignored": 0,
+      "filtered_out": 0,
+      "source": "701ad2; three later source changes are independently reviewed Clippy corrections; current020f fullworkspaceincludesall578plusdevelopment-onlycountobserver"
+    },
+    "new_tests": 20,
+    "old_test_statuses": "All1489 historical pass/fail/ignored entries retained exactly;20newpasses; all66resultgroups/0filtered.",
+    "vendor_audit": "separate no-default-feature auditor build65packages; corrected pinned environment bootstrap passes; all vendor/root audits and1accepted/46rejected feature controls pass before inspected dependency recompile. Same unchanged audit/code metadata reused at020f.",
+    "fmt_exit": 0,
+    "strict_clippy_exit": 0,
+    "ordinary_cli_build_exit": 0,
+    "old_warning": "unchanged vendored hyper-util unusedtimerwarning retained",
+    "failed_attempts": "Initial direct auditor invocation lacked pinned CARGO_HOME; corrected through dev wrapper. Initial runtime sandbox run439pass/139local-socketPermissionDenied failures; rerunwithloopback578pass. Initial Clippy3styleerrors corrected exactly. All failed output retained; no policy/lint/test weakening.",
+    "vendor_cfg_tests": "Standalone vendor unit-test executable was not run. Six Runtime public-Hyper API counterparts passed against the existing locked graph; no new vendor lock or dev dependency."
+  },
+  "source_transfer": {
+    "path": "artifacts/rust-rewrite/source-transfer-census-20261018-36/census.json",
+    "bytes": 13921,
+    "sha256": "da3b632cbd98ea963cc30d4389af05793f97e5ab7975672b5e29c9d6053d2d8c"
+  },
+  "scope_limits": [
+    "Delayed actual listener callback37->next67 and callback-work overrun are code/static/controlled-registry composition; neither the three real sockets nor fake-Control port measures a second actual delayed listener tick. Do not call this an executed real-clock schedule. Add a bounded listener-driver delayed-start test if Root requires dynamic proof before accepting the complete scheduler policy.",
+    "Queued unprepared/prepared current suppression has actual controlled-IO tests, including real header/provider prefix and failure-before-write. Streaming head-only producer preparation and bodyless behavior compose with existing ForwardBody/flush tests; no new real provider/TLS timing experiment is claimed.",
+    "The port uses manualpoll/noopwaker and syntheticControl terminal latches. It is parser/driver ordering evidence, not notification/lost-wake, real default timeout or physical peer evidence. Real37s and productionScanRegistry tests carry different predicates.",
+    "Generic parser400 under blocked output, arbitrary crash/callback/transport cleanup, all multi-thread timings, all user-mutated Node Server timeout properties, TLS/platform/CI/performance/RSS and full transport qualification remain open. Numeric default rows do not waive those public API/resource questions.",
+    "Keepalive5000+1000 and idle/parser interaction are supporting protocol corrections, not an invented fixed-limit row or a blanket keepalive qualification. Old public low-level serve_http1 hard-helper behavior remains separate and tested."
+  ],
+  "release_scope": "JavaScript0.5.2 remains shipping default. All130shippingJSinputbytes unchanged; old596tests/check/packageevidence remains historical. No commit,push,CI,version/release/npm publication/default switch. Sourcecaps32MiB unchanged;40MiB proposal unanswered/unapplied. Currentfullworkspacefailure retained.",
+  "actual_native700_snapshot": {
+    "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-1/candidate-source-v1.json",
+    "bytes": 118700,
+    "sha256": "d68296674eecf8ed2a7c46adf4457b86a055abe39051ca795f859e65f6457271"
+  },
+  "candidate_amendment": {
+    "supersedes": {
+      "path": "artifacts/rust-rewrite/http-scanned-receive-validation-20261018-3/public-summary.candidate.json",
+      "bytes": 17261,
+      "sha256": "f297eef8b5cf25cc8269ff71a96658ac1c2e16afdd4d0c7da5fade1e8ca384e6"
+    },
+    "reason": "Peer clarification of exact byte predicate/current response marker and native700 snapshot label; no actual outcome, threshold or scope changed."
+  }
+}

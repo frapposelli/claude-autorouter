@@ -1,0 +1,1730 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_ollama_routing_contracts_assertion_mapping",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "source_head": "19a66a919436e9678927f81d3d71f50d84e2abaf",
+  "production_changes": false,
+  "registration": "Standalone integration test uses the actual public Router and a private test-local finite HttpTransport; no production or existing test helper changes.",
+  "counts": {
+    "definitions": 3,
+    "scenarios": 26,
+    "source_router_instances": 26,
+    "route_calls": 29,
+    "requests": 58,
+    "metadata_requests": 29,
+    "inference_requests": 29,
+    "source_model_tags": 4,
+    "source_fixture_cases": 6,
+    "direct_static_assertions": 12,
+    "shared_helper_static_assertions": 9,
+    "direct_executed_original_assertions": 138,
+    "helper_executed_original_assertions": 406,
+    "total_executed_original_assertions": 544,
+    "native_tests": 6,
+    "unchanged_frozen_controls": 3,
+    "covered": 3,
+    "partial": 0
+  },
+  "current_sources": [
+    {
+      "path": "rust/parity/capture-ollama-routing-contracts.mjs",
+      "bytes": 17243,
+      "sha256": "51ab27fef9d34f4ae434b1f2bbcd9425b8d110970ccca0135f1d9108f91816c1"
+    },
+    {
+      "path": "rust/parity/cases/ollama-routing-contracts.jsonl",
+      "bytes": 647550,
+      "sha256": "88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a"
+    },
+    {
+      "path": "rust/parity/cases/ollama-routing-contracts.capture.json",
+      "bytes": 29554,
+      "sha256": "7ddad0837cf4f93ea26ad91b69431539c33663aa181b2c97aa9086b4fb1bd424"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+      "bytes": 10021,
+      "sha256": "b52e2c1858ced76cda1c09987683ebfde42b40c137998e92f13344d3cce03685"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+      "bytes": 9480,
+      "sha256": "20ead92ae9c5beb7d3e3039248e751d2f52063742ffa298179041ad86a01c3fd"
+    }
+  ],
+  "retained_sources": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/51ab27fef9d34f4ae434b1f2bbcd9425b8d110970ccca0135f1d9108f91816c1.mjs",
+      "sha256": "51ab27fef9d34f4ae434b1f2bbcd9425b8d110970ccca0135f1d9108f91816c1",
+      "bytes": 17243,
+      "original_path": "rust/parity/capture-ollama-routing-contracts.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a.jsonl",
+      "sha256": "88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a",
+      "bytes": 647550,
+      "original_path": "rust/parity/cases/ollama-routing-contracts.jsonl"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/7ddad0837cf4f93ea26ad91b69431539c33663aa181b2c97aa9086b4fb1bd424.json",
+      "sha256": "7ddad0837cf4f93ea26ad91b69431539c33663aa181b2c97aa9086b4fb1bd424",
+      "bytes": 29554,
+      "original_path": "rust/parity/cases/ollama-routing-contracts.capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/b52e2c1858ced76cda1c09987683ebfde42b40c137998e92f13344d3cce03685.rs",
+      "sha256": "b52e2c1858ced76cda1c09987683ebfde42b40c137998e92f13344d3cce03685",
+      "bytes": 10021,
+      "original_path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/20ead92ae9c5beb7d3e3039248e751d2f52063742ffa298179041ad86a01c3fd.rs",
+      "sha256": "20ead92ae9c5beb7d3e3039248e751d2f52063742ffa298179041ad86a01c3fd",
+      "bytes": 9480,
+      "original_path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs"
+    }
+  ],
+  "baseline_source": {
+    "path": "artifacts/rust-rewrite/reference/test/ollama-routing.test.mjs",
+    "bytes": 10544,
+    "sha256": "a32e4cf40d44971fc7f720058e7cedc444977753b9b2d3d8f65db7841511513b"
+  },
+  "retained_baseline_source": {
+    "path": "artifacts/rust-rewrite/evidence/a32e4cf40d44971fc7f720058e7cedc444977753b9b2d3d8f65db7841511513b.mjs",
+    "bytes": 10544,
+    "sha256": "a32e4cf40d44971fc7f720058e7cedc444977753b9b2d3d8f65db7841511513b",
+    "original_path": "artifacts/rust-rewrite/reference/test/ollama-routing.test.mjs"
+  },
+  "source_inputs": [
+    {
+      "path": "artifacts/rust-rewrite/reference/scripts/test-ollama-routing.mjs",
+      "sha256": "5fa48431fcc953f2d84455e44f44a54fbde3fc3194a9e591267860b260e75507",
+      "bytes": 10666
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/test/fixtures/ollama-integration.json",
+      "sha256": "88e12f962fb42b36a00edd6b8c2560e54620d90c978b1ff13a1ddf31ee46b585",
+      "bytes": 1884
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/src/router.mjs",
+      "sha256": "aebf10268348f00b6c8cdc82ef9ced2d60c8e1cc0ddeee7c3498bcaf100b9d56",
+      "bytes": 27898
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/src/ollama-evaluator.mjs",
+      "sha256": "6c983ddab7e9d01a667d9f890deb7b40e85c1d7dee5373cf34642eb588cb7652",
+      "bytes": 8406
+    }
+  ],
+  "evidence": {
+    "0-eleventh-ollama-routing-capture-a.log": {
+      "path": "artifacts/rust-rewrite/evidence/a4a5e5b973b4a3e16c473b57d9e8082a5974249e9b0f387dd6d0d8d217d1134e.log",
+      "bytes": 206,
+      "sha256": "a4a5e5b973b4a3e16c473b57d9e8082a5974249e9b0f387dd6d0d8d217d1134e",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-capture-a.log"
+    },
+    "1-eleventh-ollama-routing-capture-b.log": {
+      "path": "artifacts/rust-rewrite/evidence/a4a5e5b973b4a3e16c473b57d9e8082a5974249e9b0f387dd6d0d8d217d1134e.log",
+      "bytes": 206,
+      "sha256": "a4a5e5b973b4a3e16c473b57d9e8082a5974249e9b0f387dd6d0d8d217d1134e",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-capture-b.log"
+    },
+    "2-eleventh-ollama-routing-capture-invocations.json": {
+      "path": "artifacts/rust-rewrite/evidence/d2585eb79e77ef63136a4af647f8990ca63878eb14afad8a4599029fcda3b9bc.json",
+      "bytes": 917,
+      "sha256": "d2585eb79e77ef63136a4af647f8990ca63878eb14afad8a4599029fcda3b9bc",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-capture-invocations.json"
+    },
+    "3-eleventh-ollama-routing-frozen-control-1.log": {
+      "path": "artifacts/rust-rewrite/evidence/ef4d7973c7377a637a73212c0c05eb2d8189179b79b542a67d85ef698a5ee42a.log",
+      "bytes": 861,
+      "sha256": "ef4d7973c7377a637a73212c0c05eb2d8189179b79b542a67d85ef698a5ee42a",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-frozen-control-1.log"
+    },
+    "4-eleventh-ollama-routing-native-1.log": {
+      "path": "artifacts/rust-rewrite/evidence/0d6cdc79a90fec9dba26d3ce69a3218857183f8595eabba22bdd388240f4c1e8.log",
+      "bytes": 1898,
+      "sha256": "0d6cdc79a90fec9dba26d3ce69a3218857183f8595eabba22bdd388240f4c1e8",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-native-1.log"
+    },
+    "5-eleventh-ollama-routing-native-negative-2.log": {
+      "path": "artifacts/rust-rewrite/evidence/185aa4422d4a75cf2b83535297049c980900eab18c4111693f7ed0f837caa962.log",
+      "bytes": 1636,
+      "sha256": "185aa4422d4a75cf2b83535297049c980900eab18c4111693f7ed0f837caa962",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-native-negative-2.log"
+    },
+    "6-eleventh-ollama-routing-native-3.log": {
+      "path": "artifacts/rust-rewrite/evidence/767300fc025775ae5b50bddb95757b6c320cb5e084e393b5a2b919979ce3569f.log",
+      "bytes": 1897,
+      "sha256": "767300fc025775ae5b50bddb95757b6c320cb5e084e393b5a2b919979ce3569f",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-native-3.log"
+    },
+    "7-eleventh-ollama-routing-native-4.log": {
+      "path": "artifacts/rust-rewrite/evidence/9151b9d9f3c0ece7ed94ec243f7e6c5d8279b16399b7aacdab5ef0cf3bfcbfa0.log",
+      "bytes": 1347,
+      "sha256": "9151b9d9f3c0ece7ed94ec243f7e6c5d8279b16399b7aacdab5ef0cf3bfcbfa0",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-native-4.log"
+    },
+    "8-eleventh-ollama-routing-clippy-1.log": {
+      "path": "artifacts/rust-rewrite/evidence/0f5ab11c3c850c8063829bf3cd11740c39740568a6832f585acc5377601a4d2b.log",
+      "bytes": 678,
+      "sha256": "0f5ab11c3c850c8063829bf3cd11740c39740568a6832f585acc5377601a4d2b",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-clippy-1.log"
+    },
+    "9-cases.jsonl": {
+      "path": "artifacts/rust-rewrite/evidence/88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a.jsonl",
+      "bytes": 647550,
+      "sha256": "88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-contracts-capture-a/cases.jsonl"
+    },
+    "10-capture.json": {
+      "path": "artifacts/rust-rewrite/evidence/7ddad0837cf4f93ea26ad91b69431539c33663aa181b2c97aa9086b4fb1bd424.json",
+      "bytes": 29554,
+      "sha256": "7ddad0837cf4f93ea26ad91b69431539c33663aa181b2c97aa9086b4fb1bd424",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-contracts-capture-a/capture.json"
+    },
+    "11-cases.jsonl": {
+      "path": "artifacts/rust-rewrite/evidence/88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a.jsonl",
+      "bytes": 647550,
+      "sha256": "88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-contracts-capture-b/cases.jsonl"
+    },
+    "12-capture.json": {
+      "path": "artifacts/rust-rewrite/evidence/7ddad0837cf4f93ea26ad91b69431539c33663aa181b2c97aa9086b4fb1bd424.json",
+      "bytes": 29554,
+      "sha256": "7ddad0837cf4f93ea26ad91b69431539c33663aa181b2c97aa9086b4fb1bd424",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-contracts-capture-b/capture.json"
+    }
+  },
+  "retained_evidence": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/a4a5e5b973b4a3e16c473b57d9e8082a5974249e9b0f387dd6d0d8d217d1134e.log",
+      "bytes": 206,
+      "sha256": "a4a5e5b973b4a3e16c473b57d9e8082a5974249e9b0f387dd6d0d8d217d1134e",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-capture-a.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/a4a5e5b973b4a3e16c473b57d9e8082a5974249e9b0f387dd6d0d8d217d1134e.log",
+      "bytes": 206,
+      "sha256": "a4a5e5b973b4a3e16c473b57d9e8082a5974249e9b0f387dd6d0d8d217d1134e",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-capture-b.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/d2585eb79e77ef63136a4af647f8990ca63878eb14afad8a4599029fcda3b9bc.json",
+      "bytes": 917,
+      "sha256": "d2585eb79e77ef63136a4af647f8990ca63878eb14afad8a4599029fcda3b9bc",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-capture-invocations.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/ef4d7973c7377a637a73212c0c05eb2d8189179b79b542a67d85ef698a5ee42a.log",
+      "bytes": 861,
+      "sha256": "ef4d7973c7377a637a73212c0c05eb2d8189179b79b542a67d85ef698a5ee42a",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-frozen-control-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/0d6cdc79a90fec9dba26d3ce69a3218857183f8595eabba22bdd388240f4c1e8.log",
+      "bytes": 1898,
+      "sha256": "0d6cdc79a90fec9dba26d3ce69a3218857183f8595eabba22bdd388240f4c1e8",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-native-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/185aa4422d4a75cf2b83535297049c980900eab18c4111693f7ed0f837caa962.log",
+      "bytes": 1636,
+      "sha256": "185aa4422d4a75cf2b83535297049c980900eab18c4111693f7ed0f837caa962",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-native-negative-2.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/767300fc025775ae5b50bddb95757b6c320cb5e084e393b5a2b919979ce3569f.log",
+      "bytes": 1897,
+      "sha256": "767300fc025775ae5b50bddb95757b6c320cb5e084e393b5a2b919979ce3569f",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-native-3.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/9151b9d9f3c0ece7ed94ec243f7e6c5d8279b16399b7aacdab5ef0cf3bfcbfa0.log",
+      "bytes": 1347,
+      "sha256": "9151b9d9f3c0ece7ed94ec243f7e6c5d8279b16399b7aacdab5ef0cf3bfcbfa0",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-native-4.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/0f5ab11c3c850c8063829bf3cd11740c39740568a6832f585acc5377601a4d2b.log",
+      "bytes": 678,
+      "sha256": "0f5ab11c3c850c8063829bf3cd11740c39740568a6832f585acc5377601a4d2b",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-clippy-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a.jsonl",
+      "bytes": 647550,
+      "sha256": "88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-contracts-capture-a/cases.jsonl"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/7ddad0837cf4f93ea26ad91b69431539c33663aa181b2c97aa9086b4fb1bd424.json",
+      "bytes": 29554,
+      "sha256": "7ddad0837cf4f93ea26ad91b69431539c33663aa181b2c97aa9086b4fb1bd424",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-contracts-capture-a/capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a.jsonl",
+      "bytes": 647550,
+      "sha256": "88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-contracts-capture-b/cases.jsonl"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/7ddad0837cf4f93ea26ad91b69431539c33663aa181b2c97aa9086b4fb1bd424.json",
+      "bytes": 29554,
+      "sha256": "7ddad0837cf4f93ea26ad91b69431539c33663aa181b2c97aa9086b4fb1bd424",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-contracts-capture-b/capture.json"
+    }
+  ],
+  "capture_method": [
+    "verifyBaseline authenticates the frozen111-file reference before imports. Source test AST and each original statement/call/assertion hash and line are retained. Only static imports are replaced; all selected callbacks/localFixture bodies and model loops execute unchanged.",
+    "Original buildRoutingRequest and readRoutingFixtures are loaded without executing the opt-in main or runRoutingTests. Observing Router subclass delegates to the original actual Router on every route with the original options and same per-instance continuity.",
+    "Finite built-in Response proxy returns identical original instances without body clone/tee/read. Independent sticky capture faults cannot disappear into a router fallback. Original mock callbacks determine every response.",
+    "Capture retains complete model-dependent config, undefined tags, route body/options, method/URL/headers/raw and parsed request body, complete finite response and route output. Counts are actual completed observations, independently verified by native queue/cumulative counters.",
+    "Both complete original capture runs are byte-identical in cases and metadata. Separate unchanged frozen test-run controls pass all three selected definitions."
+  ],
+  "corpus": {
+    "bytes": 647550,
+    "sha256": "88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a",
+    "predeclared_cap_bytes": 8388608,
+    "existing_bundle_default_bytes": 1048576,
+    "within_existing_bundle_default": true
+  },
+  "limits": {
+    "cases": 26,
+    "steps_per_router": 3,
+    "requests_per_step": 2,
+    "requests": 58,
+    "field_bytes": 65536,
+    "response_bytes": 65536,
+    "response_snapshot_bytes": 131072,
+    "aggregate_bytes": 16777216,
+    "corpus_bytes": 8388608,
+    "case_bytes": 262144,
+    "snapshot_nodes": 4096,
+    "snapshot_depth": 32,
+    "native_step_deadline_ms": 2000,
+    "native_step_requests_max": 2,
+    "native_request_bytes": 65536,
+    "native_response_bytes": 65536,
+    "owned_bodies_after_step": 0,
+    "owned_active_requests_after_step": 0,
+    "external_capture_timeout_seconds": 30,
+    "capture_timing_boundary": "Finite synthetic callbacks with explicit byte/count bounds; external runner timeout30s. No general adversarial JavaScript preemption claim.",
+    "native_timing_boundary": "2s cooperative timeout around each finite nonblocking transport schedule; does not qualify original timed/cancellation definitions."
+  },
+  "exclusions": [
+    "Only unasserted route latency_ms/evaluation_latency_ms after finite/nonnegative validation"
+  ],
+  "negative_controls": [
+    "Wrong full raw+parsed inference state or metadata URL still receives the scripted successful result but independent request comparison rejects verification.",
+    "Removing expected inference response rejects call verification, independently of returned fallback.",
+    "Additional native-only repeated-route control expects source:cache and continuity_state:selected, observes zero new fetches, and rejects a forged extra expected HTTP queue. It is a sensitivity extension, not an additional unchanged source callback.",
+    "Stale selected model on later human tasks and Haiku/classified instead of Sonnet/thinking_history are rejected by full result comparison.",
+    "Changing/removing same-session promptId changes constructed actual RouteOptions and fails immutable corpus admission even with a recomputed reported hash. Scope mutation, missing case, duplicate declared ID and8MiB+1 also reject."
+  ],
+  "retained_failed_checks": [
+    {
+      "log": "artifacts/rust-rewrite/eleventh-ollama-routing-native-1.log",
+      "classification": "Added negative-control expectation defect only: original routing scenarios passed. Initial repeat expected source:ollama; second correction accounted for source:cache but omitted existing continuity_state:selected. Final negative explicitly checks both without changing production or captured original expectations."
+    },
+    {
+      "log": "artifacts/rust-rewrite/eleventh-ollama-routing-native-negative-2.log",
+      "classification": "Added negative-control expectation defect only: original routing scenarios passed. Initial repeat expected source:ollama; second correction accounted for source:cache but omitted existing continuity_state:selected. Final negative explicitly checks both without changing production or captured original expectations."
+    },
+    {
+      "log": "artifacts/rust-rewrite/eleventh-ollama-routing-native-3.log",
+      "classification": "Added negative-control expectation defect only: original routing scenarios passed. Initial repeat expected source:ollama; second correction accounted for source:cache but omitted existing continuity_state:selected. Final negative explicitly checks both without changing production or captured original expectations."
+    }
+  ],
+  "validation": {
+    "final_native": {
+      "path": "artifacts/rust-rewrite/eleventh-ollama-routing-native-4.log",
+      "bytes": 1347,
+      "sha256": "9151b9d9f3c0ece7ed94ec243f7e6c5d8279b16399b7aacdab5ef0cf3bfcbfa0"
+    },
+    "native_passed": 6,
+    "clippy": {
+      "path": "artifacts/rust-rewrite/eleventh-ollama-routing-clippy-1.log",
+      "bytes": 678,
+      "sha256": "0f5ab11c3c850c8063829bf3cd11740c39740568a6832f585acc5377601a4d2b"
+    },
+    "clippy_exit_code": 0,
+    "dependency_warning": "Existing vendored hyper-util timer unused warning in the narrow feature graph; no warnings/errors attributed to this batch. Root/protocol agent notified.",
+    "frozen_controls_passed": 3,
+    "captures_byte_identical": true
+  },
+  "existing_actual_redirect_evidence": {
+    "rust_test": "rust/crates/autorouter-runtime/src/http_client.rs#http_client::tests::local_http_reuses_connections_preserves_credentials_and_never_decodes_or_redirects",
+    "source": {
+      "path": "rust/crates/autorouter-runtime/src/http_client.rs",
+      "bytes": 16711,
+      "sha256": "c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1"
+    },
+    "retained_source": {
+      "path": "artifacts/rust-rewrite/evidence/c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1.rs",
+      "bytes": 16711,
+      "sha256": "c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1",
+      "original_path": "rust/crates/autorouter-runtime/src/http_client.rs"
+    },
+    "passed_log": {
+      "path": "artifacts/rust-rewrite/tenth-final-2-workspace.log",
+      "bytes": 74503,
+      "sha256": "71ce460b33d6670beabf87a6fa5055d150c23e8a77a71b608e33f74ba2bcd33e"
+    },
+    "retained_log": {
+      "path": "artifacts/rust-rewrite/evidence/71ce460b33d6670beabf87a6fa5055d150c23e8a77a71b608e33f74ba2bcd33e.log",
+      "bytes": 74503,
+      "sha256": "71ce460b33d6670beabf87a6fa5055d150c23e8a77a71b608e33f74ba2bcd33e",
+      "original_path": "artifacts/rust-rewrite/tenth-final-2-workspace.log"
+    },
+    "log_line": 286,
+    "scope": "Actual mock HTTP307 response remains unchanged; exactly one request establishes no redirect follow. Literal source redirect:error is a native transport-policy adaptation, not JS option identity."
+  },
+  "boundaries": [
+    "All three primary source schedules use actual public Router.route and independent complete request validation; no mocked classification or route result substitutes.",
+    "One Router per original instance; same-session human prompt IDs, requestClass and scope preserved. Selected models are not confirmed provider execution; no completion evidence is fabricated.",
+    "Undefined tags are explicitly captured; finite native JSON omission/config serialization compared. This does not claim JS own-property, prototype, function or AbortSignal object identity.",
+    "Only unasserted latency_ms/evaluation_latency_ms removed after both sides validate finite nonnegative numbers. No tolerance or other output masking.",
+    "No actual network, evaluator, model download, user configuration, real Keychain, cancellation/streaming, OS support, release approval or numerical model-quality/performance claims.",
+    "This proposal changes only routing definitions1/2/4; timed3 and opt-in tool5\u20138 are outside its claims."
+  ],
+  "helper_assertions": {
+    "name": "localFixture",
+    "sha256": "7ad1ef0f734c8644fc8858816c4996f4bad165e4bc95a1d8d72a100d4125b21b",
+    "assertions": [
+      {
+        "line": 16,
+        "expression": "assert.equal(new URL(url).origin, config.ollamaEndpoint)",
+        "sha256": "932b3aec52d59f8ec98cae431c87f27b6df60d003a2ef59ba4cdadc7ee40a7ab",
+        "status": "covered_in_selected_callbacks_only",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#all_six_claude_shapes_route_across_four_original_model_tags",
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#same_router_switches_human_turns_from_sonnet_to_opus_to_haiku",
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#signed_thinking_retains_sonnet_while_exposing_fresh_haiku_classification"
+        ],
+        "shared_cases": [
+          "baseline-ollama-routing-1-1",
+          "baseline-ollama-routing-1-2",
+          "baseline-ollama-routing-1-3",
+          "baseline-ollama-routing-1-4",
+          "baseline-ollama-routing-1-5",
+          "baseline-ollama-routing-1-6",
+          "baseline-ollama-routing-1-7",
+          "baseline-ollama-routing-1-8",
+          "baseline-ollama-routing-1-9",
+          "baseline-ollama-routing-1-10",
+          "baseline-ollama-routing-1-11",
+          "baseline-ollama-routing-1-12",
+          "baseline-ollama-routing-1-13",
+          "baseline-ollama-routing-1-14",
+          "baseline-ollama-routing-1-15",
+          "baseline-ollama-routing-1-16",
+          "baseline-ollama-routing-1-17",
+          "baseline-ollama-routing-1-18",
+          "baseline-ollama-routing-1-19",
+          "baseline-ollama-routing-1-20",
+          "baseline-ollama-routing-1-21",
+          "baseline-ollama-routing-1-22",
+          "baseline-ollama-routing-1-23",
+          "baseline-ollama-routing-1-24",
+          "baseline-ollama-routing-2-1",
+          "baseline-ollama-routing-4-1"
+        ],
+        "native_check": "Exact URL on every native request equals the captured source endpoint/path;58 total calls independently matched.",
+        "native_anchors": [
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+            "function": "request",
+            "line": 222
+          },
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+            "function": "verified",
+            "line": 205
+          }
+        ]
+      },
+      {
+        "line": 17,
+        "expression": "assert.equal(options.redirect, 'error')",
+        "sha256": "8867547a8dffc17a3aa008e64a715fe5a4f24738ba0b79b5257a046a95a1b00a",
+        "status": "covered_in_selected_callbacks_only",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#all_six_claude_shapes_route_across_four_original_model_tags",
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#same_router_switches_human_turns_from_sonnet_to_opus_to_haiku",
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#signed_thinking_retains_sonnet_while_exposing_fresh_haiku_classification"
+        ],
+        "shared_cases": [
+          "baseline-ollama-routing-1-1",
+          "baseline-ollama-routing-1-2",
+          "baseline-ollama-routing-1-3",
+          "baseline-ollama-routing-1-4",
+          "baseline-ollama-routing-1-5",
+          "baseline-ollama-routing-1-6",
+          "baseline-ollama-routing-1-7",
+          "baseline-ollama-routing-1-8",
+          "baseline-ollama-routing-1-9",
+          "baseline-ollama-routing-1-10",
+          "baseline-ollama-routing-1-11",
+          "baseline-ollama-routing-1-12",
+          "baseline-ollama-routing-1-13",
+          "baseline-ollama-routing-1-14",
+          "baseline-ollama-routing-1-15",
+          "baseline-ollama-routing-1-16",
+          "baseline-ollama-routing-1-17",
+          "baseline-ollama-routing-1-18",
+          "baseline-ollama-routing-1-19",
+          "baseline-ollama-routing-1-20",
+          "baseline-ollama-routing-1-21",
+          "baseline-ollama-routing-1-22",
+          "baseline-ollama-routing-1-23",
+          "baseline-ollama-routing-1-24",
+          "baseline-ollama-routing-2-1",
+          "baseline-ollama-routing-4-1"
+        ],
+        "native_check": "Captured option metadata pins literal redirect:error and source original helper executes it. Native no-redirect policy is separately established by existing actual HTTP307 no-follow regression; no JS RequestInit identity claim.",
+        "native_anchors": [
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+            "function": "request",
+            "line": 222
+          },
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+            "function": "verified",
+            "line": 205
+          }
+        ]
+      },
+      {
+        "line": 18,
+        "expression": "assert.equal(options.headers?.authorization, undefined)",
+        "sha256": "335ef9966f146e39b68c63e5041e39e49bc3b45d105df36dfa34818524eb5253",
+        "status": "covered_in_selected_callbacks_only",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#all_six_claude_shapes_route_across_four_original_model_tags",
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#same_router_switches_human_turns_from_sonnet_to_opus_to_haiku",
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#signed_thinking_retains_sonnet_while_exposing_fresh_haiku_classification"
+        ],
+        "shared_cases": [
+          "baseline-ollama-routing-1-1",
+          "baseline-ollama-routing-1-2",
+          "baseline-ollama-routing-1-3",
+          "baseline-ollama-routing-1-4",
+          "baseline-ollama-routing-1-5",
+          "baseline-ollama-routing-1-6",
+          "baseline-ollama-routing-1-7",
+          "baseline-ollama-routing-1-8",
+          "baseline-ollama-routing-1-9",
+          "baseline-ollama-routing-1-10",
+          "baseline-ollama-routing-1-11",
+          "baseline-ollama-routing-1-12",
+          "baseline-ollama-routing-1-13",
+          "baseline-ollama-routing-1-14",
+          "baseline-ollama-routing-1-15",
+          "baseline-ollama-routing-1-16",
+          "baseline-ollama-routing-1-17",
+          "baseline-ollama-routing-1-18",
+          "baseline-ollama-routing-1-19",
+          "baseline-ollama-routing-1-20",
+          "baseline-ollama-routing-1-21",
+          "baseline-ollama-routing-1-22",
+          "baseline-ollama-routing-1-23",
+          "baseline-ollama-routing-1-24",
+          "baseline-ollama-routing-2-1",
+          "baseline-ollama-routing-4-1"
+        ],
+        "native_check": "Full native HeaderMap equality with captured header object excludes authorization on all58 calls.",
+        "native_anchors": [
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+            "function": "request",
+            "line": 222
+          },
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+            "function": "verified",
+            "line": 205
+          }
+        ]
+      },
+      {
+        "line": 19,
+        "expression": "assert.equal(options.headers?.['x-api-key'], undefined)",
+        "sha256": "50c1f55f687f7ab26a64692f6bd9f3c3108797a8a63a43d5b8bd6a809cade439",
+        "status": "covered_in_selected_callbacks_only",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#all_six_claude_shapes_route_across_four_original_model_tags",
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#same_router_switches_human_turns_from_sonnet_to_opus_to_haiku",
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#signed_thinking_retains_sonnet_while_exposing_fresh_haiku_classification"
+        ],
+        "shared_cases": [
+          "baseline-ollama-routing-1-1",
+          "baseline-ollama-routing-1-2",
+          "baseline-ollama-routing-1-3",
+          "baseline-ollama-routing-1-4",
+          "baseline-ollama-routing-1-5",
+          "baseline-ollama-routing-1-6",
+          "baseline-ollama-routing-1-7",
+          "baseline-ollama-routing-1-8",
+          "baseline-ollama-routing-1-9",
+          "baseline-ollama-routing-1-10",
+          "baseline-ollama-routing-1-11",
+          "baseline-ollama-routing-1-12",
+          "baseline-ollama-routing-1-13",
+          "baseline-ollama-routing-1-14",
+          "baseline-ollama-routing-1-15",
+          "baseline-ollama-routing-1-16",
+          "baseline-ollama-routing-1-17",
+          "baseline-ollama-routing-1-18",
+          "baseline-ollama-routing-1-19",
+          "baseline-ollama-routing-1-20",
+          "baseline-ollama-routing-1-21",
+          "baseline-ollama-routing-1-22",
+          "baseline-ollama-routing-1-23",
+          "baseline-ollama-routing-1-24",
+          "baseline-ollama-routing-2-1",
+          "baseline-ollama-routing-4-1"
+        ],
+        "native_check": "Full native HeaderMap equality excludes x-api-key on all58 calls.",
+        "native_anchors": [
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+            "function": "request",
+            "line": 222
+          },
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+            "function": "verified",
+            "line": 205
+          }
+        ]
+      },
+      {
+        "line": 26,
+        "expression": "assert.equal(payload.model, config.ollamaModel)",
+        "sha256": "d0e971608d0223d1a26e5bb400050bcef1590314ee7784054ca11884bbc49747",
+        "status": "covered_in_selected_callbacks_only",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#all_six_claude_shapes_route_across_four_original_model_tags",
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#same_router_switches_human_turns_from_sonnet_to_opus_to_haiku",
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#signed_thinking_retains_sonnet_while_exposing_fresh_haiku_classification"
+        ],
+        "shared_cases": [
+          "baseline-ollama-routing-1-1",
+          "baseline-ollama-routing-1-2",
+          "baseline-ollama-routing-1-3",
+          "baseline-ollama-routing-1-4",
+          "baseline-ollama-routing-1-5",
+          "baseline-ollama-routing-1-6",
+          "baseline-ollama-routing-1-7",
+          "baseline-ollama-routing-1-8",
+          "baseline-ollama-routing-1-9",
+          "baseline-ollama-routing-1-10",
+          "baseline-ollama-routing-1-11",
+          "baseline-ollama-routing-1-12",
+          "baseline-ollama-routing-1-13",
+          "baseline-ollama-routing-1-14",
+          "baseline-ollama-routing-1-15",
+          "baseline-ollama-routing-1-16",
+          "baseline-ollama-routing-1-17",
+          "baseline-ollama-routing-1-18",
+          "baseline-ollama-routing-1-19",
+          "baseline-ollama-routing-1-20",
+          "baseline-ollama-routing-1-21",
+          "baseline-ollama-routing-1-22",
+          "baseline-ollama-routing-1-23",
+          "baseline-ollama-routing-1-24",
+          "baseline-ollama-routing-2-1",
+          "baseline-ollama-routing-4-1"
+        ],
+        "native_check": "Complete raw and parsed request body equality retains exact configured Ollama model across all metadata/inference calls.",
+        "native_anchors": [
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+            "function": "request",
+            "line": 222
+          },
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+            "function": "verified",
+            "line": 205
+          }
+        ]
+      },
+      {
+        "line": 28,
+        "expression": "assert.equal(path, '/v1/systemone', 'No downloads, unloads, Jev, chat or Anthropic calls are allowed')",
+        "sha256": "68e72967d2bae1d37d4a98a9e82b69afe249f9b7111e27cf287ac9e9ed2c6365",
+        "status": "covered_in_selected_callbacks_only",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#all_six_claude_shapes_route_across_four_original_model_tags",
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#same_router_switches_human_turns_from_sonnet_to_opus_to_haiku",
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#signed_thinking_retains_sonnet_while_exposing_fresh_haiku_classification"
+        ],
+        "shared_cases": [
+          "baseline-ollama-routing-1-1",
+          "baseline-ollama-routing-1-2",
+          "baseline-ollama-routing-1-3",
+          "baseline-ollama-routing-1-4",
+          "baseline-ollama-routing-1-5",
+          "baseline-ollama-routing-1-6",
+          "baseline-ollama-routing-1-7",
+          "baseline-ollama-routing-1-8",
+          "baseline-ollama-routing-1-9",
+          "baseline-ollama-routing-1-10",
+          "baseline-ollama-routing-1-11",
+          "baseline-ollama-routing-1-12",
+          "baseline-ollama-routing-1-13",
+          "baseline-ollama-routing-1-14",
+          "baseline-ollama-routing-1-15",
+          "baseline-ollama-routing-1-16",
+          "baseline-ollama-routing-1-17",
+          "baseline-ollama-routing-1-18",
+          "baseline-ollama-routing-1-19",
+          "baseline-ollama-routing-1-20",
+          "baseline-ollama-routing-1-21",
+          "baseline-ollama-routing-1-22",
+          "baseline-ollama-routing-1-23",
+          "baseline-ollama-routing-1-24",
+          "baseline-ollama-routing-2-1",
+          "baseline-ollama-routing-4-1"
+        ],
+        "native_check": "Full native request sequence permits only exact captured /api/show and /v1/systemone; extra/missing calls fail independent queue/counter checks. No model management/provider requests occur.",
+        "native_anchors": [
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+            "function": "request",
+            "line": 222
+          },
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+            "function": "verified",
+            "line": 205
+          }
+        ]
+      },
+      {
+        "line": 33,
+        "expression": "assert.ok(choice, 'The actual human task must survive Claude-shaped background')",
+        "sha256": "1657552a2b1f17268ed40cac801cbbb0efa73b9bcb3b50b97b0bfea58fc0c5ac",
+        "status": "covered_in_selected_callbacks_only",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#all_six_claude_shapes_route_across_four_original_model_tags",
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#same_router_switches_human_turns_from_sonnet_to_opus_to_haiku",
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#signed_thinking_retains_sonnet_while_exposing_fresh_haiku_classification"
+        ],
+        "shared_cases": [
+          "baseline-ollama-routing-1-1",
+          "baseline-ollama-routing-1-2",
+          "baseline-ollama-routing-1-3",
+          "baseline-ollama-routing-1-4",
+          "baseline-ollama-routing-1-5",
+          "baseline-ollama-routing-1-6",
+          "baseline-ollama-routing-1-7",
+          "baseline-ollama-routing-1-8",
+          "baseline-ollama-routing-1-9",
+          "baseline-ollama-routing-1-10",
+          "baseline-ollama-routing-1-11",
+          "baseline-ollama-routing-1-12",
+          "baseline-ollama-routing-1-13",
+          "baseline-ollama-routing-1-14",
+          "baseline-ollama-routing-1-15",
+          "baseline-ollama-routing-1-16",
+          "baseline-ollama-routing-1-17",
+          "baseline-ollama-routing-1-18",
+          "baseline-ollama-routing-1-19",
+          "baseline-ollama-routing-1-20",
+          "baseline-ollama-routing-1-21",
+          "baseline-ollama-routing-1-22",
+          "baseline-ollama-routing-1-23",
+          "baseline-ollama-routing-1-24",
+          "baseline-ollama-routing-2-1",
+          "baseline-ollama-routing-4-1"
+        ],
+        "native_check": "Original helper chooses the expected tier only from the exact current human task. Native raw+parsed state equals that captured input, preserving each fixture through Claude-shaped background.",
+        "native_anchors": [
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+            "function": "request",
+            "line": 222
+          },
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+            "function": "verified",
+            "line": 205
+          }
+        ]
+      },
+      {
+        "line": 34,
+        "expression": "assert.ok(!JSON.stringify(payload.state).includes('SYNTHETIC_REMINDER_ONLY'))",
+        "sha256": "33d53058dc7f74d17b6c2b1fde857a32aaeb16cfb9a8d583e4ebc7444df39e27",
+        "status": "covered_in_selected_callbacks_only",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#all_six_claude_shapes_route_across_four_original_model_tags",
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#same_router_switches_human_turns_from_sonnet_to_opus_to_haiku",
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#signed_thinking_retains_sonnet_while_exposing_fresh_haiku_classification"
+        ],
+        "shared_cases": [
+          "baseline-ollama-routing-1-1",
+          "baseline-ollama-routing-1-2",
+          "baseline-ollama-routing-1-3",
+          "baseline-ollama-routing-1-4",
+          "baseline-ollama-routing-1-5",
+          "baseline-ollama-routing-1-6",
+          "baseline-ollama-routing-1-7",
+          "baseline-ollama-routing-1-8",
+          "baseline-ollama-routing-1-9",
+          "baseline-ollama-routing-1-10",
+          "baseline-ollama-routing-1-11",
+          "baseline-ollama-routing-1-12",
+          "baseline-ollama-routing-1-13",
+          "baseline-ollama-routing-1-14",
+          "baseline-ollama-routing-1-15",
+          "baseline-ollama-routing-1-16",
+          "baseline-ollama-routing-1-17",
+          "baseline-ollama-routing-1-18",
+          "baseline-ollama-routing-1-19",
+          "baseline-ollama-routing-1-20",
+          "baseline-ollama-routing-1-21",
+          "baseline-ollama-routing-1-22",
+          "baseline-ollama-routing-1-23",
+          "baseline-ollama-routing-1-24",
+          "baseline-ollama-routing-2-1",
+          "baseline-ollama-routing-4-1"
+        ],
+        "native_check": "Exact native state JSON equals original helper-approved state without SYNTHETIC_REMINDER_ONLY for all29 inference calls.",
+        "native_anchors": [
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+            "function": "request",
+            "line": 222
+          },
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+            "function": "verified",
+            "line": 205
+          }
+        ]
+      },
+      {
+        "line": 35,
+        "expression": "assert.ok(!JSON.stringify(payload.state).includes('PRIVATE_THINKING'))",
+        "sha256": "44178e2de10d1dded802ab8e354825219addbec6eb4bbfbbd6a8c0c7def02466",
+        "status": "covered_in_selected_callbacks_only",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#all_six_claude_shapes_route_across_four_original_model_tags",
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#same_router_switches_human_turns_from_sonnet_to_opus_to_haiku",
+          "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#signed_thinking_retains_sonnet_while_exposing_fresh_haiku_classification"
+        ],
+        "shared_cases": [
+          "baseline-ollama-routing-1-1",
+          "baseline-ollama-routing-1-2",
+          "baseline-ollama-routing-1-3",
+          "baseline-ollama-routing-1-4",
+          "baseline-ollama-routing-1-5",
+          "baseline-ollama-routing-1-6",
+          "baseline-ollama-routing-1-7",
+          "baseline-ollama-routing-1-8",
+          "baseline-ollama-routing-1-9",
+          "baseline-ollama-routing-1-10",
+          "baseline-ollama-routing-1-11",
+          "baseline-ollama-routing-1-12",
+          "baseline-ollama-routing-1-13",
+          "baseline-ollama-routing-1-14",
+          "baseline-ollama-routing-1-15",
+          "baseline-ollama-routing-1-16",
+          "baseline-ollama-routing-1-17",
+          "baseline-ollama-routing-1-18",
+          "baseline-ollama-routing-1-19",
+          "baseline-ollama-routing-1-20",
+          "baseline-ollama-routing-1-21",
+          "baseline-ollama-routing-1-22",
+          "baseline-ollama-routing-1-23",
+          "baseline-ollama-routing-1-24",
+          "baseline-ollama-routing-2-1",
+          "baseline-ollama-routing-4-1"
+        ],
+        "native_check": "Exact native state JSON equals original helper-approved state without PRIVATE_THINKING or its longer signature marker, including signed-thinking continuation.",
+        "native_anchors": [
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+            "function": "request",
+            "line": 222
+          },
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+            "function": "verified",
+            "line": 205
+          }
+        ]
+      }
+    ]
+  },
+  "native_anchors": {
+    "options": {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+      "function": "options",
+      "line": 28
+    },
+    "step": {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+      "function": "step",
+      "line": 60
+    },
+    "matches": {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+      "function": "matches",
+      "line": 98
+    },
+    "replay": {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+      "function": "replay",
+      "line": 102
+    },
+    "all_six_claude_shapes_route_across_four_original_model_tags": {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+      "function": "all_six_claude_shapes_route_across_four_original_model_tags",
+      "line": 137
+    },
+    "same_router_switches_human_turns_from_sonnet_to_opus_to_haiku": {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+      "function": "same_router_switches_human_turns_from_sonnet_to_opus_to_haiku",
+      "line": 141
+    },
+    "signed_thinking_retains_sonnet_while_exposing_fresh_haiku_classification": {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+      "function": "signed_thinking_retains_sonnet_while_exposing_fresh_haiku_classification",
+      "line": 145
+    },
+    "matching_results_cannot_hide_wrong_requests_or_missing_calls": {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+      "function": "matching_results_cannot_hide_wrong_requests_or_missing_calls",
+      "line": 149
+    },
+    "complete_results_reject_stale_turns_and_lost_thinking_preservation": {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+      "function": "complete_results_reject_stale_turns_and_lost_thinking_preservation",
+      "line": 194
+    },
+    "corpus_pin_and_inventory_reject_self_consistent_mutation_and_missing_cases": {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+      "function": "corpus_pin_and_inventory_reject_self_consistent_mutation_and_missing_cases",
+      "line": 224
+    },
+    "validate_corpus": {
+      "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+      "function": "validate_corpus",
+      "line": 26
+    },
+    "settings": {
+      "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+      "function": "settings",
+      "line": 109
+    },
+    "set": {
+      "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+      "function": "set",
+      "line": 180
+    },
+    "verified": {
+      "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+      "function": "verified",
+      "line": 205
+    },
+    "idle": {
+      "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+      "function": "idle",
+      "line": 213
+    },
+    "request": {
+      "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+      "function": "request",
+      "line": 222
+    }
+  },
+  "rows": [
+    {
+      "id": "test/ollama-routing.test.mjs#1",
+      "file": "test/ollama-routing.test.mjs",
+      "name": "Claude-shaped requests preserve native Haiku, Sonnet and Opus decisions for every supported model family",
+      "line": 43,
+      "baseline_file_sha256": "a32e4cf40d44971fc7f720058e7cedc444977753b9b2d3d8f65db7841511513b",
+      "definition_statement": "test('Claude-shaped requests preserve native Haiku, Sonnet and Opus decisions for every supported model family', async () => {\n  for (const model of MODELS) {\n    const config = configFor(model);\n    const fixture = localFixture(config);\n    for (const item of cases) {\n      const router = new Router(config, { fetchImpl: fixture.fetchImpl });\n      const result = await router.route(buildRoutingRequest(item, config), { scope: item.id, requestClass: 'main' });\n      assert.equal(result.model, config.models[item.expected], `${model}/${item.id}`);\n      assert.equal(result.classified_tier, item.expected);\n      assert.equal(result.source, 'ollama');\n      assert.equal(result.reason, 'classified');\n      assert.equal(result.classifier_error, undefined);\n    }\n    assert.equal(fixture.calls.filter(call => call.path === '/v1/systemone').length, cases.length);\n  }\n});",
+      "definition_sha256": "477323cf8483dc6178a1fb353331dfa459dfb5ce119d25165e632cbf9e6a84ae",
+      "definition_call_sha256": "aad1004a924980dcf0b84c8800b93b772748b346c6007ab6ea28d3e0d0104626",
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments and whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "previous_row": {
+        "id": "test/ollama-routing.test.mjs#1",
+        "file": "test/ollama-routing.test.mjs",
+        "name": "Claude-shaped requests preserve native Haiku, Sonnet and Opus decisions for every supported model family",
+        "parameterized": false,
+        "status": "pending_assertion_mapping",
+        "rust_tests": [],
+        "shared_cases": [],
+        "evidence": null,
+        "related_components": [
+          "evaluators"
+        ]
+      },
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#all_six_claude_shapes_route_across_four_original_model_tags"
+      ],
+      "shared_cases": [
+        "baseline-ollama-routing-1-1",
+        "baseline-ollama-routing-1-2",
+        "baseline-ollama-routing-1-3",
+        "baseline-ollama-routing-1-4",
+        "baseline-ollama-routing-1-5",
+        "baseline-ollama-routing-1-6",
+        "baseline-ollama-routing-1-7",
+        "baseline-ollama-routing-1-8",
+        "baseline-ollama-routing-1-9",
+        "baseline-ollama-routing-1-10",
+        "baseline-ollama-routing-1-11",
+        "baseline-ollama-routing-1-12",
+        "baseline-ollama-routing-1-13",
+        "baseline-ollama-routing-1-14",
+        "baseline-ollama-routing-1-15",
+        "baseline-ollama-routing-1-16",
+        "baseline-ollama-routing-1-17",
+        "baseline-ollama-routing-1-18",
+        "baseline-ollama-routing-1-19",
+        "baseline-ollama-routing-1-20",
+        "baseline-ollama-routing-1-21",
+        "baseline-ollama-routing-1-22",
+        "baseline-ollama-routing-1-23",
+        "baseline-ollama-routing-1-24"
+      ],
+      "scenarios": 24,
+      "router_instances": 24,
+      "route_calls": 24,
+      "requests": 48,
+      "static_assertions": 6,
+      "direct_executed_original_assertions": 124,
+      "helper_executed_original_assertions": 336,
+      "assertions": [
+        {
+          "line": 50,
+          "expression": "assert.equal(result.model, config.models[item.expected], `${model}/${item.id}`)",
+          "sha256": "e3d681bec1c75dd06e068b6fa806bee95b0ef68cf7f9f57941acb0ee5999ad52",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#all_six_claude_shapes_route_across_four_original_model_tags"
+          ],
+          "shared_cases": [
+            "baseline-ollama-routing-1-1",
+            "baseline-ollama-routing-1-2",
+            "baseline-ollama-routing-1-3",
+            "baseline-ollama-routing-1-4",
+            "baseline-ollama-routing-1-5",
+            "baseline-ollama-routing-1-6",
+            "baseline-ollama-routing-1-7",
+            "baseline-ollama-routing-1-8",
+            "baseline-ollama-routing-1-9",
+            "baseline-ollama-routing-1-10",
+            "baseline-ollama-routing-1-11",
+            "baseline-ollama-routing-1-12",
+            "baseline-ollama-routing-1-13",
+            "baseline-ollama-routing-1-14",
+            "baseline-ollama-routing-1-15",
+            "baseline-ollama-routing-1-16",
+            "baseline-ollama-routing-1-17",
+            "baseline-ollama-routing-1-18",
+            "baseline-ollama-routing-1-19",
+            "baseline-ollama-routing-1-20",
+            "baseline-ollama-routing-1-21",
+            "baseline-ollama-routing-1-22",
+            "baseline-ollama-routing-1-23",
+            "baseline-ollama-routing-1-24"
+          ],
+          "native_check": "Exact full result equality for all24 source model/fixture pairs preserves selected model; source config is reconstructed through model-dependent read_config defaults and fully compared.",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "all_six_claude_shapes_route_across_four_original_model_tags",
+              "line": 137
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "replay",
+              "line": 102
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "matches",
+              "line": 98
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+              "function": "verified",
+              "line": 205
+            }
+          ]
+        },
+        {
+          "line": 51,
+          "expression": "assert.equal(result.classified_tier, item.expected)",
+          "sha256": "1ced4b259133f256c92412b3c3f71e34471d62605083014b00163177fd229d91",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#all_six_claude_shapes_route_across_four_original_model_tags"
+          ],
+          "shared_cases": [
+            "baseline-ollama-routing-1-1",
+            "baseline-ollama-routing-1-2",
+            "baseline-ollama-routing-1-3",
+            "baseline-ollama-routing-1-4",
+            "baseline-ollama-routing-1-5",
+            "baseline-ollama-routing-1-6",
+            "baseline-ollama-routing-1-7",
+            "baseline-ollama-routing-1-8",
+            "baseline-ollama-routing-1-9",
+            "baseline-ollama-routing-1-10",
+            "baseline-ollama-routing-1-11",
+            "baseline-ollama-routing-1-12",
+            "baseline-ollama-routing-1-13",
+            "baseline-ollama-routing-1-14",
+            "baseline-ollama-routing-1-15",
+            "baseline-ollama-routing-1-16",
+            "baseline-ollama-routing-1-17",
+            "baseline-ollama-routing-1-18",
+            "baseline-ollama-routing-1-19",
+            "baseline-ollama-routing-1-20",
+            "baseline-ollama-routing-1-21",
+            "baseline-ollama-routing-1-22",
+            "baseline-ollama-routing-1-23",
+            "baseline-ollama-routing-1-24"
+          ],
+          "native_check": "Exact classified_tier in complete result for every original source fixture and model.",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "all_six_claude_shapes_route_across_four_original_model_tags",
+              "line": 137
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "replay",
+              "line": 102
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "matches",
+              "line": 98
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+              "function": "verified",
+              "line": 205
+            }
+          ]
+        },
+        {
+          "line": 52,
+          "expression": "assert.equal(result.source, 'ollama')",
+          "sha256": "6771833cb80721cec1f3d0708472977878f60cda285e039792a40dbe4a2de8f6",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#all_six_claude_shapes_route_across_four_original_model_tags"
+          ],
+          "shared_cases": [
+            "baseline-ollama-routing-1-1",
+            "baseline-ollama-routing-1-2",
+            "baseline-ollama-routing-1-3",
+            "baseline-ollama-routing-1-4",
+            "baseline-ollama-routing-1-5",
+            "baseline-ollama-routing-1-6",
+            "baseline-ollama-routing-1-7",
+            "baseline-ollama-routing-1-8",
+            "baseline-ollama-routing-1-9",
+            "baseline-ollama-routing-1-10",
+            "baseline-ollama-routing-1-11",
+            "baseline-ollama-routing-1-12",
+            "baseline-ollama-routing-1-13",
+            "baseline-ollama-routing-1-14",
+            "baseline-ollama-routing-1-15",
+            "baseline-ollama-routing-1-16",
+            "baseline-ollama-routing-1-17",
+            "baseline-ollama-routing-1-18",
+            "baseline-ollama-routing-1-19",
+            "baseline-ollama-routing-1-20",
+            "baseline-ollama-routing-1-21",
+            "baseline-ollama-routing-1-22",
+            "baseline-ollama-routing-1-23",
+            "baseline-ollama-routing-1-24"
+          ],
+          "native_check": "Exact source=ollama in complete result;24 fresh native Routers mirror source instances.",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "all_six_claude_shapes_route_across_four_original_model_tags",
+              "line": 137
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "replay",
+              "line": 102
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "matches",
+              "line": 98
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+              "function": "verified",
+              "line": 205
+            }
+          ]
+        },
+        {
+          "line": 53,
+          "expression": "assert.equal(result.reason, 'classified')",
+          "sha256": "7c5ebf5a4868e39cf4320da2364953dd9a7e8ee2c4da05b296d4d96c4de6ca11",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#all_six_claude_shapes_route_across_four_original_model_tags"
+          ],
+          "shared_cases": [
+            "baseline-ollama-routing-1-1",
+            "baseline-ollama-routing-1-2",
+            "baseline-ollama-routing-1-3",
+            "baseline-ollama-routing-1-4",
+            "baseline-ollama-routing-1-5",
+            "baseline-ollama-routing-1-6",
+            "baseline-ollama-routing-1-7",
+            "baseline-ollama-routing-1-8",
+            "baseline-ollama-routing-1-9",
+            "baseline-ollama-routing-1-10",
+            "baseline-ollama-routing-1-11",
+            "baseline-ollama-routing-1-12",
+            "baseline-ollama-routing-1-13",
+            "baseline-ollama-routing-1-14",
+            "baseline-ollama-routing-1-15",
+            "baseline-ollama-routing-1-16",
+            "baseline-ollama-routing-1-17",
+            "baseline-ollama-routing-1-18",
+            "baseline-ollama-routing-1-19",
+            "baseline-ollama-routing-1-20",
+            "baseline-ollama-routing-1-21",
+            "baseline-ollama-routing-1-22",
+            "baseline-ollama-routing-1-23",
+            "baseline-ollama-routing-1-24"
+          ],
+          "native_check": "Exact reason=classified in full result.",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "all_six_claude_shapes_route_across_four_original_model_tags",
+              "line": 137
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "replay",
+              "line": 102
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "matches",
+              "line": 98
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+              "function": "verified",
+              "line": 205
+            }
+          ]
+        },
+        {
+          "line": 54,
+          "expression": "assert.equal(result.classifier_error, undefined)",
+          "sha256": "7496907dfea985d325cffac653511896ea584ad917efb7109fb22c23296c54a4",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#all_six_claude_shapes_route_across_four_original_model_tags"
+          ],
+          "shared_cases": [
+            "baseline-ollama-routing-1-1",
+            "baseline-ollama-routing-1-2",
+            "baseline-ollama-routing-1-3",
+            "baseline-ollama-routing-1-4",
+            "baseline-ollama-routing-1-5",
+            "baseline-ollama-routing-1-6",
+            "baseline-ollama-routing-1-7",
+            "baseline-ollama-routing-1-8",
+            "baseline-ollama-routing-1-9",
+            "baseline-ollama-routing-1-10",
+            "baseline-ollama-routing-1-11",
+            "baseline-ollama-routing-1-12",
+            "baseline-ollama-routing-1-13",
+            "baseline-ollama-routing-1-14",
+            "baseline-ollama-routing-1-15",
+            "baseline-ollama-routing-1-16",
+            "baseline-ollama-routing-1-17",
+            "baseline-ollama-routing-1-18",
+            "baseline-ollama-routing-1-19",
+            "baseline-ollama-routing-1-20",
+            "baseline-ollama-routing-1-21",
+            "baseline-ollama-routing-1-22",
+            "baseline-ollama-routing-1-23",
+            "baseline-ollama-routing-1-24"
+          ],
+          "native_check": "Complete object comparison requires classifier_error to remain absent; undefined is represented as absent JSON field, without a JS property identity claim.",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "all_six_claude_shapes_route_across_four_original_model_tags",
+              "line": 137
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "replay",
+              "line": 102
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "matches",
+              "line": 98
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+              "function": "verified",
+              "line": 205
+            }
+          ]
+        },
+        {
+          "line": 56,
+          "expression": "assert.equal(fixture.calls.filter(call => call.path === '/v1/systemone').length, cases.length)",
+          "sha256": "60a8a0c3e4ec48db0a5accb47020245f90b95064b0a3c299024a019a561d7f57",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#all_six_claude_shapes_route_across_four_original_model_tags"
+          ],
+          "shared_cases": [
+            "baseline-ollama-routing-1-1",
+            "baseline-ollama-routing-1-2",
+            "baseline-ollama-routing-1-3",
+            "baseline-ollama-routing-1-4",
+            "baseline-ollama-routing-1-5",
+            "baseline-ollama-routing-1-6",
+            "baseline-ollama-routing-1-7",
+            "baseline-ollama-routing-1-8",
+            "baseline-ollama-routing-1-9",
+            "baseline-ollama-routing-1-10",
+            "baseline-ollama-routing-1-11",
+            "baseline-ollama-routing-1-12",
+            "baseline-ollama-routing-1-13",
+            "baseline-ollama-routing-1-14",
+            "baseline-ollama-routing-1-15",
+            "baseline-ollama-routing-1-16",
+            "baseline-ollama-routing-1-17",
+            "baseline-ollama-routing-1-18",
+            "baseline-ollama-routing-1-19",
+            "baseline-ollama-routing-1-20",
+            "baseline-ollama-routing-1-21",
+            "baseline-ollama-routing-1-22",
+            "baseline-ollama-routing-1-23",
+            "baseline-ollama-routing-1-24"
+          ],
+          "native_check": "Each of24 rows verifies one metadata and one inference request, exact path and full raw/parsed body; cumulative48 calls and grouping of six fixture rows per model establishes exactly six inference calls for every model.",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "all_six_claude_shapes_route_across_four_original_model_tags",
+              "line": 137
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "replay",
+              "line": 102
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "matches",
+              "line": 98
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+              "function": "verified",
+              "line": 205
+            }
+          ]
+        }
+      ],
+      "unmapped_assertions": [],
+      "scope": "Finite original callback and localFixture contract only; all original route options and per-instance history retained. Excludes timed, streamed/cancelled, provider completion, real model and OS behavior."
+    },
+    {
+      "id": "test/ollama-routing.test.mjs#2",
+      "file": "test/ollama-routing.test.mjs",
+      "name": "new human prompts in one session may move from Sonnet to Opus to Haiku without stale turn pinning",
+      "line": 60,
+      "baseline_file_sha256": "a32e4cf40d44971fc7f720058e7cedc444977753b9b2d3d8f65db7841511513b",
+      "definition_statement": "test('new human prompts in one session may move from Sonnet to Opus to Haiku without stale turn pinning', async () => {\n  const config = configFor(MODELS[1]);\n  const fixture = localFixture(config);\n  const router = new Router(config, { fetchImpl: fixture.fetchImpl });\n  let body;\n  for (const [index, id] of ['bounded-feature', 'distributed-fencing', 'array-length'].entries()) {\n    const item = byId(id);\n    const current = buildRoutingRequest(item, config);\n    body = body ? { ...current, messages: [...body.messages, { role: 'assistant', content: 'Synthetic task completed.' }, current.messages.at(-1)] } : current;\n    const result = await router.route(body, { scope: 'one-session', promptId: `human-${index}`, requestClass: 'main' });\n    assert.equal(result.source, 'ollama');\n    assert.equal(result.classified_tier, item.expected);\n    assert.equal(result.model, config.models[item.expected]);\n    assert.equal(result.reason, 'classified');\n  }\n  assert.equal(fixture.calls.filter(call => call.path === '/v1/systemone').length, 3);\n});",
+      "definition_sha256": "623740b96ab73896c4323205bf8d93e0456896a09b0d04365c6a8deea8a25025",
+      "definition_call_sha256": "7f33da1682471fccf1838830fe26ee190d6d9e5b7a539080010116f72b7139c2",
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments and whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "previous_row": {
+        "id": "test/ollama-routing.test.mjs#2",
+        "file": "test/ollama-routing.test.mjs",
+        "name": "new human prompts in one session may move from Sonnet to Opus to Haiku without stale turn pinning",
+        "parameterized": false,
+        "status": "pending_assertion_mapping",
+        "rust_tests": [],
+        "shared_cases": [],
+        "evidence": null,
+        "related_components": [
+          "evaluators"
+        ]
+      },
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#same_router_switches_human_turns_from_sonnet_to_opus_to_haiku"
+      ],
+      "shared_cases": [
+        "baseline-ollama-routing-2-1"
+      ],
+      "scenarios": 1,
+      "router_instances": 1,
+      "route_calls": 3,
+      "requests": 6,
+      "static_assertions": 5,
+      "direct_executed_original_assertions": 13,
+      "helper_executed_original_assertions": 42,
+      "assertions": [
+        {
+          "line": 70,
+          "expression": "assert.equal(result.source, 'ollama')",
+          "sha256": "6771833cb80721cec1f3d0708472977878f60cda285e039792a40dbe4a2de8f6",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#same_router_switches_human_turns_from_sonnet_to_opus_to_haiku"
+          ],
+          "shared_cases": [
+            "baseline-ollama-routing-2-1"
+          ],
+          "native_check": "Complete result requires fresh source=ollama on all three distinct human tasks using one actual Router.",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "same_router_switches_human_turns_from_sonnet_to_opus_to_haiku",
+              "line": 141
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "replay",
+              "line": 102
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "matches",
+              "line": 98
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+              "function": "verified",
+              "line": 205
+            }
+          ]
+        },
+        {
+          "line": 71,
+          "expression": "assert.equal(result.classified_tier, item.expected)",
+          "sha256": "1ced4b259133f256c92412b3c3f71e34471d62605083014b00163177fd229d91",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#same_router_switches_human_turns_from_sonnet_to_opus_to_haiku"
+          ],
+          "shared_cases": [
+            "baseline-ollama-routing-2-1"
+          ],
+          "native_check": "Complete result requires the source Sonnet/Opus/Haiku classified tier sequence.",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "same_router_switches_human_turns_from_sonnet_to_opus_to_haiku",
+              "line": 141
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "replay",
+              "line": 102
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "matches",
+              "line": 98
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+              "function": "verified",
+              "line": 205
+            }
+          ]
+        },
+        {
+          "line": 72,
+          "expression": "assert.equal(result.model, config.models[item.expected])",
+          "sha256": "ac0debeb68ca538603fb735c86c95ff1acd2fc9053f2104aa7b51bc8734fbf85",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#same_router_switches_human_turns_from_sonnet_to_opus_to_haiku"
+          ],
+          "shared_cases": [
+            "baseline-ollama-routing-2-1"
+          ],
+          "native_check": "Complete result requires the source corresponding model sequence, with no stale prior-turn selection.",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "same_router_switches_human_turns_from_sonnet_to_opus_to_haiku",
+              "line": 141
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "replay",
+              "line": 102
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "matches",
+              "line": 98
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+              "function": "verified",
+              "line": 205
+            }
+          ]
+        },
+        {
+          "line": 73,
+          "expression": "assert.equal(result.reason, 'classified')",
+          "sha256": "7c5ebf5a4868e39cf4320da2364953dd9a7e8ee2c4da05b296d4d96c4de6ca11",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#same_router_switches_human_turns_from_sonnet_to_opus_to_haiku"
+          ],
+          "shared_cases": [
+            "baseline-ollama-routing-2-1"
+          ],
+          "native_check": "Full equality preserves reason=classified on each original same-session task.",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "same_router_switches_human_turns_from_sonnet_to_opus_to_haiku",
+              "line": 141
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "replay",
+              "line": 102
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "matches",
+              "line": 98
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+              "function": "verified",
+              "line": 205
+            }
+          ]
+        },
+        {
+          "line": 75,
+          "expression": "assert.equal(fixture.calls.filter(call => call.path === '/v1/systemone').length, 3)",
+          "sha256": "4a7dbe7f5fe24b16c16a7551bf5d09f7bab6683a1f07a703bea3560bb1393ea1",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#same_router_switches_human_turns_from_sonnet_to_opus_to_haiku"
+          ],
+          "shared_cases": [
+            "baseline-ollama-routing-2-1"
+          ],
+          "native_check": "One source/native Router across three steps consumes exactly three metadata and three inference requests; per-step/cumulative call counters and full queue enforce exactly three inference calls.",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "same_router_switches_human_turns_from_sonnet_to_opus_to_haiku",
+              "line": 141
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "replay",
+              "line": 102
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "matches",
+              "line": 98
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+              "function": "verified",
+              "line": 205
+            }
+          ]
+        }
+      ],
+      "unmapped_assertions": [],
+      "scope": "Finite original callback and localFixture contract only; all original route options and per-instance history retained. Excludes timed, streamed/cancelled, provider completion, real model and OS behavior."
+    },
+    {
+      "id": "test/ollama-routing.test.mjs#4",
+      "file": "test/ollama-routing.test.mjs",
+      "name": "signed thinking preserves the earlier model while exposing the fresh classifier choice",
+      "line": 105,
+      "baseline_file_sha256": "a32e4cf40d44971fc7f720058e7cedc444977753b9b2d3d8f65db7841511513b",
+      "definition_statement": "test('signed thinking preserves the earlier model while exposing the fresh classifier choice', async () => {\n  const config = configFor(MODELS[0]);\n  const fixture = localFixture(config);\n  const router = new Router(config, { fetchImpl: fixture.fetchImpl });\n  const initial = buildRoutingRequest(byId('bounded-feature'), config);\n  await router.route(initial, { scope: 'thinking-session' });\n  const simple = buildRoutingRequest(byId('array-length'), config);\n  const result = await router.route({ ...simple, messages: [...initial.messages,\n    { role: 'assistant', content: [{ type: 'thinking', thinking: 'PRIVATE_THINKING', signature: 'PRIVATE_THINKING_SIGNATURE' }, { type: 'text', text: 'Done.' }] },\n    simple.messages.at(-1),\n  ] }, { scope: 'thinking-session' });\n  assert.deepEqual([result.source, result.classified_tier, result.model, result.reason], ['ollama', 'haiku', config.models.sonnet, 'thinking_history']);\n});",
+      "definition_sha256": "2822b321374a7ca4ce187ad701df57c145b2de9063c233f739bea6fe53a50e78",
+      "definition_call_sha256": "ff1f01686f7349a59de7beed131280c745b34eda610ec503d159aa830f2b9306",
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments and whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "previous_row": {
+        "id": "test/ollama-routing.test.mjs#4",
+        "file": "test/ollama-routing.test.mjs",
+        "name": "signed thinking preserves the earlier model while exposing the fresh classifier choice",
+        "parameterized": false,
+        "status": "pending_assertion_mapping",
+        "rust_tests": [],
+        "shared_cases": [],
+        "evidence": null,
+        "related_components": [
+          "evaluators"
+        ]
+      },
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#signed_thinking_retains_sonnet_while_exposing_fresh_haiku_classification"
+      ],
+      "shared_cases": [
+        "baseline-ollama-routing-4-1"
+      ],
+      "scenarios": 1,
+      "router_instances": 1,
+      "route_calls": 2,
+      "requests": 4,
+      "static_assertions": 1,
+      "direct_executed_original_assertions": 1,
+      "helper_executed_original_assertions": 28,
+      "assertions": [
+        {
+          "line": 116,
+          "expression": "assert.deepEqual([result.source, result.classified_tier, result.model, result.reason], ['ollama', 'haiku', config.models.sonnet, 'thinking_history'])",
+          "sha256": "7022629449554d56728221096663bc900304e0163057187d7ad473029731e11e",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#signed_thinking_retains_sonnet_while_exposing_fresh_haiku_classification"
+          ],
+          "shared_cases": [
+            "baseline-ollama-routing-4-1"
+          ],
+          "native_check": "Same actual Router preserves initial Sonnet selection. Second complete result requires source=ollama, classified_tier=haiku, selected Sonnet and reason=thinking_history despite the new simple task; full input history/options and state request preserved.",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "signed_thinking_retains_sonnet_while_exposing_fresh_haiku_classification",
+              "line": 145
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "replay",
+              "line": 102
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs",
+              "function": "matches",
+              "line": 98
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing.rs",
+              "function": "verified",
+              "line": 205
+            }
+          ]
+        }
+      ],
+      "unmapped_assertions": [],
+      "scope": "Finite original callback and localFixture contract only; all original route options and per-instance history retained. Excludes timed, streamed/cancelled, provider completion, real model and OS behavior."
+    }
+  ],
+  "input_coverage": {
+    "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+    "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+    "bytes": 1434838,
+    "original_path": "rust/parity/coverage.json"
+  },
+  "scope": "Three complete finite definitions:26 original Routers,29routes,58requests and544executed original assertions. Exact model-dependent config, full request/result and same-instance task/thinking continuity; no real classification or completion claim.",
+  "status": "Reviewed finite assertion mapping; complete rewrite qualification remains open.",
+  "review": {
+    "proposal": {
+      "path": "artifacts/rust-rewrite/evidence/61196bda4d39f2ce3b6c704e594c91819062f7cafe1792b9a62eaea6a532d6ac.json",
+      "sha256": "61196bda4d39f2ce3b6c704e594c91819062f7cafe1792b9a62eaea6a532d6ac",
+      "bytes": 78780,
+      "original_path": "/private/tmp/autorouter-ollama-routing-mapping-proposal.json"
+    },
+    "review": {
+      "path": "artifacts/rust-rewrite/evidence/193658b94d3e0de3dbde428d4c627f95cf37558c857dad87f06bcd6c6bcb0aa4.json",
+      "sha256": "193658b94d3e0de3dbde428d4c627f95cf37558c857dad87f06bcd6c6bcb0aa4",
+      "bytes": 12803,
+      "original_path": "/private/tmp/autorouter-ollama-routing-root-review.json"
+    },
+    "independent_review": {
+      "path": "artifacts/rust-rewrite/evidence/692b58344b0326c1b19cf34599807ca0567368851934af718f644851ba1a3fc2.json",
+      "sha256": "692b58344b0326c1b19cf34599807ca0567368851934af718f644851ba1a3fc2",
+      "bytes": 15116,
+      "original_path": "/private/tmp/autorouter-ollama-routing-independent-review-2.json"
+    }
+  },
+  "previous_coverage_rows": [
+    {
+      "id": "test/ollama-routing.test.mjs#1",
+      "file": "test/ollama-routing.test.mjs",
+      "name": "Claude-shaped requests preserve native Haiku, Sonnet and Opus decisions for every supported model family",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators"
+      ]
+    },
+    {
+      "id": "test/ollama-routing.test.mjs#2",
+      "file": "test/ollama-routing.test.mjs",
+      "name": "new human prompts in one session may move from Sonnet to Opus to Haiku without stale turn pinning",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators"
+      ]
+    },
+    {
+      "id": "test/ollama-routing.test.mjs#4",
+      "file": "test/ollama-routing.test.mjs",
+      "name": "signed thinking preserves the earlier model while exposing the fresh classifier choice",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators"
+      ]
+    }
+  ]
+}

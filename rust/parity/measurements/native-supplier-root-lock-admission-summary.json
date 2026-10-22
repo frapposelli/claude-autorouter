@@ -1,0 +1,168 @@
+{
+  "schema_version": 1,
+  "kind": "native_supplier_root_lock_admission_correction",
+  "recorded_date": "2026-10-21",
+  "scope": "Refresh the exact reviewed workspace lock pin after an existing test-only flate2 edge. No supplier/version/standalone-lock/rejection-policy or shipping behavior change.",
+  "source": {
+    "base_commit": "9da190e54dd552ca5b0c8df1e4f67fd9453d31d9",
+    "snapshot": {
+      "path": "artifacts/rust-rewrite/supplier-root-lock-regression-correction-validation-20261021-1/source-candidate-v1.json",
+      "bytes": 124925,
+      "sha256": "972359a2aaf550a40cd391b62032a266bb3cea0152956443a7eb919668579e34"
+    },
+    "inputs": 733,
+    "raw_input_bytes": 29551708,
+    "changed_input": "rust/xtask/src/supplier_units.rs",
+    "frozen_inputs": 111
+  },
+  "failure_evidence": {
+    "remote_head": "9da190e54dd552ca5b0c8df1e4f67fd9453d31d9",
+    "checks_successful": 10,
+    "checks_failed": 4,
+    "workflows_successful": 4,
+    "workflows_total": 5,
+    "attempts": 1,
+    "all_failed_steps": "Admit exact supplier harness before developer dependency fetch",
+    "metadata_review": {
+      "path": "artifacts/rust-rewrite/ci-9da190e-readonly-audit-20261021-1/final-metadata-review.json",
+      "bytes": 14137,
+      "sha256": "5ed4c813ba32778fdbcc5cdf18a2c64dc3343b08c941ba335d7f08ec355b8a0d"
+    },
+    "one_job_log_owner": {
+      "path": "artifacts/rust-rewrite/ci-9da190e-readonly-audit-20261021-1/root-failed-step-log/owner.json",
+      "bytes": 641,
+      "sha256": "cbe4b29e578a51562bd016f438ccae1876fa0b4e7670b59aafbfff5b395d1775"
+    },
+    "one_job_log_stdout": {
+      "path": "artifacts/rust-rewrite/ci-9da190e-readonly-audit-20261021-1/root-failed-step-log/stdout",
+      "bytes": 60850,
+      "sha256": "487ed9774c648420e9f04601236ce32b4ff3845ecdb5385a54e65e8864b60501"
+    },
+    "log_scope": "One failed Ubuntu job requested with --log-failed; gh returned60850bytes including unknown-step context. No artifact payloads downloaded. Other three failures verified at step-metadata scope.",
+    "observed_one_job_error": "Supplier harness or authoritative lock drift requires explicit review",
+    "local_same_error_reproduced": {
+      "path": "artifacts/rust-rewrite/supplier-root-lock-admission-validation-20261021-1/bootstrap-before-admission.json",
+      "bytes": 1110,
+      "sha256": "f531b2572650c18a371e4a2b84ab8b1d470fdde3f20ccb2bbff1c58fe2c156f4"
+    },
+    "local_actual_no_feature_binary": {
+      "path": "artifacts/rust-rewrite/supplier-root-lock-admission-validation-20261021-1/retained/bootstrap-before",
+      "bytes": 7506352,
+      "sha256": "89b1d36a8ffdf63a4dd4ff6be5c619ffa076b8f1dc945f6b3c1cab666e0c75c5"
+    }
+  },
+  "reviewed_delta": {
+    "old_root_lock_sha256": "014088b4b3e5123311b1115193e7c6c7b0fa3cbfe5c7a036106956dad066d36a",
+    "new_root_lock_sha256": "f2386ebbff8a5d0fe41397f964d32b136a9c3f95cdd010715542f7c4ddc6f7b1",
+    "lock_bytes_added": 11,
+    "only_edge": "Existing flate2 package added under autorouter-runtime, manifest edge in dev-dependencies. All167 package identities/versions otherwise unchanged.",
+    "supplier_standalone_manifest_sha256": "762fb2b96019266f88da8e4ba577c18d14a3a31a4470c0d4181c005b5ddb30c2",
+    "supplier_standalone_lock_sha256": "90694215b6d2d8d5eb06bae5c7fa7f6334e8989de663d611017cc4c611bac7e3",
+    "original_vendor_lock_sha256": "710c8e66450a426af6e2fdf69871c2e3f8860924c75da8ed868439c73bf2137b",
+    "vendor_provenance_files_unchanged": 114,
+    "unique_pinned_paths": 121,
+    "pin_checks": 122,
+    "review": {
+      "path": "artifacts/rust-rewrite/supplier-root-lock-regression-correction-validation-20261021-1/independent-admission-review-v1.json",
+      "bytes": 13626,
+      "sha256": "4f829c9cdc68d7343ba90ba9e49eb432d0103b29464ec479f9adce4efc1b17da"
+    }
+  },
+  "regression": {
+    "name": "supplier_units::tests::current_harness_admits_reviewed_locks_and_rejects_each_authoritative_lock_change",
+    "positive": "Admit current checkout, copy every admitted file and preserve exact resulting pins.",
+    "negative": "Append valid TOML whitespace to each isolated authoritative manifest/lock; require exact existing guard rejection, restore and re-admit. Vendor original lock rejects earlier through provenance; other three reject the authoritative-lock gate.",
+    "count_added_to_complete_workspace": 1,
+    "AA_expected_error_failure_retained": {
+      "path": "artifacts/rust-rewrite/supplier-root-lock-admission-validation-20261021-1/regression-expectation-failure-retention.json",
+      "bytes": 1812,
+      "sha256": "e1fb364b7ca153a79f309e086f317bad1ac685c15f844764ec0fae3de7bd8434"
+    },
+    "AA_qualification": "New test initially expected the later guard message for the vendor lock; production rejection was correct. Only this new expectation was corrected."
+  },
+  "actual_bootstrap": {
+    "identity": {
+      "path": "artifacts/rust-rewrite/supplier-root-lock-regression-correction-validation-20261021-1/bootstrap-artifact-identity.json",
+      "bytes": 2376,
+      "sha256": "b05902f51dbd3ab4baea6096267f3139bf17a9def157974503dfd0780c4db9f8"
+    },
+    "binary": {
+      "path": "artifacts/rust-rewrite/supplier-root-lock-regression-correction-validation-20261021-1/retained/bootstrap-auditor",
+      "bytes": 7506352,
+      "sha256": "d62f661dc1c5a8d928270f9e1cc6ae51250cf2e0e76943839abc93ca52ceeedb"
+    },
+    "profile": {
+      "opt_level": "0",
+      "debuginfo": 0,
+      "debug_assertions": true,
+      "overflow_checks": true,
+      "test": false
+    },
+    "features": [],
+    "cargo_fresh": false,
+    "bootstrap_proof": {
+      "path": "artifacts/rust-rewrite/supplier-root-lock-regression-correction-validation-20261021-1/bootstrap-proof-pinned.json",
+      "bytes": 1626,
+      "sha256": "893ef9219227471d50c0bd921fa30795ca8ac0a67f1c667627f98b4b791b16e6"
+    },
+    "supplier_admission": {
+      "path": "artifacts/rust-rewrite/supplier-root-lock-regression-correction-validation-20261021-1/supplier-admission-pinned.json",
+      "bytes": 1481,
+      "sha256": "415cb35ee85f6d7c808979d76874900a0e941fb7cbb82ca2c552859401a8dff0"
+    },
+    "vendor_audit": {
+      "path": "artifacts/rust-rewrite/supplier-root-lock-regression-correction-validation-20261021-1/vendor-all-pinned.json",
+      "bytes": 1443,
+      "sha256": "93c8658f9b9243a9410f52edccb45d9c4b15f9311c5292470abcc90d97577668"
+    },
+    "production_feature_selftest": {
+      "path": "artifacts/rust-rewrite/supplier-root-lock-regression-correction-validation-20261021-1/production-feature-selftest-pinned.json",
+      "bytes": 1493,
+      "sha256": "a9d6a12cc86cc0f0b397eac397a20163798e271e7e147a0c709f1276e5b8d732"
+    },
+    "all_exit0": true,
+    "bootstrap_excludes_runtime_and_inspected_dependencies": true,
+    "retained_artifact_authoritative": "Mutable target path was later overwritten by default-feature builds; do not reassert historical path bytes.",
+    "setup_failures_retained": [
+      "Earlier default-feature stub correctly refused bootstrap use.",
+      "Direct proof without pinned Cargo cache could not resolve offline supplier; unchanged retained binary succeeds through pinned launcher."
+    ]
+  },
+  "current_checks": {
+    "workspace": {
+      "passed": 1649,
+      "failed": 0,
+      "ignored": 11,
+      "complete_groups": 66
+    },
+    "all_previous_Z_named_outcomes_preserved": 1659,
+    "new_passes": 1,
+    "auditor_tests": {
+      "passed": 35,
+      "failed": 0,
+      "ignored": 0
+    },
+    "strict_no_default_clippy_exit": 0,
+    "strict_workspace_clippy_exit": 0,
+    "fmt_exit": 0,
+    "node_static_files": 98,
+    "node_passes": 645,
+    "node_failures": 0,
+    "package_safe_files": 58,
+    "package_synthetic_installed_scenarios": 17,
+    "all_owners_no_failure_or_input_drift": true,
+    "conditions": "Synthetic local tools/mocks; pinned offline toolchain and existing cache; Node ordinary children umask022. No provider/evaluator/model download or user configuration access."
+  },
+  "archive_scope": "Current fullworkspace archive cases pass. The separate32-call CLI checkpoint belongs to prior9da/sourceZ and is not relabeled current; codecs/limits and payload accounting unchanged. No new exported/final artifact is qualified by this CI correction.",
+  "remaining": {
+    "successor_CI_pending": true,
+    "original_whole_session_idle_failures_unresolved": true,
+    "broader_areas_still_partial": 13,
+    "original_accepted_definitions": 588,
+    "accepted_limits": 53,
+    "accepted_keys": 27,
+    "counts_promoted": false,
+    "release_approved": false,
+    "default_cutover_approved": false
+  }
+}

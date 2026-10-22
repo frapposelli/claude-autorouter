@@ -1,0 +1,278 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "kind": "complete_frozen_routing_compatibility_schedules",
+  "baseline": {
+    "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+    "files_verified": 111
+  },
+  "node": {
+    "version": "v22.14.0",
+    "sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0"
+  },
+  "generator_sha256": "6cfb938694c948f00512a50eb3d68e9f03e99eaff700b8638bb4c5ce73754abb",
+  "baseline_file_sha256": "54007c625ab9227cc79c22e33738742d46373723cc51ddd103bede948808fa0a",
+  "helpers": [
+    {
+      "statement": "const token = 'compatibility-test-local-token';",
+      "sha256": "1817338188475f1e5476f1fc6f5749749ddd1fe6dcbea8c3191d6a57b867ffea"
+    },
+    {
+      "statement": "const config = profile => readConfig({ AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_CLIENT_PROFILE: profile,\n  AUTOROUTER_SONNET_MODEL: 'claude-sonnet-5-5', AUTOROUTER_OPUS_MODEL: 'claude-opus-5-5',\n  ANTHROPIC_API_KEY: 'synthetic-upstream-key', TYPESAFE_API_KEY: 'synthetic-classifier-key' });",
+      "sha256": "811e1c1a2484256d5e9da01040df16edfd6ca9bb11ef2337c7a39ce046198e7d"
+    },
+    {
+      "statement": "const answer = choice => Response.json({ answers: { tier: { choice, confidence: 0.99 } } });",
+      "sha256": "2bd8ccb1f3d0082b1406676ecaa42f41f7ea0c3e88f12812a27f0f704f05a261"
+    },
+    {
+      "statement": "const request = (profile, extra = {}) => ({\n  model: profile === 'auto' ? 'claude-sonnet-5' : 'claude-haiku-4-5-20251001',\n  max_tokens: 4096, thinking: { type: 'disabled' },\n  messages: [{ role: 'user', content: 'Read the synthetic test file.' }],\n  tools: [{ name: 'Read', input_schema: { type: 'object', properties: {} } }], ...extra,\n});",
+      "sha256": "5e6772ef919479a7481937a1bb9d3f1d4680ec6524e8f24ee7a0321438cdb8c3"
+    },
+    {
+      "statement": "async function gateway(t, profile = 'compatible') {\n  const received = [], logs = [];\n  let evaluations = 0, counts = 0;\n  const upstream = http.createServer(async (req, res) => {\n    let raw = ''; for await (const chunk of req) raw += chunk;\n    const body = JSON.parse(raw);\n    received.push({ body, headers: req.headers, path: req.url });\n    res.writeHead(200, { 'content-type': 'application/json', 'request-id': 'synthetic-upstream-id' });\n    res.end(JSON.stringify({ type: 'message', role: 'assistant', model: body.model,\n      content: [{ type: 'text', text: 'Synthetic response.' }], stop_reason: 'end_turn',\n      usage: { input_tokens: 10, output_tokens: 4 } }));\n  });\n  t.after(() => { upstream.closeAllConnections(); upstream.close(); });\n  const upstreamAddress = await listen(upstream, 0);\n  const c = { ...config(profile), localToken: token, upstream: `http://127.0.0.1:${upstreamAddress.port}` };\n  const router = new Router(c, { fetchImpl: async () => { evaluations++; return answer('opus'); } });\n  const server = createRouterServer(c, { router, log: entry => logs.push(entry),\n    tokenCounter: async () => { counts++; return 100; } });\n  t.after(() => { server.closeAllConnections(); server.close(); });\n  const address = await listen(server, 0);\n  return { received, logs, evaluations: () => evaluations, counts: () => counts,\n    send: (body, path = '/v1/messages') => fetch(`http://127.0.0.1:${address.port}${path}`, {\n      method: 'POST', headers: { 'x-api-key': token, 'content-type': 'application/json',\n        'anthropic-beta': 'synthetic-future-beta', 'x-claude-code-session-id': 'synthetic-session' },\n      body: JSON.stringify(body),\n    }) };\n}",
+      "sha256": "b444f2ab8d9e719fea158cf2f0dbf6562c1a44f40aec42caef3ffa74e58de935"
+    }
+  ],
+  "definitions": [
+    {
+      "number": 2,
+      "id": "test/routing-compatibility.test.mjs#2",
+      "name": "gateway preserves forced tool bodies and headers in compatible, native and Auto profiles",
+      "statement": "test('gateway preserves forced tool bodies and headers in compatible, native and Auto profiles', async t => {\n  for (const profile of ['compatible', 'native', 'auto']) {\n    const f = await gateway(t, profile);\n    const body = request(profile, { tool_choice: { type: 'tool', name: 'Read' } });\n    const response = await f.send(body, '/v1/messages?beta=true');\n    assert.equal(response.status, 200);\n    assert.equal((await response.json()).model, body.model);\n    assert.equal(response.headers.get('request-id'), 'synthetic-upstream-id');\n    assert.deepEqual(f.received[0].body, body);\n    assert.equal(f.received[0].path, '/v1/messages?beta=true');\n    assert.equal(f.received[0].headers['anthropic-beta'], 'synthetic-future-beta');\n    assert.equal(f.evaluations(), 1);\n    assert.equal(f.counts(), 0);\n  }\n});",
+      "sha256": "dc7ec7064999a06dc030179b311ae35b93f329c7aa31c1bbdb4b4de9ad2e3181",
+      "assertions": [
+        {
+          "id": "routing-compatibility#2:assert-1",
+          "expression": "assert.equal(response.status, 200)",
+          "sha256": "503d187ec7538afffb689abd4b4f76cae6e78a8e95575725ea858621ef9a8735",
+          "line": 70,
+          "executions": 3
+        },
+        {
+          "id": "routing-compatibility#2:assert-2",
+          "expression": "assert.equal((await response.json()).model, body.model)",
+          "sha256": "85510526d69ed16b2366c014378e84e6bcb0c281a91f777a560f26370c70c2a6",
+          "line": 71,
+          "executions": 3
+        },
+        {
+          "id": "routing-compatibility#2:assert-3",
+          "expression": "assert.equal(response.headers.get('request-id'), 'synthetic-upstream-id')",
+          "sha256": "2322c4a0446e99fb74dc663933a22b8ccdc611b641bd4c76cb3febeba8899171",
+          "line": 72,
+          "executions": 3
+        },
+        {
+          "id": "routing-compatibility#2:assert-4",
+          "expression": "assert.deepEqual(f.received[0].body, body)",
+          "sha256": "ac347506299b84ea789c518d61fe8c223607c08dcc5d668a204fea9848a9f1d0",
+          "line": 73,
+          "executions": 3
+        },
+        {
+          "id": "routing-compatibility#2:assert-5",
+          "expression": "assert.equal(f.received[0].path, '/v1/messages?beta=true')",
+          "sha256": "233d5faa05feaa7a3a19f29f3124a485fe22d3bb083d44a6bdcb5fb470f99241",
+          "line": 74,
+          "executions": 3
+        },
+        {
+          "id": "routing-compatibility#2:assert-6",
+          "expression": "assert.equal(f.received[0].headers['anthropic-beta'], 'synthetic-future-beta')",
+          "sha256": "72a606cd96f3a37738015bbabf07bfbb4117fbef0617fd3881506c6e9dd6b507",
+          "line": 75,
+          "executions": 3
+        },
+        {
+          "id": "routing-compatibility#2:assert-7",
+          "expression": "assert.equal(f.evaluations(), 1)",
+          "sha256": "88921c6c6c505d4ccbf95e0985d6f2895f90272e41fbd81649eecbb4e55c38d3",
+          "line": 76,
+          "executions": 3
+        },
+        {
+          "id": "routing-compatibility#2:assert-8",
+          "expression": "assert.equal(f.counts(), 0)",
+          "sha256": "ff1394090393b8da99429671eceab746854b8615261ac3e59f52079c50b12ec9",
+          "line": 77,
+          "executions": 3
+        }
+      ],
+      "options": null,
+      "passed": true
+    },
+    {
+      "number": 3,
+      "id": "test/routing-compatibility.test.mjs#3",
+      "name": "gateway rejects malformed consumed shapes before evaluation, token counting or upstream forwarding",
+      "statement": "test('gateway rejects malformed consumed shapes before evaluation, token counting or upstream forwarding', async t => {\n  const f = await gateway(t);\n  const invalid = [\n    { tools: {} }, { tools: [null] }, { thinking: [] }, { output_config: 'PRIVATE_TEST_VALUE' },\n    { messages: [{ role: 'user', content: [{ type: 'tool_result', content: [null] }] }] },\n  ];\n  for (const fields of invalid) for (const path of ['/v1/messages', '/v1/messages/count_tokens']) {\n    const response = await f.send(request('compatible', fields), path);\n    assert.equal(response.status, 400);\n    const text = await response.text();\n    assert.match(text, /Invalid Messages API request shape/);\n    assert.ok(!text.includes('PRIVATE_TEST_VALUE'));\n  }\n  assert.equal(f.evaluations(), 0);\n  assert.equal(f.counts(), 0);\n  assert.deepEqual(f.received, []);\n  assert.ok(!JSON.stringify(f.logs).includes('PRIVATE_TEST_VALUE'));\n});",
+      "sha256": "0bfdf17a2e0c3008316eb5320514e6af5fa7a7990f71be38b5d389fb8f94bd7a",
+      "assertions": [
+        {
+          "id": "routing-compatibility#3:assert-1",
+          "expression": "assert.equal(response.status, 400)",
+          "sha256": "a5a639feb78df0154ef8bc894bb1e1756f90e619b98ca3f9f3acbaaabace22c2",
+          "line": 89,
+          "executions": 10
+        },
+        {
+          "id": "routing-compatibility#3:assert-2",
+          "expression": "assert.match(text, /Invalid Messages API request shape/)",
+          "sha256": "57e8d8243a2fa37b2e3f5384b3805638ef7164d59aab4c11bb1ccd0e29697e08",
+          "line": 91,
+          "executions": 10
+        },
+        {
+          "id": "routing-compatibility#3:assert-3",
+          "expression": "assert.ok(!text.includes('PRIVATE_TEST_VALUE'))",
+          "sha256": "ff46c41fd430352ed32381f2ec2e3a01936376c09d544a215474ca9ea0f42402",
+          "line": 92,
+          "executions": 10
+        },
+        {
+          "id": "routing-compatibility#3:assert-4",
+          "expression": "assert.equal(f.evaluations(), 0)",
+          "sha256": "b483891e8e71725fc2a96f39c496d0c12e39d964366915d9a976f02610786fc6",
+          "line": 94,
+          "executions": 1
+        },
+        {
+          "id": "routing-compatibility#3:assert-5",
+          "expression": "assert.equal(f.counts(), 0)",
+          "sha256": "ff1394090393b8da99429671eceab746854b8615261ac3e59f52079c50b12ec9",
+          "line": 95,
+          "executions": 1
+        },
+        {
+          "id": "routing-compatibility#3:assert-6",
+          "expression": "assert.deepEqual(f.received, [])",
+          "sha256": "fd8df839e0cb8bd4df443894cff14e2f6d819a18207a4f53768d6fce34cb79c2",
+          "line": 96,
+          "executions": 1
+        },
+        {
+          "id": "routing-compatibility#3:assert-7",
+          "expression": "assert.ok(!JSON.stringify(f.logs).includes('PRIVATE_TEST_VALUE'))",
+          "sha256": "d29892b5902b02a6df2f089327e2feb41f8ad1fe9799404b6b8f94e88a287586",
+          "line": 97,
+          "executions": 1
+        }
+      ],
+      "options": null,
+      "passed": true
+    },
+    {
+      "number": 4,
+      "id": "test/routing-compatibility.test.mjs#4",
+      "name": "unfamiliar provider extensions and native same-model contracts pass through unmodified",
+      "statement": "test('unfamiliar provider extensions and native same-model contracts pass through unmodified', async t => {\n  const f = await gateway(t);\n  const variants = [\n    request('compatible', { future_contract: { version: 7, opaque: 'retained' } }),\n    request('compatible', { system: [{ type: 'future_system_block', opaque: 'retained' }] }),\n    request('compatible', { messages: [{ role: 'user', content: [{ type: 'future_message_block', opaque: 'retained' }] }] }),\n    request('compatible', { model: 'team/claude-sonnet-5-5' }),\n    request('compatible', { model: 'claude-opus-5-5', thinking: { type: 'disabled' }, tool_choice: { type: 'any' } }),\n  ];\n  for (const body of variants) {\n    const response = await f.send(body);\n    assert.equal(response.status, 200);\n    await response.arrayBuffer();\n    assert.deepEqual(f.received.at(-1).body, body);\n  }\n});",
+      "sha256": "8e492a601263ae29c7b002940404348c123278f140e857c08733892bc7b8a9a5",
+      "assertions": [
+        {
+          "id": "routing-compatibility#4:assert-1",
+          "expression": "assert.equal(response.status, 200)",
+          "sha256": "503d187ec7538afffb689abd4b4f76cae6e78a8e95575725ea858621ef9a8735",
+          "line": 111,
+          "executions": 5
+        },
+        {
+          "id": "routing-compatibility#4:assert-2",
+          "expression": "assert.deepEqual(f.received.at(-1).body, body)",
+          "sha256": "ef613ef9d52d2d393cb44678187bc4974baea63a1d482581e357f9b2d973ae39",
+          "line": 113,
+          "executions": 5
+        }
+      ],
+      "options": null,
+      "passed": true
+    },
+    {
+      "number": 5,
+      "id": "test/routing-compatibility.test.mjs#5",
+      "name": "internal token counting avoids incompatible targets and retains native provider-owned requests",
+      "statement": "test('internal token counting avoids incompatible targets and retains native provider-owned requests', async () => {\n  let calls = 0;\n  const counter = createTokenCounter(config('compatible'), { fetchImpl: async () => {\n    calls++; return Response.json({ input_tokens: 100 });\n  } });\n  const forced = request('compatible', { tool_choice: { type: 'any' } });\n  assert.equal(await counter(forced, 'claude-opus-5-5'), undefined);\n  const adaptive = request('auto', { thinking: { type: 'adaptive' } });\n  assert.equal(await counter(adaptive, 'claude-haiku-4-5-20251001'), undefined);\n  assert.equal(calls, 0);\n  assert.equal(await counter(forced, forced.model), 100);\n  assert.equal(calls, 1);\n});",
+      "sha256": "c95b446848172c5f5c56e03ecf4b4a88e2697bf8842ac3f034c31c72b9c76d80",
+      "assertions": [
+        {
+          "id": "routing-compatibility#5:assert-1",
+          "expression": "assert.equal(await counter(forced, 'claude-opus-5-5'), undefined)",
+          "sha256": "5093b385fceb9c9b828fbd452db3fe771e903353ffad03282a182b69da0a82c1",
+          "line": 123,
+          "executions": 1
+        },
+        {
+          "id": "routing-compatibility#5:assert-2",
+          "expression": "assert.equal(await counter(adaptive, 'claude-haiku-4-5-20251001'), undefined)",
+          "sha256": "8f43807b5b2e4e6959c9ad99b35a0c9cba35846df3e9ff0985bd67ea855a82fb",
+          "line": 125,
+          "executions": 1
+        },
+        {
+          "id": "routing-compatibility#5:assert-3",
+          "expression": "assert.equal(calls, 0)",
+          "sha256": "c53f1b7e89efb35e4fc56dc85f89d408cce799b6be14c9c59d97f20cb50d4ab7",
+          "line": 126,
+          "executions": 1
+        },
+        {
+          "id": "routing-compatibility#5:assert-4",
+          "expression": "assert.equal(await counter(forced, forced.model), 100)",
+          "sha256": "5467da245a53adadf8ffef4252c08aeb5e495eec05d21c0c3462c73ef3ddb81e",
+          "line": 127,
+          "executions": 1
+        },
+        {
+          "id": "routing-compatibility#5:assert-5",
+          "expression": "assert.equal(calls, 1)",
+          "sha256": "ec42f47942d2a67f361a8a69f69bf048a48c3ac0f490460b706344cd8ff4b228",
+          "line": 128,
+          "executions": 1
+        }
+      ],
+      "options": null,
+      "passed": true
+    }
+  ],
+  "static_assertions": 22,
+  "expanded_assertions": 73,
+  "assertion_execution_order_file": "assertion-executions.json",
+  "cases_sha256": "a326874632344f59ccd01eb05cf361034b0abc31e594d1d8fa02b3a76fd9e098",
+  "callbacks_executed": 4,
+  "network_scope": "18 actual synthetic gateway requests and eight provider calls; original mocked Jev/count fetch callbacks only. No evaluator/provider network calls.",
+  "capture_semantics": "All four original callbacks and five helpers execute with their source assertions intact. Recording delegates original route/count callbacks and actual local HTTP. All body bytes, semantic headers, private logs, counter results and complete evaluator/count request/response reads remain raw. Undefined direct count results are explicit tagged source values, never normalized to null. Only declared automatic dates, generated request IDs, validated measured observation timings and loopback authorities are projected; raw captures/projection ledger retain every original value.",
+  "projection_kinds": [
+    "validated_observation_timing",
+    "generated_request_id",
+    "automatic_http_date",
+    "loopback_authority"
+  ],
+  "raw_observations_file": "raw-observations.json",
+  "projection_ledger_file": "projections.json",
+  "cleanup": [
+    {
+      "id": "routing-compatibility-2",
+      "servers": 6,
+      "all_closed": true,
+      "remaining_sockets": 0
+    },
+    {
+      "id": "routing-compatibility-3",
+      "servers": 2,
+      "all_closed": true,
+      "remaining_sockets": 0
+    },
+    {
+      "id": "routing-compatibility-4",
+      "servers": 2,
+      "all_closed": true,
+      "remaining_sockets": 0
+    },
+    {
+      "id": "routing-compatibility-5",
+      "servers": 0,
+      "all_closed": true,
+      "remaining_sockets": 0
+    }
+  ]
+}

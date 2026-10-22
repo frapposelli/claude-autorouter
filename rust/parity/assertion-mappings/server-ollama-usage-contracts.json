@@ -1,0 +1,760 @@
+{
+  "schema_version": 1,
+  "kind": "complete_original_server_ollama_usage_assertion_mapping",
+  "status": "independently_reviewed_focused_pass_with_explicit_remaining_boundaries",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "worktree_base_commit": "da51574ec1a895286c0379db1623d715e986be7e",
+  "production_changes": false,
+  "shared_support_changes": false,
+  "central_ledger_edits": false,
+  "counts": {
+    "baseline_definitions": 4,
+    "static_assertion_sites": 26,
+    "expanded_original_assertions": 36,
+    "expanded_native_assertions": 36,
+    "native_tests": 4,
+    "downstream_http_operations": 7,
+    "actual_provider_requests": 6,
+    "route_calls": 7,
+    "source_complete_callbacks": 13,
+    "native_complete_callbacks": 7,
+    "source_emitted_status_events": 37,
+    "native_emitted_status_events": 37,
+    "source_mocked_evaluator_requests": 2,
+    "native_mocked_evaluator_requests": 2,
+    "json_pricing_variants": 4
+  },
+  "capture": {
+    "path": "rust/parity/cases/server-ollama-usage-contracts.capture.json",
+    "bytes": 21721,
+    "sha256": "360be4af55d128b570698731c9653f01e9e158548c966694942e154056d9905e"
+  },
+  "corpus": {
+    "path": "rust/parity/cases/server-ollama-usage-contracts.jsonl",
+    "bytes": 49127,
+    "sha256": "4fb38321dcbf5b071841529ca25bdb3af0b077d888b4359718697885c4b02b9a"
+  },
+  "native_validation": {
+    "path": "artifacts/rust-rewrite/server-ollama-usage-native-20261013-1/report.json",
+    "bytes": 14566,
+    "sha256": "7ff646b5e93a07734e852e0fec88c209ba91dac101affcdeba8c6e668d468f95"
+  },
+  "rows": [
+    {
+      "id": "test/server.test.mjs#29",
+      "name": "disconnect cancels an unlimited Ollama decision through the real router before any upstream call",
+      "statement": "test('disconnect cancels an unlimited Ollama decision through the real router before any upstream call', { timeout: 3000 }, async t => {\n  let evaluating;\n  const started = new Promise(resolve => { evaluating = resolve; });\n  let decisionSignal;\n  let bodyCancelled = false;\n  let upstreamCalls = 0;\n  const paths = [];\n  const config = { ...readConfig({ AUTOROUTER_EVALUATOR: 'ollama' }), ollamaTimeoutMs: 0 };\n  const router = new Router(config, { fetchImpl: async (url, options) => {\n    const path = new URL(url).pathname;\n    paths.push(path);\n    assert.equal(new URL(url).origin, config.ollamaEndpoint);\n    if (path === '/api/show') return Response.json({ details: { parameter_size: '9B' } });\n    assert.equal(path, '/v1/systemone');\n    assert.equal(JSON.parse(options.body).state.current_task, 'Fix a typo');\n    decisionSignal = options.signal;\n    return new Response(new ReadableStream({\n      pull() { evaluating(); },\n      cancel() { bodyCancelled = true; },\n    }));\n  } });\n  const f = await fixture(t, (_req, res) => {\n    upstreamCalls++;\n    res.writeHead(200, { 'content-type': 'application/json' });\n    res.end('{}');\n  }, { evaluator: 'ollama', ollamaTimeoutMs: 0 }, router);\n  const controller = new AbortController();\n  t.after(() => controller.abort());\n  const pending = f.call('/v1/messages', { method: 'POST', signal: controller.signal, body: JSON.stringify(body) });\n  const rejected = assert.rejects(pending, error => error.name === 'AbortError');\n  await started;\n  // A zero deadline must leave the decision pending until its caller cancels.\n  await new Promise(resolve => setTimeout(resolve, 30));\n  assert.equal(decisionSignal.aborted, false);\n  assert.equal(bodyCancelled, false);\n  assert.deepEqual(f.statuses.map(entry => entry.event), ['request_start']);\n  controller.abort();\n  await rejected;\n  await waitForStatus(f, 'request_cancelled');\n  assert.equal(decisionSignal.aborted, true);\n  assert.equal(bodyCancelled, true);\n  assert.equal(upstreamCalls, 0);\n  assert.deepEqual(paths, ['/api/show', '/v1/systemone']);\n  assert.deepEqual(f.statuses.map(entry => entry.event), ['request_start', 'request_cancelled']);\n  assert.equal(f.logs.some(entry => entry.event === 'route'), false);\n});",
+      "sha256": "87c6033c0acc0ee7e27d77bc627d7525b967e02df585958bafa22529cbf8ce4d",
+      "previous_status": "pending_assertion_mapping",
+      "proposed_status": "covered",
+      "static_assertions": 13,
+      "expanded_assertions": 14,
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_29_unlimited_real_ollama_router_waits_until_downstream_cancel"
+      ],
+      "shared_cases": [
+        "server-ollama-usage-29"
+      ],
+      "assertions": [
+        {
+          "id": "test/server.test.mjs#29:assert-1",
+          "expression": "assert.equal(new URL(url).origin, config.ollamaEndpoint)",
+          "sha256": "932b3aec52d59f8ec98cae431c87f27b6df60d003a2ef59ba4cdadc7ee40a7ab",
+          "line": 1044,
+          "expanded_executions": 2,
+          "native_executions": 2,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_29_unlimited_real_ollama_router_waits_until_downstream_cancel"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/server_ollama_usage.rs",
+              "function": "Evaluator::request",
+              "line": 124,
+              "fragment": "self.assertions.check(1, origin == self.origin);",
+              "fragment_sha256": "ee8c00d716f426fa738ecb739b04ca9d88c0d3f17adda6eebf107a9315cedb56",
+              "file_sha256": "9a20d710607ec7d1e7ad13eb3f71e972ebddf398a6d779dcec802fc06de517d0"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#29:assert-2",
+          "expression": "assert.equal(path, '/v1/systemone')",
+          "sha256": "a00f5d7b8c9ea99650369e800f02847dea4b23fa66eb6dcf101072e2d2262ce4",
+          "line": 1046,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_29_unlimited_real_ollama_router_waits_until_downstream_cancel"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/server_ollama_usage.rs",
+              "function": "Evaluator::request",
+              "line": 170,
+              "fragment": "self.assertions.check(2, path == \"/v1/systemone\");",
+              "fragment_sha256": "7424e6ff54dee07c6adca9b70f5c25b04ba3f2a10a81f55c7a5c2d4a99da8fd9",
+              "file_sha256": "9a20d710607ec7d1e7ad13eb3f71e972ebddf398a6d779dcec802fc06de517d0"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#29:assert-3",
+          "expression": "assert.equal(JSON.parse(options.body).state.current_task, 'Fix a typo')",
+          "sha256": "51ad3b0a0657b7a25d7dfc633671aba7c1677f44d83a8f799dad7f7032af4ebd",
+          "line": 1047,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_29_unlimited_real_ollama_router_waits_until_downstream_cancel"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/server_ollama_usage.rs",
+              "function": "Evaluator::request",
+              "line": 171,
+              "fragment": "self.assertions\n                .check(3, parsed(&bytes)[\"state\"][\"current_task\"] == \"Fix a typo\");",
+              "fragment_sha256": "a9cf41f649b6fc7f0d89923d11e6c4bfc81e5485ff055e48ba61a19cba3b469a",
+              "file_sha256": "9a20d710607ec7d1e7ad13eb3f71e972ebddf398a6d779dcec802fc06de517d0"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#29:assert-4",
+          "expression": "assert.rejects(pending, error => error.name === 'AbortError')",
+          "sha256": "e3a1992ae50a654d348c3ce9d5cb88182d993edc5846fd344140197da4cd815f",
+          "line": 1062,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_29_unlimited_real_ollama_router_waits_until_downstream_cancel"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs",
+              "function": "original_29_unlimited_real_ollama_router_waits_until_downstream_cancel",
+              "line": 672,
+              "fragment": "a.check(4, rejected == Err(ollama::ClientFailure::Cancelled));",
+              "fragment_sha256": "bf77fbdf85573e153de14cc6dad0287192faa48eaf340b5432e1b6153908c8b2",
+              "file_sha256": "75470e9a1abcb49146a24c369fc3436cd8a2b68f00177efd88bc03eedbb6ed2f"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": "The source caller rejects with an AbortError. The native caller-owned real socket task returns typed ClientFailure::Cancelled after actual caller cancellation and drops its socket. Other typed connect/write/unexpected-response errors cannot satisfy the native equivalent predicate. There is no string-name replacement, synthetic upstream response, or direct mutation of the Router cancellation token."
+        },
+        {
+          "id": "test/server.test.mjs#29:assert-5",
+          "expression": "assert.equal(decisionSignal.aborted, false)",
+          "sha256": "0ce292232ca23fa3d34508fd6ff69de6d91b5b0953d18706a8f0538e8fb4e72f",
+          "line": 1066,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_29_unlimited_real_ollama_router_waits_until_downstream_cancel"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs",
+              "function": "original_29_unlimited_real_ollama_router_waits_until_downstream_cancel",
+              "line": 664,
+              "fragment": "a.check(5, !router.token_cancelled());",
+              "fragment_sha256": "390fee7f5996ad0fa5716ce60255debfb989424f71147d353412c54a074d49bf",
+              "file_sha256": "75470e9a1abcb49146a24c369fc3436cd8a2b68f00177efd88bc03eedbb6ed2f"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": "The source evaluator request exposes an AbortSignal and ReadableStream reader.cancel. Rust HttpTransport has no AbortSignal argument/property and represents response cancellation by dropping the owned body. The native replay observes the actual borrowed routing CancellationToken and actual evaluator-body destruction before Gateway.close. It does not claim source/native signal identity or expose the internal classifier child-token state. The source signal.aborted and bodyCancelled predicates are explicitly ported to these typed cancellation/lifetime observations."
+        },
+        {
+          "id": "test/server.test.mjs#29:assert-6",
+          "expression": "assert.equal(bodyCancelled, false)",
+          "sha256": "0a50ac7be9f5bbbd327340f8343f4879aee14d29090e03607ff42bed436f9eb0",
+          "line": 1067,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_29_unlimited_real_ollama_router_waits_until_downstream_cancel"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs",
+              "function": "original_29_unlimited_real_ollama_router_waits_until_downstream_cancel",
+              "line": 665,
+              "fragment": "a.check(6, !evaluator.dropped.load(Ordering::SeqCst));",
+              "fragment_sha256": "ec477d73b73827f3c7b5d0c2f65eb28ec317a812d6d2b4212ae2ef321bc2e7cb",
+              "file_sha256": "75470e9a1abcb49146a24c369fc3436cd8a2b68f00177efd88bc03eedbb6ed2f"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": "The source evaluator request exposes an AbortSignal and ReadableStream reader.cancel. Rust HttpTransport has no AbortSignal argument/property and represents response cancellation by dropping the owned body. The native replay observes the actual borrowed routing CancellationToken and actual evaluator-body destruction before Gateway.close. It does not claim source/native signal identity or expose the internal classifier child-token state. The source signal.aborted and bodyCancelled predicates are explicitly ported to these typed cancellation/lifetime observations."
+        },
+        {
+          "id": "test/server.test.mjs#29:assert-7",
+          "expression": "assert.deepEqual(f.statuses.map(entry => entry.event), ['request_start'])",
+          "sha256": "c1e64cb922a84e4cff924d7d57c0795d57c3458b0132d9d0137e557fff0ba054",
+          "line": 1068,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_29_unlimited_real_ollama_router_waits_until_downstream_cancel"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs",
+              "function": "original_29_unlimited_real_ollama_router_waits_until_downstream_cancel",
+              "line": 666,
+              "fragment": "a.check(\n            7,\n            event_names(&statuses.lock().unwrap()) == [\"request_start\"],\n        );",
+              "fragment_sha256": "6db2f45ceaaa46b068dddf49ab8d68c7b95803aab2cebf0db6dfd5bc0eada8fd",
+              "file_sha256": "75470e9a1abcb49146a24c369fc3436cd8a2b68f00177efd88bc03eedbb6ed2f"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#29:assert-8",
+          "expression": "assert.equal(decisionSignal.aborted, true)",
+          "sha256": "2c1002c8ae681928a5e40a21dcf39433937077a0a2db93ca0d880c279bad6907",
+          "line": 1072,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_29_unlimited_real_ollama_router_waits_until_downstream_cancel"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs",
+              "function": "original_29_unlimited_real_ollama_router_waits_until_downstream_cancel",
+              "line": 685,
+              "fragment": "a.check(8, router.token_cancelled());",
+              "fragment_sha256": "2f6bf776e3ae6fa161976f73845825636380518ac4289a5b176b06e062d48a7b",
+              "file_sha256": "75470e9a1abcb49146a24c369fc3436cd8a2b68f00177efd88bc03eedbb6ed2f"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": "The source evaluator request exposes an AbortSignal and ReadableStream reader.cancel. Rust HttpTransport has no AbortSignal argument/property and represents response cancellation by dropping the owned body. The native replay observes the actual borrowed routing CancellationToken and actual evaluator-body destruction before Gateway.close. It does not claim source/native signal identity or expose the internal classifier child-token state. The source signal.aborted and bodyCancelled predicates are explicitly ported to these typed cancellation/lifetime observations."
+        },
+        {
+          "id": "test/server.test.mjs#29:assert-9",
+          "expression": "assert.equal(bodyCancelled, true)",
+          "sha256": "2428da9e87732d6a63511615b4ed3f58fad91c421de84a8f531e3965402fe6ff",
+          "line": 1073,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_29_unlimited_real_ollama_router_waits_until_downstream_cancel"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs",
+              "function": "original_29_unlimited_real_ollama_router_waits_until_downstream_cancel",
+              "line": 686,
+              "fragment": "a.check(9, evaluator.dropped.load(Ordering::SeqCst));",
+              "fragment_sha256": "6f7058fec8460b8b87d3fcfacff50f6d2ce2dd395b98bc2768c97da0d8bf0047",
+              "file_sha256": "75470e9a1abcb49146a24c369fc3436cd8a2b68f00177efd88bc03eedbb6ed2f"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": "The source evaluator request exposes an AbortSignal and ReadableStream reader.cancel. Rust HttpTransport has no AbortSignal argument/property and represents response cancellation by dropping the owned body. The native replay observes the actual borrowed routing CancellationToken and actual evaluator-body destruction before Gateway.close. It does not claim source/native signal identity or expose the internal classifier child-token state. The source signal.aborted and bodyCancelled predicates are explicitly ported to these typed cancellation/lifetime observations."
+        },
+        {
+          "id": "test/server.test.mjs#29:assert-10",
+          "expression": "assert.equal(upstreamCalls, 0)",
+          "sha256": "047b4a1e7e80e90a81c6d217e94eeac4f0ec64bf82b76efee57ecc25ae13e572",
+          "line": 1074,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_29_unlimited_real_ollama_router_waits_until_downstream_cancel"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs",
+              "function": "original_29_unlimited_real_ollama_router_waits_until_downstream_cancel",
+              "line": 687,
+              "fragment": "a.check(10, peer.observations().is_empty());",
+              "fragment_sha256": "a220d6e1a5a62eed9e4ec9ad0605327fd910a1ef847b67e480763bc2589c6ecd",
+              "file_sha256": "75470e9a1abcb49146a24c369fc3436cd8a2b68f00177efd88bc03eedbb6ed2f"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#29:assert-11",
+          "expression": "assert.deepEqual(paths, ['/api/show', '/v1/systemone'])",
+          "sha256": "5c7384972e2ee63238984f6cb663ab0af480bda072019a15b76206c98308dd3b",
+          "line": 1075,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_29_unlimited_real_ollama_router_waits_until_downstream_cancel"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs",
+              "function": "original_29_unlimited_real_ollama_router_waits_until_downstream_cancel",
+              "line": 700,
+              "fragment": "a.check(11, paths == [\"/api/show\", \"/v1/systemone\"]);",
+              "fragment_sha256": "89f3ab465a5bce76ee1d8da53fcb9578d5c0aaf35e5bb558ad51868c32a1976f",
+              "file_sha256": "75470e9a1abcb49146a24c369fc3436cd8a2b68f00177efd88bc03eedbb6ed2f"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#29:assert-12",
+          "expression": "assert.deepEqual(f.statuses.map(entry => entry.event), ['request_start', 'request_cancelled'])",
+          "sha256": "b501c167882e7cc46b4077d5589ecd29e3c70e7aa9b73fc9f6fc3885a2d8d42a",
+          "line": 1076,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_29_unlimited_real_ollama_router_waits_until_downstream_cancel"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs",
+              "function": "original_29_unlimited_real_ollama_router_waits_until_downstream_cancel",
+              "line": 701,
+              "fragment": "a.check(\n            12,\n            event_names(&statuses.lock().unwrap()) == [\"request_start\", \"request_cancelled\"],\n        );",
+              "fragment_sha256": "d77e7825f84b6e62d0272aed303a5751876739701d5ebca8f3bb763c5ca725f3",
+              "file_sha256": "75470e9a1abcb49146a24c369fc3436cd8a2b68f00177efd88bc03eedbb6ed2f"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#29:assert-13",
+          "expression": "assert.equal(f.logs.some(entry => entry.event === 'route'), false)",
+          "sha256": "40fdb65d6adc6e6d070861867a801338790ecdf11dd4c89ef28f6b3c80e8d729",
+          "line": 1077,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_29_unlimited_real_ollama_router_waits_until_downstream_cancel"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs",
+              "function": "original_29_unlimited_real_ollama_router_waits_until_downstream_cancel",
+              "line": 705,
+              "fragment": "a.check(13, events(&logs.lock().unwrap(), \"route\").is_empty());",
+              "fragment_sha256": "3c8555d720c9984c103cf7abd8ac4899f2cb2cef14cc704ab2e72695b58b4cc9",
+              "file_sha256": "75470e9a1abcb49146a24c369fc3436cd8a2b68f00177efd88bc03eedbb6ed2f"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": null
+        }
+      ],
+      "comparison_boundary": "The source evaluator request exposes an AbortSignal and ReadableStream reader.cancel. Rust HttpTransport has no AbortSignal argument/property and represents response cancellation by dropping the owned body. The native replay observes the actual borrowed routing CancellationToken and actual evaluator-body destruction before Gateway.close. It does not claim source/native signal identity or expose the internal classifier child-token state. The source signal.aborted and bodyCancelled predicates are explicitly ported to these typed cancellation/lifetime observations."
+    },
+    {
+      "id": "test/server.test.mjs#30",
+      "name": "completed streamed usage is correlated with its request before completion and never added to debug logs",
+      "statement": "test('completed streamed usage is correlated with its request before completion and never added to debug logs', async t => {\n  const usage = { input_tokens: 100, output_tokens: 20, cache_creation_input_tokens: 60, cache_read_input_tokens: 200,\n    cache_creation: { ephemeral_5m_input_tokens: 40, ephemeral_1h_input_tokens: 20 }, inference_geo: 'us', speed: 'fast', service_tier: 'standard' };\n  const sse = `event: message_start\\ndata: ${JSON.stringify({ type: 'message_start', message: { model: 'claude-sonnet-5', usage: { ...usage, output_tokens: 1 } } })}\\n\\n`\n    + 'event: message_delta\\ndata: {\"type\":\"message_delta\",\"usage\":{\"output_tokens\":20},\"delta\":{\"stop_reason\":\"end_turn\"}}\\n\\n'\n    + 'event: message_stop\\ndata: {\"type\":\"message_stop\"}\\n\\n';\n  const f = await fixture(t, (req, res) => { res.writeHead(200, { 'content-type': 'text/event-stream' }); res.end(sse); });\n  const payload = { ...body, speed: 'fast', inference_geo: 'us', service_tier: 'standard_only' };\n  const response = await f.call('/v1/messages', { method: 'POST', headers: { 'x-claude-code-session-id': 'usage-session' }, body: JSON.stringify(payload) });\n  assert.equal(await response.text(), sse);\n  await waitForStatus(f, 'request_complete');\n  assert.deepEqual(f.statuses.map(entry => entry.event), ['request_start', 'route', 'upstream_response', 'upstream_model', 'upstream_usage', 'request_complete']);\n  const entry = f.statuses.find(entry => entry.event === 'upstream_usage');\n  assert.equal(entry.session_id, 'usage-session');\n  assert.equal(entry.request_id, f.statuses[0].request_id);\n  assert.deepEqual(entry.usage, usage);\n  assert.deepEqual(f.statuses.find(entry => entry.event === 'route').pricing_context, { speed: 'fast', inference_geo: 'us', service_tier: 'standard_only' });\n  assert.equal(f.logs.some(entry => entry.event === 'upstream_usage'), false);\n});",
+      "sha256": "81a6ca33f814e4e8cdcc282151ebf14b1af4820754ef463ef2596cc49dc712c4",
+      "previous_status": "pending_assertion_mapping",
+      "proposed_status": "covered",
+      "static_assertions": 7,
+      "expanded_assertions": 7,
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_30_streamed_usage_is_correlated_before_completion_and_private_in_logs"
+      ],
+      "shared_cases": [
+        "server-ollama-usage-30"
+      ],
+      "assertions": [
+        {
+          "id": "test/server.test.mjs#30:assert-1",
+          "expression": "assert.equal(await response.text(), sse)",
+          "sha256": "2ea7182638dc4138320b589385d5e5e693c947f0075cb1e4009ce7e213ec6fa6",
+          "line": 1089,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_30_streamed_usage_is_correlated_before_completion_and_private_in_logs"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs",
+              "function": "original_30_streamed_usage_is_correlated_before_completion_and_private_in_logs",
+              "line": 799,
+              "fragment": "a.check(1, reply.bytes == sse);",
+              "fragment_sha256": "532c0e930b2b7abcae87f35d07c899039d939fc81463cf2e6d807c6ab1bf5aa7",
+              "file_sha256": "75470e9a1abcb49146a24c369fc3436cd8a2b68f00177efd88bc03eedbb6ed2f"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#30:assert-2",
+          "expression": "assert.deepEqual(f.statuses.map(entry => entry.event), ['request_start', 'route', 'upstream_response', 'upstream_model', 'upstream_usage', 'request_complete'])",
+          "sha256": "3516da8c409dee140dbe436c0db8bbe04cb60d8d7222b7e6814f29f59b0e5397",
+          "line": 1091,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_30_streamed_usage_is_correlated_before_completion_and_private_in_logs"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs",
+              "function": "original_30_streamed_usage_is_correlated_before_completion_and_private_in_logs",
+              "line": 800,
+              "fragment": "a.check(\n        2,\n        event_names(&seen.statuses)\n            == [\n                \"request_start\",\n                \"route\",\n                \"upstream_response\",\n                \"upstream_model\",\n                \"upstream_usage\",\n                \"request_complete\",\n            ],\n    );",
+              "fragment_sha256": "877e7b0896244f8a998436c6a5f7c67aaefcbc90c54662df5ba41509838d3f26",
+              "file_sha256": "75470e9a1abcb49146a24c369fc3436cd8a2b68f00177efd88bc03eedbb6ed2f"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#30:assert-3",
+          "expression": "assert.equal(entry.session_id, 'usage-session')",
+          "sha256": "d5c903bf55569ba9f65a605777096cb83ceaf6890e0a06c9c540ec79634f9254",
+          "line": 1093,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_30_streamed_usage_is_correlated_before_completion_and_private_in_logs"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs",
+              "function": "original_30_streamed_usage_is_correlated_before_completion_and_private_in_logs",
+              "line": 813,
+              "fragment": "a.check(3, entry[\"session_id\"] == \"usage-session\");",
+              "fragment_sha256": "a5bbd0744bda49f84d494695638ad4c7b5893e1e6fb76f726a6043ef5baa1a99",
+              "file_sha256": "75470e9a1abcb49146a24c369fc3436cd8a2b68f00177efd88bc03eedbb6ed2f"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#30:assert-4",
+          "expression": "assert.equal(entry.request_id, f.statuses[0].request_id)",
+          "sha256": "4086731ffe83456963cd17d3908ae80196f9319028f7c1189c37f6ed87c78f8b",
+          "line": 1094,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_30_streamed_usage_is_correlated_before_completion_and_private_in_logs"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs",
+              "function": "original_30_streamed_usage_is_correlated_before_completion_and_private_in_logs",
+              "line": 814,
+              "fragment": "a.check(4, entry[\"request_id\"] == seen.statuses[0][\"request_id\"]);",
+              "fragment_sha256": "3a7942c63d2bc0c86bf0fb0f26700f5deadab794fcb2698a2984607a6a87a509",
+              "file_sha256": "75470e9a1abcb49146a24c369fc3436cd8a2b68f00177efd88bc03eedbb6ed2f"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#30:assert-5",
+          "expression": "assert.deepEqual(entry.usage, usage)",
+          "sha256": "013c6dab47ae75859eadeb672f4ce005f05a8abcdd4a34fac2fe42d39b3572ad",
+          "line": 1095,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_30_streamed_usage_is_correlated_before_completion_and_private_in_logs"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs",
+              "function": "original_30_streamed_usage_is_correlated_before_completion_and_private_in_logs",
+              "line": 815,
+              "fragment": "a.check(5, javascript_number_equality(&entry[\"usage\"], &usage));",
+              "fragment_sha256": "f0a44b89c93cef385415a4d27147b2184bf7008215fc6eea6eaf1de0e19ee2ca",
+              "file_sha256": "75470e9a1abcb49146a24c369fc3436cd8a2b68f00177efd88bc03eedbb6ed2f"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#30:assert-6",
+          "expression": "assert.deepEqual(f.statuses.find(entry => entry.event === 'route').pricing_context, { speed: 'fast', inference_geo: 'us', service_tier: 'standard_only' })",
+          "sha256": "c8b21f91a63185831b87b9194462ae01525e43cebe2824139b5dec8a63731d2d",
+          "line": 1096,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_30_streamed_usage_is_correlated_before_completion_and_private_in_logs"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs",
+              "function": "original_30_streamed_usage_is_correlated_before_completion_and_private_in_logs",
+              "line": 816,
+              "fragment": "a.check(\n        6,\n        events(&seen.statuses, \"route\")[0][\"pricing_context\"]\n            == json!({\"speed\":\"fast\",\"inference_geo\":\"us\",\"service_tier\":\"standard_only\"}),\n    );",
+              "fragment_sha256": "09eb885de55887e38dd6a99283e8db477c8227a267666274045cc6c016418ddf",
+              "file_sha256": "75470e9a1abcb49146a24c369fc3436cd8a2b68f00177efd88bc03eedbb6ed2f"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#30:assert-7",
+          "expression": "assert.equal(f.logs.some(entry => entry.event === 'upstream_usage'), false)",
+          "sha256": "425cb4ddf53dd15d31425954ddf5852a7c882d9e5f5ec05cee88981bfadf1384",
+          "line": 1097,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_30_streamed_usage_is_correlated_before_completion_and_private_in_logs"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs",
+              "function": "original_30_streamed_usage_is_correlated_before_completion_and_private_in_logs",
+              "line": 821,
+              "fragment": "a.check(7, events(&seen.logs, \"upstream_usage\").is_empty());",
+              "fragment_sha256": "97cf9309ed148ee9d1c609e6b06ae218905f865ee19dc47f0a10dca83119fe84",
+              "file_sha256": "75470e9a1abcb49146a24c369fc3436cd8a2b68f00177efd88bc03eedbb6ed2f"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": null
+        }
+      ],
+      "comparison_boundary": "The clean #30 SSE end_turn completion carries exact observed model/continuation_model/stop_reason/tool-use evidence even though the source mocked complete returns undefined and native mocked complete returns false. Both expose completion_confirmed=true because response observation is clean. #31 HTTP429 and #32 JSON without stop_reason carry no evidence and remain unconfirmed. Real production continuation-state acceptance is outside these mocked routing callbacks."
+    },
+    {
+      "id": "test/server.test.mjs#31",
+      "name": "JSON usage cannot count HTTP errors and unknown request pricing fields remain private",
+      "statement": "test('JSON usage cannot count HTTP errors and unknown request pricing fields remain private', async t => {\n  const f = await fixture(t, (req, res) => {\n    res.writeHead(429, { 'content-type': 'application/json' });\n    res.end(JSON.stringify({ model: 'claude-haiku-4-5-20251001', usage: { input_tokens: 10, output_tokens: 20 } }));\n  });\n  const response = await f.call('/v1/messages', { method: 'POST', body: JSON.stringify({ ...body, speed: 'PRIVATE_SPEED', inference_geo: 'PRIVATE_GEO', service_tier: 'PRIVATE_TIER' }) });\n  await response.text();\n  await waitForStatus(f, 'request_complete');\n  assert.equal(f.statuses.some(entry => entry.event === 'upstream_usage'), false);\n  assert.deepEqual(f.statuses.find(entry => entry.event === 'route').pricing_context, { speed: 'unknown', inference_geo: 'unknown', service_tier: 'unknown' });\n  assert.ok(!JSON.stringify(f.statuses).includes('PRIVATE_'));\n});",
+      "sha256": "4e745f3b3eecf3dff62eeb85ff12bc72020d704a1389333992e316ecb99c7c4e",
+      "previous_status": "pending_assertion_mapping",
+      "proposed_status": "covered",
+      "static_assertions": 3,
+      "expanded_assertions": 3,
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_31_json_http_error_usage_is_ignored_and_unknown_pricing_is_private"
+      ],
+      "shared_cases": [
+        "server-ollama-usage-31"
+      ],
+      "assertions": [
+        {
+          "id": "test/server.test.mjs#31:assert-1",
+          "expression": "assert.equal(f.statuses.some(entry => entry.event === 'upstream_usage'), false)",
+          "sha256": "4a4ffbc6ed86586def75e468c85b0e660eb7f1cdbd00593029efc4a2a8b769d9",
+          "line": 1108,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_31_json_http_error_usage_is_ignored_and_unknown_pricing_is_private"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs",
+              "function": "original_31_json_http_error_usage_is_ignored_and_unknown_pricing_is_private",
+              "line": 838,
+              "fragment": "a.check(1, events(&seen.statuses, \"upstream_usage\").is_empty());",
+              "fragment_sha256": "5d38c4e19b7e55e81c952620657fdb759582c2193cf34c25356ae6712951568a",
+              "file_sha256": "75470e9a1abcb49146a24c369fc3436cd8a2b68f00177efd88bc03eedbb6ed2f"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#31:assert-2",
+          "expression": "assert.deepEqual(f.statuses.find(entry => entry.event === 'route').pricing_context, { speed: 'unknown', inference_geo: 'unknown', service_tier: 'unknown' })",
+          "sha256": "4b9fa8e00fb3ee8b3aa811d0a5903b906ecd8eaed04b125523716de915759caf",
+          "line": 1109,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_31_json_http_error_usage_is_ignored_and_unknown_pricing_is_private"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs",
+              "function": "original_31_json_http_error_usage_is_ignored_and_unknown_pricing_is_private",
+              "line": 839,
+              "fragment": "a.check(\n        2,\n        events(&seen.statuses, \"route\")[0][\"pricing_context\"]\n            == json!({\"speed\":\"unknown\",\"inference_geo\":\"unknown\",\"service_tier\":\"unknown\"}),\n    );",
+              "fragment_sha256": "69b6fb909d58015fe5c3f229e9ead25c2fc8543061e16e6a03e787be8781908c",
+              "file_sha256": "75470e9a1abcb49146a24c369fc3436cd8a2b68f00177efd88bc03eedbb6ed2f"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#31:assert-3",
+          "expression": "assert.ok(!JSON.stringify(f.statuses).includes('PRIVATE_'))",
+          "sha256": "02ec62d97c4e393d9cc790f190d2ffc7f05ed3fae188406418cfedfd9d9c304c",
+          "line": 1110,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_31_json_http_error_usage_is_ignored_and_unknown_pricing_is_private"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs",
+              "function": "original_31_json_http_error_usage_is_ignored_and_unknown_pricing_is_private",
+              "line": 844,
+              "fragment": "a.check(3, !json!(seen.statuses).to_string().contains(\"PRIVATE_\"));",
+              "fragment_sha256": "4e6414212a27928dca4dda9bb99d08aa11cde6fc28b47fa47d0e735097e92270",
+              "file_sha256": "75470e9a1abcb49146a24c369fc3436cd8a2b68f00177efd88bc03eedbb6ed2f"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": null
+        }
+      ],
+      "comparison_boundary": "The clean #30 SSE end_turn completion carries exact observed model/continuation_model/stop_reason/tool-use evidence even though the source mocked complete returns undefined and native mocked complete returns false. Both expose completion_confirmed=true because response observation is clean. #31 HTTP429 and #32 JSON without stop_reason carry no evidence and remain unconfirmed. Real production continuation-state acceptance is outside these mocked routing callbacks."
+    },
+    {
+      "id": "test/server.test.mjs#32",
+      "name": "JSON usage is observed with default request pricing and unsupported advisor or fallback markers",
+      "statement": "test('JSON usage is observed with default request pricing and unsupported advisor or fallback markers', async t => {\n  const f = await fixture(t, (req, res) => {\n    res.writeHead(200, { 'content-type': 'application/json' });\n    res.end(JSON.stringify({ model: 'claude-haiku-4-5-20251001', usage: { input_tokens: 10, output_tokens: 20 } }));\n  });\n  for (const fields of [{}, { fallbacks: [] }, { fallback_credit_token: 'PRIVATE_TOKEN' }, { tools: [{ type: 'advisor_20260630' }] }]) {\n    f.statuses.length = 0;\n    const response = await f.call('/v1/messages', { method: 'POST', body: JSON.stringify({ ...body, ...fields }) });\n    await response.text();\n    await waitForStatus(f, 'request_complete');\n    const expected = { speed: 'standard', inference_geo: 'global', service_tier: 'auto' };\n    if (Object.keys(fields).length) expected.pricing_unsupported = true;\n    assert.deepEqual(f.statuses.find(entry => entry.event === 'route').pricing_context, expected);\n    assert.deepEqual(f.statuses.find(entry => entry.event === 'upstream_usage').usage, { input_tokens: 10, output_tokens: 20 });\n    assert.ok(!JSON.stringify(f.statuses).includes('PRIVATE_TOKEN'));\n  }\n});",
+      "sha256": "3facaec66fba311afb2846f6af21c1946230a4072dc12e012870b60298ee9712",
+      "previous_status": "pending_assertion_mapping",
+      "proposed_status": "covered",
+      "static_assertions": 3,
+      "expanded_assertions": 12,
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_32_all_json_usage_and_unsupported_pricing_marker_variants"
+      ],
+      "shared_cases": [
+        "server-ollama-usage-32"
+      ],
+      "assertions": [
+        {
+          "id": "test/server.test.mjs#32:assert-1",
+          "expression": "assert.deepEqual(f.statuses.find(entry => entry.event === 'route').pricing_context, expected)",
+          "sha256": "41f5ad262febcd20c79245261cd285255b824a7b97058840ad8b08fa5733c58a",
+          "line": 1125,
+          "expanded_executions": 4,
+          "native_executions": 4,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_32_all_json_usage_and_unsupported_pricing_marker_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs",
+              "function": "original_32_all_json_usage_and_unsupported_pricing_marker_variants",
+              "line": 865,
+              "fragment": "a.check(\n                1,\n                events(&statuses, \"route\")[0][\"pricing_context\"] == expected,\n            );",
+              "fragment_sha256": "1a9a08b7963d87d54785384f2ebe5294606b7c097260f77d4bdd2e15526f0ee3",
+              "file_sha256": "75470e9a1abcb49146a24c369fc3436cd8a2b68f00177efd88bc03eedbb6ed2f"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#32:assert-2",
+          "expression": "assert.deepEqual(f.statuses.find(entry => entry.event === 'upstream_usage').usage, { input_tokens: 10, output_tokens: 20 })",
+          "sha256": "2ae3895fcd1d463879b20f746a2ca0322c1f9d729f31ab82504764a48cc36684",
+          "line": 1126,
+          "expanded_executions": 4,
+          "native_executions": 4,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_32_all_json_usage_and_unsupported_pricing_marker_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs",
+              "function": "original_32_all_json_usage_and_unsupported_pricing_marker_variants",
+              "line": 869,
+              "fragment": "a.check(\n                2,\n                javascript_number_equality(\n                    &events(&statuses, \"upstream_usage\")[0][\"usage\"],\n                    &json!({\"input_tokens\":10,\"output_tokens\":20}),\n                ),\n            );",
+              "fragment_sha256": "7b38762c4efa36c853ffc88d6697eca2279cb0c0a830e7126d0ad9b4e46e9f78",
+              "file_sha256": "75470e9a1abcb49146a24c369fc3436cd8a2b68f00177efd88bc03eedbb6ed2f"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#32:assert-3",
+          "expression": "assert.ok(!JSON.stringify(f.statuses).includes('PRIVATE_TOKEN'))",
+          "sha256": "6eddc52d86df1022c8b7630981cbc04b0c5f09d319ea71a92dbcc32be2cf7846",
+          "line": 1127,
+          "expanded_executions": 4,
+          "native_executions": 4,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs#original_32_all_json_usage_and_unsupported_pricing_marker_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_ollama_usage_contracts.rs",
+              "function": "original_32_all_json_usage_and_unsupported_pricing_marker_variants",
+              "line": 876,
+              "fragment": "a.check(3, !json!(statuses).to_string().contains(\"PRIVATE_TOKEN\"));",
+              "fragment_sha256": "55256f3a4c0a5f1445e0b282f935f128f6c6b436567ab1d5febd9ae95ef229df",
+              "file_sha256": "75470e9a1abcb49146a24c369fc3436cd8a2b68f00177efd88bc03eedbb6ed2f"
+            }
+          ],
+          "native_check": "Exact original predicate through ordinary native Gateway, actual bounded client/provider HTTP and the original injected routing/evaluator seam. All source dynamic site counts are pinned to the complete frozen callback capture; typed cancellation API boundaries are separately documented.",
+          "api_adaptation": null
+        }
+      ],
+      "comparison_boundary": "All #32 clients are sequential, with the original statuses reset before each of {}, fallbacks:[], fallback_credit_token:PRIVATE_TOKEN and advisor_20260630. Independent history retains all 24 emissions. Full body/header/route/request event comparisons preserve this exact order; identical scopes are not deduplicated or reordered."
+    }
+  ],
+  "comparison_boundaries": [
+    "Original #29 uses the real frozen JavaScript Router and an injected fetchImpl. The native replay uses the real native Router plus an owned injected HttpTransport returning the captured /api/show bytes and a genuinely never-ready /v1/systemone body. Both preserve deadline=0 and a real 30 ms pending observation. No live Ollama instance or classifier output is substituted.",
+    "The source evaluator request exposes an AbortSignal and ReadableStream reader.cancel. Rust HttpTransport has no AbortSignal argument/property and represents response cancellation by dropping the owned body. The native replay observes the actual borrowed routing CancellationToken and actual evaluator-body destruction before Gateway.close. It does not claim source/native signal identity or expose the internal classifier child-token state. The source signal.aborted and bodyCancelled predicates are explicitly ported to these typed cancellation/lifetime observations.",
+    "The source caller rejects with an AbortError. The native caller-owned real socket task returns typed ClientFailure::Cancelled after actual caller cancellation and drops its socket. Other typed connect/write/unexpected-response errors cannot satisfy the native equivalent predicate. There is no string-name replacement, synthetic upstream response, or direct mutation of the Router cancellation token.",
+    "Gateway may destroy the routing waiter before its inner future returns. The raw native route_returned_cancelled flag remains false in this execution; actual token cancellation, evaluator body destruction and route future destruction are retained separately. No returned EvaluationError is fabricated.",
+    "All #32 clients are sequential, with the original statuses reset before each of {}, fallbacks:[], fallback_credit_token:PRIVATE_TOKEN and advisor_20260630. Independent history retains all 24 emissions. Full body/header/route/request event comparisons preserve this exact order; identical scopes are not deduplicated or reordered.",
+    "The clean #30 SSE end_turn completion carries exact observed model/continuation_model/stop_reason/tool-use evidence even though the source mocked complete returns undefined and native mocked complete returns false. Both expose completion_confirmed=true because response observation is clean. #31 HTTP429 and #32 JSON without stop_reason carry no evidence and remain unconfirmed. Real production continuation-state acceptance is outside these mocked routing callbacks.",
+    "Source mocked complete callbacks include redundant successful cleanup calls; native Gateway consumes each request lease once. All 13 source and 7 native calls remain in raw transcripts, including their actual return values. Callback identity/cardinality equality is not claimed.",
+    "Only measured first_response_ms and total_latency_ms lack equal-value timing comparison; presence and finite nonnegative values are verified. Actual generated UUIDs, HTTP Date values and separately bound loopback authorities differ and remain raw. The retained source projection ledger records exactly which source observations changed for stability.",
+    "Undefined source metadata corresponds to absent native fields; optional typed RouteOptions identifiers use empty strings. Numeric metadata compares actual numerical values corresponding to JavaScript Number equality, preserving raw f64/integer representation. No full body is truncated, removed or rewritten.",
+    "Original provider callbacks leave request streams unread. Passive source capture delegates IncomingMessage.push without reading or draining. The native bounded peer reads complete finite synthetic request bodies before responding; original unread-stream API/timing equivalence is not asserted."
+  ],
+  "independent_review": {
+    "reviewed_at": "2026-10-13",
+    "scope": "Exact original callbacks/predicates and all source/native fragment hashes, original execution counts, actual cancellation/response/usage schedules and explicit typed API boundaries. Stream#26 stays partial pending returned-future replay; cancellation does not fabricate a resumed rejection."
+  }
+}

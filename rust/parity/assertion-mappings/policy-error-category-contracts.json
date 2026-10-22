@@ -1,0 +1,872 @@
+{
+  "schema_version": 1,
+  "kind": "original_policy3_typed_error_category_per_assertion_supplement_draft",
+  "status": "qualified_for_only_original_policy_definition_3",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "only_definition": "test/policy.test.mjs#3",
+  "original_definition": {
+    "name": "policy fails closed on untrusted, malformed or unknown content without echoing it",
+    "statement": "test('policy fails closed on untrusted, malformed or unknown content without echoing it', t => {\n  const bad = [\n    ['group-writable file', fixture(t, {}, { mode: 0o664 })],\n    ['world-writable directory', fixture(t, {}, { directoryMode: 0o777 })],\n    ['not valid json', fixture(t, 'PRIVATE_POLICY_TEXT')],\n    ['not an object', fixture(t, '[]')],\n    ['unknown key', fixture(t, { PRIVATE_KEY_NAME: 1 })],\n    ['empty allowlist', fixture(t, { allowed_evaluators: [] })],\n    ['unknown allowlist value', fixture(t, { allowed_evaluators: ['PRIVATE_VALUE'] })],\n    ['bad log mode', fixture(t, { session_log_mode: 'PRIVATE_VALUE' })],\n    ['bad url', fixture(t, { upstream_url: 'PRIVATE_VALUE' })],\n  ];\n  for (const [name, f] of bad) {\n    assert.throws(() => loadPolicy(f.options), error => error.code === 'AUTOROUTER_CONFIG_ERROR' && !/PRIVATE_/.test(error.message), name);\n  }\n  const other = fixture(t, {});\n  assert.throws(() => loadPolicy({ ...other.options, trustedUid: uid + 1 }), /owned by root/);\n  const link = fixture(t);\n  writeFileSync(join(link.root, 'target.json'), '{}');\n  symlinkSync(join(link.root, 'target.json'), link.path);\n  assert.throws(() => loadPolicy(link.options), /regular file/);\n});",
+    "statement_sha256": "53fa387d4577204942eecec2b02aab6af1e14d962f25f2f3c7384c0b3b3b7efe",
+    "statement_bytes": 1216,
+    "source": {
+      "path": "artifacts/rust-rewrite/policy-error-original-20261017-1/policy.test.mjs",
+      "bytes": 7785,
+      "sha256": "4a2367d03efa940b1da878bffb0ebfac49d48106e7766d9457231dfc32e555af"
+    },
+    "assertion_sites": 3,
+    "rejection_instances": 11,
+    "source_executions": 1,
+    "baseline_files_verified_before_and_after": 111
+  },
+  "historical_mapping_unchanged": {
+    "path": "rust/parity/assertion-mappings/config-storage-policy-keychain.json",
+    "bytes": 43633,
+    "sha256": "991071762f126b2b115e6433e2afc3375c11044d78d74cb9a057c336900a2ef1"
+  },
+  "previous_coverage_row": {
+    "id": "test/policy.test.mjs#3",
+    "file": "test/policy.test.mjs",
+    "name": "policy fails closed on untrusted, malformed or unknown content without echoing it",
+    "parameterized": false,
+    "status": "partial_assertion_mapping",
+    "rust_tests": [
+      "rust/crates/autorouter-runtime/src/policy.rs#policy::tests::only_trusted_regular_files_and_directories_are_loaded"
+    ],
+    "shared_cases": [],
+    "evidence": {
+      "native_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+      "native_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
+      "scope": "Only the exact mapped native assertions; no actual system policy/Keychain interaction, cross-platform or installed-artifact qualification is implied."
+    },
+    "related_components": [
+      "config_auth_policy"
+    ],
+    "assertion_mapping": "rust/parity/assertion-mappings/config-storage-policy-keychain.json",
+    "remaining_assertions": [
+      "The baseline also requires AUTOROUTER_CONFIG_ERROR on each JavaScript error; native load_policy_at returns String. Structured error-envelope migration remains unrepresented."
+    ]
+  },
+  "historical_mapping_row": {
+    "baseline_test": "test/policy.test.mjs#3",
+    "name": "policy fails closed on untrusted, malformed or unknown content without echoing it",
+    "baseline_file_sha256": "4a2367d03efa940b1da878bffb0ebfac49d48106e7766d9457231dfc32e555af",
+    "baseline_definition_sha256": "61a503e8f7ada9a403d190b31de3309afc274023e57a0b891da8657d03e47540",
+    "baseline_line": 41,
+    "reviewed_assertion_calls": 3,
+    "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+    "status": "partial",
+    "rust_tests": [
+      "rust/crates/autorouter-runtime/src/policy.rs#policy::tests::only_trusted_regular_files_and_directories_are_loaded"
+    ],
+    "shared_cases": [],
+    "review_notes": [
+      "All nine bad trust/schema inputs, wrong uid, existing and dangling symlinks fail closed without private payload. Targets are untouched."
+    ],
+    "remaining": [
+      "The baseline also requires AUTOROUTER_CONFIG_ERROR on each JavaScript error; native load_policy_at returns String. Structured error-envelope migration remains unrepresented."
+    ]
+  },
+  "historical_mapping_scope": "The original mapping and original native_log identity remain untouched. Historical log availability/results are not reverified or relabeled by this supplement.",
+  "statement_framing_review": {
+    "historical_statement_sha256": "61a503e8f7ada9a403d190b31de3309afc274023e57a0b891da8657d03e47540",
+    "historical_bytes": 1218,
+    "historical_framing": "Exact AST statement plus two trailing LF bytes",
+    "current_exact_ast_sha256": "53fa387d4577204942eecec2b02aab6af1e14d962f25f2f3c7384c0b3b3b7efe",
+    "current_exact_ast_bytes": 1216,
+    "same_definition": "Hash recomputation proves the discrepancy is framing only; no source code or assertion was changed and neither historical identity is overwritten."
+  },
+  "per_assertion": [
+    {
+      "source_line": 54,
+      "expression": "assert.throws(() => loadPolicy(f.options), error => error.code === 'AUTOROUTER_CONFIG_ERROR' && !/PRIVATE_/.test(error.message), name)",
+      "expression_sha256": "485831219dbcd11c0bedc1f1a1713c9891e78272fd6e8a2540f4f71aa6a83454",
+      "original_rejection_instances": 9,
+      "status": "covered_with_explicit_typed_error_api_migration",
+      "native_test": "rust/crates/autorouter-runtime/src/policy.rs#policy::tests::original_policy_rejections_preserve_stable_error_category_and_input_files",
+      "native_checks": [
+        "#/native_check_bindings/actual_public_loader",
+        "#/native_check_bindings/fixed_category",
+        "#/native_check_bindings/native_error_assertions",
+        "#/native_check_bindings/nine_original_table_cases",
+        "#/native_check_bindings/nine_original_table_execution"
+      ],
+      "explanation": "All nine original trust/schema fixture combinations call the actual filesystem loader. The code accessor preserves the exact AUTOROUTER_CONFIG_ERROR category value; safe message/display/debug assertions reject PRIVATE_ and paths. This is an explicit typed Rust accessor in place of the JS Error.code property, with no Error identity assertion in the source.",
+      "focused_execution_ref": "#/actual_executions/native_focused/0"
+    },
+    {
+      "source_line": 57,
+      "expression": "assert.throws(() => loadPolicy({ ...other.options, trustedUid: uid + 1 }), /owned by root/)",
+      "expression_sha256": "f239224e4fbd3d63b3c4023e859ced206c92c6fd9b62afa2101d5207b0583c1a",
+      "original_rejection_instances": 1,
+      "status": "covered_with_explicit_typed_error_api_migration",
+      "native_test": "rust/crates/autorouter-runtime/src/policy.rs#policy::tests::original_policy_rejections_preserve_stable_error_category_and_input_files",
+      "native_checks": [
+        "#/native_check_bindings/actual_public_loader",
+        "#/native_check_bindings/native_error_assertions",
+        "#/native_check_bindings/wrong_owner"
+      ],
+      "explanation": "Actual existing policy has a different trusted UID supplied; rejection uses the exact preexisting file-trust message containing owned by root. No privileged chown or real system policy is used.",
+      "focused_execution_ref": "#/actual_executions/native_focused/0"
+    },
+    {
+      "source_line": 61,
+      "expression": "assert.throws(() => loadPolicy(link.options), /regular file/)",
+      "expression_sha256": "76d872dad46141e8b16c5171e52d4ac96a4eea61e245952eb2baf8ec24e2916d",
+      "original_rejection_instances": 1,
+      "status": "covered_with_explicit_typed_error_api_migration",
+      "native_test": "rust/crates/autorouter-runtime/src/policy.rs#policy::tests::original_policy_rejections_preserve_stable_error_category_and_input_files",
+      "native_checks": [
+        "#/native_check_bindings/actual_public_loader",
+        "#/native_check_bindings/native_error_assertions",
+        "#/native_check_bindings/actual_symlink"
+      ],
+      "explanation": "Actual symlink is rejected with exact file-trust message containing regular file; the test subsequently confirms link identity and target bytes/mode remain intact.",
+      "focused_execution_ref": "#/actual_executions/native_focused/0"
+    }
+  ],
+  "native_check_bindings": {
+    "actual_public_loader": {
+      "source": {
+        "path": "rust/crates/autorouter-runtime/src/policy.rs",
+        "bytes": 17109,
+        "sha256": "8ba4c5c6e5beb6b12adae03a0edfd7461205799ec15941d57ccfcd7fdd830961"
+      },
+      "line": 65,
+      "fragment": "pub fn load_policy_at(path: &Path, trusted_uid: u32) -> Result<Option<LoadedPolicy>, PolicyError> {",
+      "fragment_sha256": "484080b79a7aa9b7f45a8196052dfcbd4421cd32f210742a9fd9950c1b89fd74"
+    },
+    "fixed_category": {
+      "source": {
+        "path": "rust/crates/autorouter-runtime/src/policy.rs",
+        "bytes": 17109,
+        "sha256": "8ba4c5c6e5beb6b12adae03a0edfd7461205799ec15941d57ccfcd7fdd830961"
+      },
+      "line": 23,
+      "fragment": "    pub const fn code(&self) -> &'static str {\n        \"AUTOROUTER_CONFIG_ERROR\"\n    }",
+      "fragment_sha256": "69c3007e07d3d240d25b52d0bba97b6083a7be764adc7a3b796b296681ffed95"
+    },
+    "native_error_assertions": {
+      "source": {
+        "path": "rust/crates/autorouter-runtime/src/policy.rs",
+        "bytes": 17109,
+        "sha256": "8ba4c5c6e5beb6b12adae03a0edfd7461205799ec15941d57ccfcd7fdd830961"
+      },
+      "line": 141,
+      "fragment": "            assert_eq!(error.code(), \"AUTOROUTER_CONFIG_ERROR\");\n            assert_eq!(error.message(), expected);\n            assert_eq!(error.to_string(), expected);\n            assert!(std::error::Error::source(&error).is_none());\n            let debug = format!(\"{error:?}\");\n            assert!(debug.contains(\"AUTOROUTER_CONFIG_ERROR\"));\n            for rendered in [error.message(), &error.to_string(), &debug] {\n                assert!(!rendered.contains(\"PRIVATE_\"));\n                assert!(!rendered.contains(&path.to_string_lossy().to_string()));\n            }",
+      "fragment_sha256": "0ebfa5981c472c547ef476f708056744ee43c730c394570371f649b258ca9724"
+    },
+    "nine_original_table_cases": {
+      "source": {
+        "path": "rust/crates/autorouter-runtime/src/policy.rs",
+        "bytes": 17109,
+        "sha256": "8ba4c5c6e5beb6b12adae03a0edfd7461205799ec15941d57ccfcd7fdd830961"
+      },
+      "line": 165,
+      "fragment": "        // The nine original bad-policy fixtures, in the original order. These\n        // exercise the actual filesystem loader, not just its JSON validator.\n        let cases = [",
+      "fragment_sha256": "82e057b5e05c26036f4bccceee213bc64542eaaa8a62293365716d22a0d4f959"
+    },
+    "nine_original_table_execution": {
+      "source": {
+        "path": "rust/crates/autorouter-runtime/src/policy.rs",
+        "bytes": 17109,
+        "sha256": "8ba4c5c6e5beb6b12adae03a0edfd7461205799ec15941d57ccfcd7fdd830961"
+      },
+      "line": 234,
+      "fragment": "            rejected(&path, uid, expected);\n            assert_eq!(fs::read(&path).unwrap(), body.as_bytes());",
+      "fragment_sha256": "7a00f54a927ad154036b77cc970806ebc668d8cf77fbc0bcee68a71f5ac048c0"
+    },
+    "wrong_owner": {
+      "source": {
+        "path": "rust/crates/autorouter-runtime/src/policy.rs",
+        "bytes": 17109,
+        "sha256": "8ba4c5c6e5beb6b12adae03a0edfd7461205799ec15941d57ccfcd7fdd830961"
+      },
+      "line": 255,
+      "fragment": "        rejected(&path, uid.checked_add(1).unwrap(), trusted_file);\n        assert_eq!(fs::read(&path).unwrap(), b\"{}\");\n        assert_eq!(fs::symlink_metadata(&path).unwrap().uid(), uid);",
+      "fragment_sha256": "28e40cc7acc56c8b8ec5a180a4796fafc9970b7f87f86443fdcb94426417952a"
+    },
+    "actual_symlink": {
+      "source": {
+        "path": "rust/crates/autorouter-runtime/src/policy.rs",
+        "bytes": 17109,
+        "sha256": "8ba4c5c6e5beb6b12adae03a0edfd7461205799ec15941d57ccfcd7fdd830961"
+      },
+      "line": 268,
+      "fragment": "        symlink(&target, &path).unwrap();\n        rejected(&path, uid, trusted_file);\n        assert_eq!(fs::read_link(&path).unwrap(), target);\n        assert_eq!(fs::read(&target).unwrap(), b\"{}\");",
+      "fragment_sha256": "59e4bb2f0baf2cdd04b006e671f04fbbc9764d15064cc67b00f0b6049c8fa2a1"
+    }
+  },
+  "native_sources": [
+    {
+      "path": "rust/crates/autorouter-runtime/src/policy.rs",
+      "bytes": 17109,
+      "sha256": "8ba4c5c6e5beb6b12adae03a0edfd7461205799ec15941d57ccfcd7fdd830961"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/policy.rs",
+      "bytes": 5906,
+      "sha256": "2470f79731556af1d2ea5cf824ee709eb0b1fafdec7359d4b7db92016721e28d"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/user_config.rs",
+      "bytes": 56539,
+      "sha256": "96146cded87dfb9af9baf7b730f1fffb6353da348fc39e933c71c1c6d1ec42cf"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/configuration.rs",
+      "bytes": 16817,
+      "sha256": "7881afc7a5a6dc9fb0d77fd5c1ab3573ce112e78ef257f8928b4386288c70a62"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/onboarding.rs",
+      "bytes": 20023,
+      "sha256": "d81df782ddccfc002c841151cccd99787180d3ff4b77f2f0708dfbcc06349a72"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/policy_command_contracts.rs",
+      "bytes": 22937,
+      "sha256": "cda747397e554bf5a2c5d2eb9753039b4784abe54bf5a4d9169ba57587b58473"
+    },
+    {
+      "path": "rust/docs/embedding.md",
+      "bytes": 28034,
+      "sha256": "a3d0eb87c84c2aa5cfa8d0eea0d378a9997b57ae4af137defa82a09a6ce2de87"
+    }
+  ],
+  "original_instances": [
+    {
+      "label": "group-writable-file",
+      "source_assertion_line": 54,
+      "body": "{}",
+      "file_mode": "0664",
+      "directory_mode": "0755",
+      "expected_code": "AUTOROUTER_CONFIG_ERROR"
+    },
+    {
+      "label": "world-writable-directory",
+      "source_assertion_line": 54,
+      "body": "{}",
+      "file_mode": "0644",
+      "directory_mode": "0777",
+      "expected_code": "AUTOROUTER_CONFIG_ERROR"
+    },
+    {
+      "label": "malformed-json",
+      "source_assertion_line": 54,
+      "body": "PRIVATE_POLICY_TEXT",
+      "file_mode": "0644",
+      "directory_mode": "0755",
+      "expected_code": "AUTOROUTER_CONFIG_ERROR"
+    },
+    {
+      "label": "not-object",
+      "source_assertion_line": 54,
+      "body": "[]",
+      "file_mode": "0644",
+      "directory_mode": "0755",
+      "expected_code": "AUTOROUTER_CONFIG_ERROR"
+    },
+    {
+      "label": "unknown-key",
+      "source_assertion_line": 54,
+      "body": "{\"PRIVATE_KEY_NAME\":1}",
+      "file_mode": "0644",
+      "directory_mode": "0755",
+      "expected_code": "AUTOROUTER_CONFIG_ERROR"
+    },
+    {
+      "label": "empty-allowlist",
+      "source_assertion_line": 54,
+      "body": "{\"allowed_evaluators\":[]}",
+      "file_mode": "0644",
+      "directory_mode": "0755",
+      "expected_code": "AUTOROUTER_CONFIG_ERROR"
+    },
+    {
+      "label": "unknown-allowlist-value",
+      "source_assertion_line": 54,
+      "body": "{\"allowed_evaluators\":[\"PRIVATE_VALUE\"]}",
+      "file_mode": "0644",
+      "directory_mode": "0755",
+      "expected_code": "AUTOROUTER_CONFIG_ERROR"
+    },
+    {
+      "label": "bad-log-mode",
+      "source_assertion_line": 54,
+      "body": "{\"session_log_mode\":\"PRIVATE_VALUE\"}",
+      "file_mode": "0644",
+      "directory_mode": "0755",
+      "expected_code": "AUTOROUTER_CONFIG_ERROR"
+    },
+    {
+      "label": "bad-url",
+      "source_assertion_line": 54,
+      "body": "{\"upstream_url\":\"PRIVATE_VALUE\"}",
+      "file_mode": "0644",
+      "directory_mode": "0755",
+      "expected_code": "AUTOROUTER_CONFIG_ERROR"
+    },
+    {
+      "label": "wrong-owner",
+      "source_assertion_line": 57,
+      "body": "{}",
+      "file_mode": "0644",
+      "directory_mode": "0755",
+      "injection": "actual own uid plus1 as trusted_uid; file ownership remains unchanged",
+      "expected_code": "AUTOROUTER_CONFIG_ERROR"
+    },
+    {
+      "label": "symlink",
+      "source_assertion_line": 61,
+      "target_body": "{}",
+      "target_mode": "0644",
+      "directory_mode": "0755",
+      "injection": "actual symlink in own temporary directory; loader does not change link/target",
+      "expected_code": "AUTOROUTER_CONFIG_ERROR"
+    }
+  ],
+  "typed_api_migration": {
+    "source": "JavaScript throws Error with an own code property equal to AUTOROUTER_CONFIG_ERROR. This original definition does not assert Error reference identity.",
+    "native": "load_policy/load_policy_at return a privately constructed PolicyError; code() exposes exactly the source category string. message()/Display retain the safe diagnostic and Debug exposes only that category/message, with no underlying Error::source.",
+    "wrappers": "Higher-level user_config/configuration/onboarding and the CLI test adapter explicitly convert safe Display to their existing String interfaces. This does not supply structured user-config errors or promote user-config definitions6/12.",
+    "authority": "Fixed product paths, real owner/mode/type/symlink trust checks and read/parse/validate order remain unchanged. load_policy_at remains only the explicit embedding/test adapter."
+  },
+  "original_execution_evidence": [
+    {
+      "path": "artifacts/rust-rewrite/policy-error-original-20261017-1/run.mjs",
+      "bytes": 5305,
+      "sha256": "25a4a93a88a96ba33c85abb98f73af30e6b5b509f70e45425f43e93ca5fefdfa"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-original-20261017-1/declaration.json",
+      "bytes": 3516,
+      "sha256": "a17172b6b40eaa576d6f38d451c39c8b2cbdcd590861a04c08731264e5cf7066"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-original-20261017-1/report.json",
+      "bytes": 3229,
+      "sha256": "529eb6050756db25b87dba369ab257765015893e587ef14c87a1342507db0c7b"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-original-20261017-1/definition-3.mjs.txt",
+      "bytes": 1216,
+      "sha256": "53fa387d4577204942eecec2b02aab6af1e14d962f25f2f3c7384c0b3b3b7efe"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-original-20261017-1/policy.test.mjs",
+      "bytes": 7785,
+      "sha256": "4a2367d03efa940b1da878bffb0ebfac49d48106e7766d9457231dfc32e555af"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-original-20261017-1/policy.mjs",
+      "bytes": 5090,
+      "sha256": "72dd716414c604df81b9973437814c2eb43c980f66f728e2476a2c6ca5d3e12f"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-original-20261017-1/baseline.json",
+      "bytes": 86691,
+      "sha256": "6722bd7a0109efb4d48e743412fbcc21affb0ceda1058d06726d03375113f588"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-original-20261017-1/stdout.tap",
+      "bytes": 337,
+      "sha256": "75fb6bf98cdf44ca1957d72e40299cd1ab8f48a2e2a0b92d1e5468d1588b027c"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-original-20261017-1/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "native_test_binary": {
+    "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/autorouter-runtime-test",
+    "bytes": 98766688,
+    "sha256": "e617c242cf19072666d7aa748a2cc7786e54b0dcf6a2d85bae2279d62773da09"
+  },
+  "actual_executions": {
+    "original": {
+      "path": "artifacts/rust-rewrite/policy-error-original-20261017-1/report.json",
+      "bytes": 3229,
+      "sha256": "529eb6050756db25b87dba369ab257765015893e587ef14c87a1342507db0c7b"
+    },
+    "native_focused": [
+      {
+        "name": "policy::tests::original_policy_rejections_preserve_stable_error_category_and_input_files",
+        "command": [
+          "/Users/fabio.rapposelli/AI/autorouter/artifacts/rust-rewrite/policy-error-validation-20261017-1/autorouter-runtime-test",
+          "--exact",
+          "policy::tests::original_policy_rejections_preserve_stable_error_category_and_input_files",
+          "--nocapture"
+        ],
+        "started_at": "2026-10-17T14:56:55.160878+00:00",
+        "finished_at": "2026-10-17T14:56:56.147089+00:00",
+        "exit_code": 0,
+        "stdout": {
+          "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/focused-01.stdout",
+          "bytes": 215,
+          "sha256": "396c19bfd04990441df6c10ddff452119213308ef652f115191c0723229bc3b3"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/focused-01.stderr",
+          "bytes": 967,
+          "sha256": "058e59950701b7d0387f56c04b6d9789e6b383c118381101b326411d76fc9e97"
+        },
+        "independently_checked": "Exact selected native test executes and reports one pass/zero failures from the retained compiler-emitted current-source runtime binary."
+      },
+      {
+        "name": "policy::tests::only_trusted_regular_files_and_directories_are_loaded",
+        "command": [
+          "/Users/fabio.rapposelli/AI/autorouter/artifacts/rust-rewrite/policy-error-validation-20261017-1/autorouter-runtime-test",
+          "--exact",
+          "policy::tests::only_trusted_regular_files_and_directories_are_loaded",
+          "--nocapture"
+        ],
+        "started_at": "2026-10-17T14:56:56.147954+00:00",
+        "finished_at": "2026-10-17T14:56:56.168926+00:00",
+        "exit_code": 0,
+        "stdout": {
+          "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/focused-02.stdout",
+          "bytes": 195,
+          "sha256": "b019a2da4143fa632aa2a5f4b974de3d778a63865515fc99931e6d26e6472d74"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/focused-02.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "independently_checked": "Exact selected native test executes and reports one pass/zero failures from the retained compiler-emitted current-source runtime binary."
+      },
+      {
+        "name": "policy::tests::allowlists_cover_both_defaults_and_explicit_choices_while_locks_preserve_the_caller",
+        "command": [
+          "/Users/fabio.rapposelli/AI/autorouter/artifacts/rust-rewrite/policy-error-validation-20261017-1/autorouter-runtime-test",
+          "--exact",
+          "policy::tests::allowlists_cover_both_defaults_and_explicit_choices_while_locks_preserve_the_caller",
+          "--nocapture"
+        ],
+        "started_at": "2026-10-17T14:56:56.169883+00:00",
+        "finished_at": "2026-10-17T14:56:56.182259+00:00",
+        "exit_code": 0,
+        "stdout": {
+          "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/focused-03.stdout",
+          "bytes": 225,
+          "sha256": "d96f8d08fec91b68155079a8570c9239f0235f41c5b6c2e967b0dd49ceff7bd5"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/focused-03.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "independently_checked": "Exact selected native test executes and reports one pass/zero failures from the retained compiler-emitted current-source runtime binary."
+      }
+    ],
+    "workspace": {
+      "progress": {
+        "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/workspace-final/workspace-progress.json",
+        "bytes": 5238,
+        "sha256": "2b88950ffbf50ca47553d80fbb84741463ceb4c17a25fe5092715ab7b56860e8"
+      },
+      "counts": {
+        "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/workspace-final/workspace-counts.json",
+        "bytes": 533,
+        "sha256": "e455103121fa0daf81b86fcb90e3a61d2368b86a4f9b1adb378e5f328cf20a64"
+      },
+      "passed": 1334,
+      "failed": 0,
+      "ignored": 10,
+      "groups": 66
+    },
+    "node": {
+      "progress": {
+        "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/node-progress.json",
+        "bytes": 2681,
+        "sha256": "90e3808b21bb801806296a36041cc1fd435385716cd5388a64824407bf216aae"
+      },
+      "tests_passed": 596,
+      "package_safe_files": 58
+    },
+    "deterministic": {
+      "progress": {
+        "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/deterministic-progress.json",
+        "bytes": 2586,
+        "sha256": "999ca3456ea35699f11e328f47801e040431bc75003b253d80c8208da88d26df"
+      },
+      "families": 17,
+      "matched_cases": 206625,
+      "whole_control_deterministic_parity": true,
+      "numerical_samples_retained": false
+    }
+  },
+  "native_execution_evidence": [
+    {
+      "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/declaration.json",
+      "bytes": 2137,
+      "sha256": "63040911163b00fe289ce58b5bf93b14744b6eddb110456b8bf3b9ac3bc6374c"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/source-inputs-before-build.json",
+      "bytes": 116420,
+      "sha256": "5920935046e438d7065ec0fb38b95eb140214f237b3d2523a37f034da0799d06"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/source-before-build.patch",
+      "bytes": 16730,
+      "sha256": "eea74b7bb9ae93fdd33a02f29a74f8ea3efe436a6804e9635b918764797e464b"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/runtime-binary.json",
+      "bytes": 1496,
+      "sha256": "fd230c464e655581980a4fc2ba6343d82e62c089396ef6551ed6711ebd22bba1"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/compile-runtime.stdout",
+      "bytes": 164346,
+      "sha256": "21d16d30cac4acbdfc24ff5c7475c455f64046f20264a0288069d965fd76d1d4"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/compile-runtime.stderr",
+      "bytes": 172,
+      "sha256": "fba19defe770e2271b850b057016cde7799dd05a0a42217d1d6ab2785bbb6fd6"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/focused-progress.json",
+      "bytes": 2940,
+      "sha256": "1cfe59744719a639c80f49b80959e6ba2cc962e581f3633e2f1f257f1d19bc52"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/workspace-final/source-adjustment.json",
+      "bytes": 689,
+      "sha256": "e418353724c31a3b65a57e2d40a6c468a90e60ed2f80f15ba08a962b171a1a25"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/workspace-final/source-inputs-before-build.json",
+      "bytes": 116420,
+      "sha256": "46edc25b94285408b2959b6e96ace04a68c2bbcb1b40bd006da25acfd3e2ecfe"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/workspace-final/source-before-build.patch",
+      "bytes": 17956,
+      "sha256": "45eadb13565f560135a58edda135f6c4af01ba2691ea2ada42ac4c2aa13ee2cf"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/workspace-final/runtime-rebind.stdout",
+      "bytes": 164345,
+      "sha256": "33266c96691f6d35cb6383db70387468644bc60632a9f06b32e44a019c1a9696"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/workspace-final/runtime-rebind.stderr",
+      "bytes": 61,
+      "sha256": "6931288d25d746ed0ced7382bad82dcf9c4924764fc6947f2e6f02c7f2972141"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/independent-runtime-rebind-observation.json",
+      "bytes": 1313,
+      "sha256": "923225f61ed8b3735c3e7141b40194d0635db2f183b27da570f2de3725992aaf"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/runtime-final-binary.json",
+      "bytes": 1291,
+      "sha256": "6919d838690d834cfd9891ad809be3a8a17cd9243a65450b151a24e5f09bb287"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/helper-final-binary.json",
+      "bytes": 1242,
+      "sha256": "05b23c4bafdc779a5d39fdb24e6f067afd81e3f93c85c1c80a288a205cc85743"
+    }
+  ],
+  "retained_initial_full_check_failure": {
+    "result": "failed",
+    "exit_code": 101,
+    "error_diagnostics": "Six E0271 diagnostics from two production CLI policy-loader callbacks expecting String",
+    "progress": {
+      "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/workspace-progress.json",
+      "bytes": 1972,
+      "sha256": "3c00cc7344daf33ad175640ad43e3ac4305b46615adb83afda425ca2cea71cb1"
+    },
+    "stdout": {
+      "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/strict-clippy.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+      "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/strict-clippy.stderr",
+      "bytes": 7460,
+      "sha256": "00423145f79ba5d37beb89f549c9387c7f252746bd86c7d0b995cbb0921b5a9d"
+    },
+    "correction": "Explicit private per-call map_err adapters in configuration.rs and onboarding.rs; no policy location or public String wrapper change. The initial failure remains failed.",
+    "final_full_check_state": "Initial sixE0271 diagnostics remain a failed retained run. Final adapters, workspace/fmt/Clippy, Node/package, fresh differential/whole controls and transfer are independently reviewed complete local evidence; future CI and full-plan gates remain separate."
+  },
+  "independent_review": [
+    {
+      "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/independent-static-review.json",
+      "bytes": 7802,
+      "sha256": "06352fdfaf2ccfb5fb20d1393234400e8fc1a172df057acc6007d751eae93260"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/INDEPENDENT-STATIC-REVIEW.md",
+      "bytes": 2870,
+      "sha256": "b74c168ff538ed4d528512b5bd31eef3d044ad41d8f6d8e6416bfa05ea57b414"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/independent-focused-review.json",
+      "bytes": 13129,
+      "sha256": "8700e53f425b07247582919b571c20cae4d3b971de0215cb26a9e8f3471097d2"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/independent-workspace-review.json",
+      "bytes": 11083,
+      "sha256": "0cd3425e281e983ecea73dcf0f65b362fc4dd7092c044809222c9f26b5f261e9"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/independent-full-local-review.json",
+      "bytes": 26338,
+      "sha256": "433c54390933a0b5da8f6350c0c29d8958738884c58c3ece77afc8f404c58cb2"
+    }
+  ],
+  "full_checks": {
+    "status": "appropriate_local_checks_complete",
+    "workspace": {
+      "status": "verified_completed",
+      "review": {
+        "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/independent-workspace-review.json",
+        "bytes": 11083,
+        "sha256": "0cd3425e281e983ecea73dcf0f65b362fc4dd7092c044809222c9f26b5f261e9"
+      },
+      "progress": {
+        "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/workspace-final/workspace-progress.json",
+        "bytes": 5238,
+        "sha256": "2b88950ffbf50ca47553d80fbb84741463ceb4c17a25fe5092715ab7b56860e8"
+      },
+      "counts": {
+        "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/workspace-final/workspace-counts.json",
+        "bytes": 533,
+        "sha256": "e455103121fa0daf81b86fcb90e3a61d2368b86a4f9b1adb378e5f328cf20a64"
+      }
+    },
+    "node_and_package": {
+      "progress": {
+        "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/node-progress.json",
+        "bytes": 2681,
+        "sha256": "90e3808b21bb801806296a36041cc1fd435385716cd5388a64824407bf216aae"
+      },
+      "terminal_steps": [
+        {
+          "name": "node-check",
+          "command": [
+            "/Users/fabio.rapposelli/AI/autorouter/artifacts/dev-environment/run",
+            "npm",
+            "run",
+            "check"
+          ],
+          "cwd": "/Users/fabio.rapposelli/AI/autorouter",
+          "started_at": "2026-10-17T15:01:02.276094+00:00",
+          "status": "passed",
+          "exit_code": 0,
+          "finished_at": "2026-10-17T15:01:05.424598+00:00",
+          "stdout": {
+            "path": "/Users/fabio.rapposelli/AI/autorouter/artifacts/rust-rewrite/policy-error-validation-20261017-1/node-check.stdout",
+            "bytes": 153,
+            "sha256": "4882654ddbf9853bf4f185dc398c36b83eaa63b59fbb76d525b746ce417b768f"
+          },
+          "stderr": {
+            "path": "/Users/fabio.rapposelli/AI/autorouter/artifacts/rust-rewrite/policy-error-validation-20261017-1/node-check.stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        {
+          "name": "node-tests",
+          "command": [
+            "/Users/fabio.rapposelli/AI/autorouter/artifacts/dev-environment/run",
+            "npm",
+            "test"
+          ],
+          "cwd": "/Users/fabio.rapposelli/AI/autorouter",
+          "started_at": "2026-10-17T15:01:05.425439+00:00",
+          "status": "passed",
+          "exit_code": 0,
+          "finished_at": "2026-10-17T15:01:09.463713+00:00",
+          "stdout": {
+            "path": "/Users/fabio.rapposelli/AI/autorouter/artifacts/rust-rewrite/policy-error-validation-20261017-1/node-tests.stdout",
+            "bytes": 135695,
+            "sha256": "c69d6e37a2e698b2156956993b004860ddec8aaff88d532bf7d667672f7dfa00"
+          },
+          "stderr": {
+            "path": "/Users/fabio.rapposelli/AI/autorouter/artifacts/rust-rewrite/policy-error-validation-20261017-1/node-tests.stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        {
+          "name": "node-package",
+          "command": [
+            "/Users/fabio.rapposelli/AI/autorouter/artifacts/dev-environment/run",
+            "npm",
+            "run",
+            "test:package"
+          ],
+          "cwd": "/Users/fabio.rapposelli/AI/autorouter",
+          "started_at": "2026-10-17T15:01:09.464593+00:00",
+          "status": "passed",
+          "exit_code": 0,
+          "finished_at": "2026-10-17T15:01:15.919974+00:00",
+          "stdout": {
+            "path": "/Users/fabio.rapposelli/AI/autorouter/artifacts/rust-rewrite/policy-error-validation-20261017-1/node-package.stdout",
+            "bytes": 885,
+            "sha256": "252f394312f691ab45bc903a9925b96efae13621a2eb72a45cac6a918171ad8d"
+          },
+          "stderr": {
+            "path": "/Users/fabio.rapposelli/AI/autorouter/artifacts/rust-rewrite/policy-error-validation-20261017-1/node-package.stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      ],
+      "tests_passed": 596,
+      "package_safe_files": 58,
+      "scope": "Actual JS check/tests/exact-package smoke; synthetic fixture evidence, not a native shipping archive."
+    },
+    "differential_families": {
+      "suite": {
+        "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/parity-all/suite.json",
+        "bytes": 7767,
+        "sha256": "e7f494d2c4db04191c7457d308a513c1931e72d4f6afbcd17806c4622ce1793e"
+      },
+      "families": 17,
+      "matched_cases": 206625,
+      "scope": "Synthetic pure/observer differential coverage only."
+    },
+    "whole_connection_validation": {
+      "report": {
+        "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/whole-validation/report.json",
+        "bytes": 160973,
+        "sha256": "9c5af1f2d60d315abee364f1b25e22d9441f11499979b0b13a04ed05738d7ffe"
+      },
+      "preflight": {
+        "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/whole-validation/preflight.json",
+        "bytes": 137697,
+        "sha256": "c15fa5f972c9a942cff6d85c348059c8027a2b7e2b35493554aa31df617d70cf"
+      },
+      "round_records": [
+        {
+          "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/whole-validation/round-1-input.json",
+          "bytes": 293586,
+          "sha256": "06c2e32a38cd6384e9b502513277074b03dd265fc4503f68093da32dfd134f50"
+        },
+        {
+          "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/whole-validation/round-1-node.json",
+          "bytes": 73813,
+          "sha256": "e44b649a8d6bc19a724a76512e98f8a61dfd0e184c41d852ac2236798d3f695e"
+        },
+        {
+          "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/whole-validation/round-1-rust.json",
+          "bytes": 73813,
+          "sha256": "d2f7398e0e11247ee22630c6564cbe3235b327b58838e4d001efed1070766b55"
+        }
+      ],
+      "exact_node_rust_equality": true,
+      "source_inputs_rehashed": 685,
+      "reference_adapters_rehashed": 2,
+      "requests_per_engine": 40,
+      "loopback_controls_per_engine": 2,
+      "status": "not_measured",
+      "numerical_samples_retained": false,
+      "acceptance_qualified": false
+    }
+  },
+  "fresh_transfer": {
+    "inspection": {
+      "path": "artifacts/rust-rewrite/policy-error-export-evidence-20261017-1/inspection.json",
+      "bytes": 1891,
+      "sha256": "b90da4e356c50a1219eaa549a8e09cb16c9e3aae2d933592f9d66c44d1631b0f"
+    },
+    "prior_independent_actual_review": {
+      "path": "artifacts/rust-rewrite/policy-error-export-evidence-20261017-1/actual-proof-review.json",
+      "bytes": 6135,
+      "sha256": "5e382d537d7d95f22e1a77e4e605217dcc86b7ce6536591a6df92882e9acaacc"
+    },
+    "verifier_source_review": {
+      "path": "artifacts/rust-rewrite/policy-error-export-evidence-20261017-1/verifier-review.json",
+      "bytes": 3504,
+      "sha256": "67ee9ca0b2821094b71443cbda9231f38a89cb96d92165d00b1031dae7a72e2c"
+    },
+    "verifier": {
+      "path": "artifacts/rust-rewrite/policy-error-export-evidence-20261017-1/verify-transfer.py",
+      "bytes": 13769,
+      "sha256": "1fb963433d42c170fd6078e444e71d137ad64c9eff5b1e713035c1d5a94a6dd6"
+    },
+    "manifest": {
+      "path": "artifacts/rust-rewrite/policy-error-transfer-20261017-1/transfer-manifest.json",
+      "bytes": 1953,
+      "sha256": "bf526d35f93de913db86195c160d846632e0685b96d043e3b714a65f0904ac95"
+    },
+    "archives": [
+      {
+        "path": "artifacts/rust-rewrite/policy-error-transfer-20261017-1/native-source.cpio.gz",
+        "bytes": 2872588,
+        "sha256": "1404f149b8473a80cf96f3971177683b444c159ae565215a917df2278470ba45"
+      },
+      {
+        "path": "artifacts/rust-rewrite/policy-error-transfer-20261017-1/frozen-node-reference-delta.tar.gz",
+        "bytes": 299945,
+        "sha256": "0abea5d907b897c69d1e6f12ac2132f185781569e5d2c6f115a79d1f1fd0b4e8"
+      }
+    ],
+    "independently_reparsed_now": true,
+    "source_files_matched_current_tree_and_final_declaration": 694,
+    "native_members": 696,
+    "reference_physical_files": 109,
+    "reference_logical_files": 113,
+    "frozen_originals_rehashed": 111,
+    "carrier_bytes": 33503232,
+    "logical_bytes": 33468628,
+    "carrier_cap": 33554432,
+    "logical_cap": 33554432,
+    "source_to_binary_provenance": "unverified_prebuilt",
+    "release_approved": false,
+    "receiver_scope": "Actual retained receiver result and reviewed verifier assertions establish the prior one-shot restore/ownership/mode/cleanup observation. No new filesystem restore was run by this reviewer."
+  },
+  "current_source_ci": {
+    "status": "requires_new_push",
+    "scope": "CI for26412f2, even if all14 source jobs pass, does not qualify this changed working tree. No previous CI approval is inherited."
+  },
+  "final_promotion": {
+    "status": "applied_only_to_original_policy_definition_3",
+    "allowed_definition": "test/policy.test.mjs#3",
+    "coverage_after": {
+      "covered": 536,
+      "partial_assertion_mapping": 52,
+      "total": 588
+    },
+    "area_approval": false,
+    "scope": "Local original-assertion proof only. Fresh source CI and every broader gate remain separate."
+  },
+  "scope": {
+    "only_candidate_definition": "test/policy.test.mjs#3",
+    "other_partial_definitions_unchanged": {
+      "test/user-config.test.mjs#6": "partial_assertion_mapping",
+      "test/user-config.test.mjs#12": "partial_assertion_mapping"
+    },
+    "all_area_statuses_remain_partial": true,
+    "configuration_and_limits_approval": false,
+    "numerical_performance_approval": false,
+    "platform_or_release_approval": false,
+    "provider_calls": 0,
+    "builds_or_tests_by_reviewer": 0
+  },
+  "remaining_before_promotion": [],
+  "focused_execution_timing_scope": "Actual exact focused executions completed successfully; their receipts do not retain an independent process ceiling. No timing-performance claim or invented timeout is attached.",
+  "remaining_full_plan_requirements": [
+    "Current working-tree changes require a new push and source-bound CI observation;26412f2 jobs cannot qualify new code.",
+    "The other partial original definitions, complete configuration/limit/resource/transport/TLS/platform/minimum-OS/WSL/Keychain gates remain separate.",
+    "Unchanged numerical performance targets, representative hardware and real evaluator/task comparisons remain open.",
+    "Shipping source-to-binary reproduction, production artifacts/licenses/publication/rollback/stabilization and final cutover remain unapproved."
+  ],
+  "prepromotion_coverage_snapshot": {
+    "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/coverage-before-policy-promotion.json",
+    "bytes": 1760255,
+    "sha256": "a661c39c6a269d93070e8fa0778711a9c854db28e87f5f0c48caba86a5a96ae1",
+    "source_commit": "26412f2962f197df3ea1311490d9ad181d07074c"
+  }
+}

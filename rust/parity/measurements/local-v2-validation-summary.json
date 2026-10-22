@@ -1,0 +1,164 @@
+{
+  "schema_version": 1,
+  "kind": "native_benchmark_v2_deterministic_validation",
+  "source_checkpoint": "1d8ce9e plus reviewed fifth-increment working tree",
+  "passed": true,
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "candidate_sha256": "65a1ef18217d5486abd817c09e86354e975bd0b8a9e5a27a6f0c5570b240dfd6",
+  "node_binary_sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0",
+  "protocol_sha256": "190fe4d327d166827878a8562f7317004ed321fdf5ba5c3db66b724408a57cd8",
+  "report": {
+    "path": "artifacts/rust-rewrite/benchmark-v2-validation-2/report.json",
+    "sha256": "0ce86e484ea44ce06567ed87e10be218d00a6703da2f85fd5a10c33c61a0b3de",
+    "bytes": 65365
+  },
+  "preflight": {
+    "path": "artifacts/rust-rewrite/benchmark-v2-validation-2/preflight.json",
+    "sha256": "37dc1ca8e27ca26160e4084f00b83469bcfc1fc2e550b4f3d196daa6d0b903d9",
+    "bytes": 71089
+  },
+  "driver": {
+    "path": "artifacts/rust-rewrite/benchmark-v2-validation-2/driver-71c41d1bec63bb43e66c2447bf13cc3d520ac1577ca84294816b53764c85dc0c",
+    "sha256": "71c41d1bec63bb43e66c2447bf13cc3d520ac1577ca84294816b53764c85dc0c",
+    "bytes": 46582392
+  },
+  "validation": {
+    "total_rows": 69,
+    "http_rows": 63,
+    "stream_rows": 24,
+    "measured_requests_across_direct_node_native": 3456,
+    "measured_stream_requests": 1344,
+    "configured_concurrency": [
+      1,
+      8,
+      32,
+      128
+    ],
+    "c128_observed_peak_requests": [
+      {
+        "implementation": "direct_upstream",
+        "workload": "small_miss",
+        "driver_peak_in_flight_requests": 127
+      },
+      {
+        "implementation": "node",
+        "workload": "small_miss",
+        "driver_peak_in_flight_requests": 128
+      },
+      {
+        "implementation": "rust",
+        "workload": "small_miss",
+        "driver_peak_in_flight_requests": 128
+      },
+      {
+        "implementation": "direct_upstream",
+        "workload": "large_catalog_miss",
+        "driver_peak_in_flight_requests": 128
+      },
+      {
+        "implementation": "node",
+        "workload": "large_catalog_miss",
+        "driver_peak_in_flight_requests": 128
+      },
+      {
+        "implementation": "rust",
+        "workload": "large_catalog_miss",
+        "driver_peak_in_flight_requests": 128
+      },
+      {
+        "implementation": "direct_upstream",
+        "workload": "cache_hit",
+        "driver_peak_in_flight_requests": 124
+      },
+      {
+        "implementation": "node",
+        "workload": "cache_hit",
+        "driver_peak_in_flight_requests": 128
+      },
+      {
+        "implementation": "rust",
+        "workload": "cache_hit",
+        "driver_peak_in_flight_requests": 128
+      },
+      {
+        "implementation": "direct_upstream",
+        "workload": "stream_burst",
+        "driver_peak_in_flight_requests": 128
+      },
+      {
+        "implementation": "node",
+        "workload": "stream_burst",
+        "driver_peak_in_flight_requests": 128
+      },
+      {
+        "implementation": "rust",
+        "workload": "stream_burst",
+        "driver_peak_in_flight_requests": 128
+      },
+      {
+        "implementation": "direct_upstream",
+        "workload": "stream_paced",
+        "driver_peak_in_flight_requests": 128
+      },
+      {
+        "implementation": "node",
+        "workload": "stream_paced",
+        "driver_peak_in_flight_requests": 128
+      },
+      {
+        "implementation": "rust",
+        "workload": "stream_paced",
+        "driver_peak_in_flight_requests": 128
+      }
+    ],
+    "startup_pairs": 3,
+    "complete_inference_and_count_fields": true,
+    "exact_response_bytes_through_eof": true,
+    "mock_stream_abandoned_bodies": 0,
+    "numerical_performance_results_retained": false,
+    "provider_calls": 0
+  },
+  "focused_tests": {
+    "path": "artifacts/rust-rewrite/fifth-benchmark-focused-2.log",
+    "sha256": "e96d2a37e76ee9288074ec5b5e98be8e4c12040ff2a3ea2b56717a75278ebb31",
+    "bytes": 1181
+  },
+  "retained_initial_preflight_failure": {
+    "report": {
+      "path": "artifacts/rust-rewrite/benchmark-v2-validation-1/failure.json",
+      "sha256": "952ee97c7f51b143ef168cc87e1f820f556913e80f3aad91efbdeaec9af48b56",
+      "bytes": 93
+    },
+    "cause": "Debug candidate exceeds existing32MiB executable-input bound; no workload started. Bound unchanged; successful run uses release CLI."
+  },
+  "sources": [
+    {
+      "path": "rust/xtask/src/benchmark.rs",
+      "sha256": "5365ffcbf53ff5425e80d7fc913048628a5c090c3b5e10b2cd27803ac0c3293e",
+      "bytes": 46367
+    },
+    {
+      "path": "rust/xtask/src/benchmark_service.rs",
+      "sha256": "9599ea6f09d7ca29fcd2b3959e04c9af860fba7e4dfed688ef97bbcace6dd4ce",
+      "bytes": 9813
+    },
+    {
+      "path": "rust/xtask/src/benchmark_stream.rs",
+      "sha256": "25ddb099a3367b29e116e37cc56609c53e382070b18d2c0d57689c1e2a4c3889",
+      "bytes": 8126
+    },
+    {
+      "path": "rust/parity/local-benchmark-v2.json",
+      "sha256": "190fe4d327d166827878a8562f7317004ed321fdf5ba5c3db66b724408a57cd8",
+      "bytes": 6411
+    }
+  ],
+  "scope": "Complete inference/count fixture fields, target models, expected stage call counts, exact response bytes through EOF, mock fully-yielded/abandoned bodies and clean gateway exit/listener closure. Evaluator inputs have object-shape/count checks only; rubric/state, cancellation and transport acknowledgement parity require their separate suites.",
+  "limits": [
+    "Deterministic functional validation only; no v2 numerical performance claim or timing gate.",
+    "Frozen v1 protocol and reports retained; future v2 measurement needs fresh matched Node/native rounds.",
+    "Driver-visible DATA gaps reflect HTTP fragmentation/coalescing; mock fully-yielded counters do not prove successful gateway forwarding.",
+    "No true peak RSS, allocation, descriptor, isolated processing, representative hardware, backpressure/cancellation/failure timing, storage/soak or live-provider qualification.",
+    "Exact executable hashes retained; dirty-tree source-to-binary reproducibility is unverified."
+  ]
+}

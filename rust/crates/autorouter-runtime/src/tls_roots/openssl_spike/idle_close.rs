@@ -1,0 +1,295 @@
+//! Test-only idle transport observations. No pool-membership or abort authority.
+use std::collections::BTreeMap;
+use std::io;
+use std::sync::{Arc, Mutex, Weak};
+use std::task::{Context, Poll, Waker};
+
+use bytes::Bytes;
+use http_body_util::Full;
+use hyper::Request;
+use hyper::http::Extensions;
+use hyper_util::client::legacy::connect::{
+    Assignment, CaptureAssignment, capture_http1_assignment,
+};
+use tokio::sync::Notify;
+
+const CONNECTION_LIMIT: usize = 8;
+const REQUEST_LIMIT: usize = 16;
+const TRACE_LIMIT: usize = 256;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) enum Event {
+    Connected(usize),
+    Submitted(usize),
+    Selected { request: usize, connection: usize },
+    ResponseHead(usize),
+    ResponseError(usize),
+    BodyComplete(usize),
+    ReadHeld(usize),
+    WriteHeld(usize),
+    ReadEof(usize),
+    UnderlyingReadEofObserved(usize),
+    ReadEofDelivered(usize),
+    ReadError(usize, io::ErrorKind),
+    WriteError(usize, io::ErrorKind),
+    FlushError(usize, io::ErrorKind),
+    ShutdownError(usize, io::ErrorKind),
+    // TLS close-finalization diagnostic; not the underlying shutdown result.
+    ShutdownTlsFinalizationError(usize, io::ErrorKind),
+    ShutdownTlsError(usize, i32),
+    ShutdownTlsReason(usize, i32, i32),
+    Released(usize),
+    PeerClosed(usize),
+    Cleanup,
+}
+
+#[derive(Default)]
+struct State {
+    trace: Vec<Event>,
+    connections: Vec<Weak<Connection>>,
+    requests: BTreeMap<usize, Arc<CaptureAssignment>>,
+    overflow: bool,
+}
+#[derive(Default)]
+struct Shared {
+    state: Mutex<State>,
+    changed: Notify,
+}
+#[derive(Clone, Default)]
+pub(super) struct Probe(Arc<Shared>);
+
+#[derive(Default)]
+struct GateState {
+    held: bool,
+    reported: bool,
+    waker: Option<Waker>,
+}
+#[derive(Default)]
+struct Gate(Mutex<GateState>);
+pub(super) struct Hold(Arc<Gate>);
+impl Drop for Hold {
+    fn drop(&mut self) {
+        let waker = {
+            let mut state = self.0.0.lock().unwrap_or_else(|e| e.into_inner());
+            state.held = false;
+            state.waker.take()
+        };
+        if let Some(waker) = waker {
+            waker.wake();
+        }
+    }
+}
+impl Gate {
+    fn hold(self: &Arc<Self>) -> Hold {
+        let old = {
+            let mut state = self.0.lock().unwrap();
+            assert!(!state.held, "idle gate already held");
+            state.held = true;
+            state.reported = false;
+            state.waker.take()
+        };
+        drop(old);
+        Hold(self.clone())
+    }
+    fn poll(&self, cx: &mut Context<'_>) -> (bool, bool) {
+        // Arbitrary Waker Clone/Drop/Wake never executes under a fixture lock.
+        let next = cx.waker().clone();
+        let (held, first, old) = {
+            let mut state = self.0.lock().unwrap_or_else(|e| e.into_inner());
+            if state.held {
+                let first = !state.reported;
+                state.reported = true;
+                (true, first, state.waker.replace(next))
+            } else {
+                (false, false, Some(next))
+            }
+        };
+        drop(old);
+        (held, first)
+    }
+}
+
+pub(super) struct Connection {
+    ordinal: usize,
+    probe: Weak<Shared>,
+    read: Arc<Gate>,
+    write: Arc<Gate>,
+    eof: Arc<Gate>,
+}
+#[derive(Clone)]
+pub(super) struct Identity {
+    connection: Weak<Connection>,
+    ordinal: usize,
+}
+impl Connection {
+    pub(super) fn identity(self: &Arc<Self>) -> Identity {
+        Identity {
+            connection: Arc::downgrade(self),
+            ordinal: self.ordinal,
+        }
+    }
+    pub(super) fn event(&self, make: impl FnOnce(usize) -> Event) {
+        if let Some(probe) = self.probe.upgrade() {
+            Probe(probe).record(make(self.ordinal));
+        }
+    }
+    pub(super) fn read_ready(&self, cx: &mut Context<'_>) -> Poll<()> {
+        let (held, first) = self.read.poll(cx);
+        if first {
+            self.event(Event::ReadHeld);
+        }
+        if held { Poll::Pending } else { Poll::Ready(()) }
+    }
+    // Called only after a real positive-capacity read returned zero bytes.
+    // Reuse the existing bounded one-waker gate and RAII Hold release.
+    pub(super) fn defer_observed_eof(&self, cx: &mut Context<'_>) -> bool {
+        let (held, first) = self.eof.poll(cx);
+        if held && first {
+            self.event(Event::UnderlyingReadEofObserved);
+        }
+        held
+    }
+    pub(super) fn eof_delivery_ready(&self, cx: &mut Context<'_>) -> Poll<()> {
+        if self.eof.poll(cx).0 {
+            Poll::Pending
+        } else {
+            Poll::Ready(())
+        }
+    }
+    pub(super) fn write_ready(&self, cx: &mut Context<'_>) -> Poll<()> {
+        let (held, first) = self.write.poll(cx);
+        if first {
+            self.event(Event::WriteHeld);
+        }
+        if held { Poll::Pending } else { Poll::Ready(()) }
+    }
+}
+impl Drop for Connection {
+    fn drop(&mut self) {
+        self.event(Event::Released);
+    }
+}
+impl Probe {
+    pub(super) fn record(&self, event: Event) {
+        {
+            let mut state = self.0.state.lock().unwrap_or_else(|e| e.into_inner());
+            if state.trace.len() < TRACE_LIMIT {
+                state.trace.push(event);
+            } else {
+                state.overflow = true;
+            }
+        }
+        self.0.changed.notify_waiters();
+    }
+    pub(super) fn connected(&self) -> Arc<Connection> {
+        let connection = {
+            let mut state = self.0.state.lock().unwrap();
+            assert!(
+                state.connections.len() < CONNECTION_LIMIT,
+                "idle connection bound"
+            );
+            let connection = Arc::new(Connection {
+                ordinal: state.connections.len() + 1,
+                probe: Arc::downgrade(&self.0),
+                read: Arc::default(),
+                write: Arc::default(),
+                eof: Arc::default(),
+            });
+            state.connections.push(Arc::downgrade(&connection));
+            connection
+        };
+        self.record(Event::Connected(connection.ordinal));
+        connection
+    }
+    pub(super) fn attach(&self, request: &mut Request<Full<Bytes>>) -> usize {
+        self.register_capture(Arc::new(capture_http1_assignment(request)))
+    }
+    // One request attachment can be observed by idle and owned by its terminal.
+    pub(super) fn register_capture(&self, capture: Arc<CaptureAssignment>) -> usize {
+        let ordinal = {
+            let mut state = self.0.state.lock().unwrap();
+            assert!(state.requests.len() < REQUEST_LIMIT, "idle request bound");
+            let ordinal = state.requests.len() + 1;
+            assert!(state.requests.insert(ordinal, capture).is_none());
+            ordinal
+        };
+        self.record(Event::Submitted(ordinal));
+        ordinal
+    }
+    pub(super) fn assignment(&self, request: usize) -> Option<(usize, Assignment)> {
+        let assignment = {
+            let state = self.0.state.lock().unwrap();
+            state.requests.get(&request)?.assignment()?
+        };
+        let mut extensions = Extensions::new();
+        assignment.get_extras(&mut extensions);
+        let identity = extensions.remove::<Identity>()?;
+        let connection = identity.connection.upgrade()?;
+        Some((connection.ordinal, assignment))
+    }
+    /// Historical physical selections, without requiring a still-live IO owner.
+    /// These scalar IDs grant no reservation, abort or successful-delivery proof.
+    pub(super) fn assignment_history(&self) -> Vec<[usize; 2]> {
+        let captures: Vec<_> = self
+            .0
+            .state
+            .lock()
+            .unwrap()
+            .requests
+            .iter()
+            .map(|(request, capture)| (*request, capture.clone()))
+            .collect();
+        // Arbitrary connector metadata Clone/Drop stays outside the probe lock.
+        captures
+            .into_iter()
+            .filter_map(|(request, capture)| {
+                let assignment = capture.assignment()?;
+                let mut extensions = Extensions::new();
+                assignment.get_extras(&mut extensions);
+                let identity = extensions.remove::<Identity>()?;
+                Some([request, identity.ordinal])
+            })
+            .collect()
+    }
+    pub(super) fn hold_read(&self, connection: usize) -> Hold {
+        self.connection(connection).read.hold()
+    }
+    /// Holds delivery of one actual observed EOF, never the preceding IO read.
+    pub(super) fn hold_eof_delivery(&self, connection: usize) -> Hold {
+        self.connection(connection).eof.hold()
+    }
+    pub(super) fn hold_write(&self, connection: usize) -> Hold {
+        self.connection(connection).write.hold()
+    }
+    fn connection(&self, ordinal: usize) -> Arc<Connection> {
+        self.0.state.lock().unwrap().connections[ordinal - 1]
+            .upgrade()
+            .expect("idle connection already released")
+    }
+    pub(super) fn rows(&self) -> Vec<Event> {
+        let state = self.0.state.lock().unwrap();
+        assert!(!state.overflow, "idle trace bound");
+        state.trace.clone()
+    }
+    pub(super) fn live(&self) -> usize {
+        self.0
+            .state
+            .lock()
+            .unwrap()
+            .connections
+            .iter()
+            .filter(|connection| connection.strong_count() != 0)
+            .count()
+    }
+    pub(super) async fn wait(&self, event: Event) {
+        loop {
+            let changed = self.0.changed.notified();
+            tokio::pin!(changed);
+            changed.as_mut().enable();
+            if self.rows().contains(&event) {
+                return;
+            }
+            changed.await;
+        }
+    }
+}

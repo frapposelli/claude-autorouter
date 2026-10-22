@@ -1,0 +1,459 @@
+{
+  "schema_version": 1,
+  "kind": "complete_original_server_stream_failure_assertion_mapping",
+  "status": "independently_reviewed_focused_pass_with_explicit_remaining_boundaries",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "worktree_base_commit": "da51574ec1a895286c0379db1623d715e986be7e",
+  "production_changes": false,
+  "shared_support_changes": false,
+  "central_ledger_edits": false,
+  "counts": {
+    "baseline_definitions": 4,
+    "static_assertion_sites": 13,
+    "expanded_original_assertions": 12,
+    "expanded_native_predicate_assertions": 12,
+    "fully_represented_original_definitions": 3,
+    "partial_original_definitions": 1,
+    "native_tests": 4,
+    "counterfactual_guard_sites": 1,
+    "counterfactual_guard_executions": 0,
+    "downstream_http_operations": 4,
+    "actual_provider_requests": 3,
+    "route_calls": 4,
+    "source_complete_callbacks": 5,
+    "native_complete_callbacks": 4,
+    "source_emitted_status_events": 15,
+    "native_emitted_status_events": 15,
+    "source_synchronous_status_failures": 3,
+    "source_returned_promise_rejections": 2,
+    "native_synchronous_status_unwinds": 3,
+    "native_returned_async_failures_represented": 0
+  },
+  "capture": {
+    "path": "rust/parity/cases/server-stream-failure-contracts.capture.json",
+    "bytes": 14403,
+    "sha256": "0eb917770f8b49a114ce914d9a31b6c24a987d2c980221b82305d9a3f3427332"
+  },
+  "corpus": {
+    "path": "rust/parity/cases/server-stream-failure-contracts.jsonl",
+    "bytes": 21995,
+    "sha256": "93427d9e2bcb68304b4bd28af30974083a0238b97d305377725029bcef87a21f"
+  },
+  "native_validation": {
+    "path": "artifacts/rust-rewrite/server-stream-failure-native-20261013-3/report.json",
+    "bytes": 15994,
+    "sha256": "9d39d58f499b47c8988b88d0550b960d9f69350ee9f92e92e961417c22ef8c1e"
+  },
+  "rows": [
+    {
+      "id": "test/server.test.mjs#25",
+      "name": "upstream stream disconnection is an error, not a client cancellation",
+      "statement": "test('upstream stream disconnection is an error, not a client cancellation', async t => {\n  let disconnect;\n  const f = await fixture(t, (req, res) => {\n    res.writeHead(200, { 'content-type': 'text/event-stream' });\n    res.write(': ping\\n\\n');\n    disconnect = () => res.destroy();\n  });\n  const response = await f.call('/v1/messages', { method: 'POST', body: JSON.stringify(body) });\n  const reader = response.body.getReader();\n  await reader.read();\n  disconnect();\n  await assert.rejects(async () => { while (!(await reader.read()).done) {} });\n  await waitForStatus(f, 'request_error');\n  assert.equal(f.statuses.some(entry => entry.event === 'request_cancelled'), false);\n  assert.equal(f.statuses.some(entry => entry.event === 'request_complete'), false);\n});",
+      "sha256": "dd71ad6eb5385d6951e95d12734b2ccab7cfc82ed2f6bea7690b9ea690ea3d9f",
+      "previous_status": "pending_assertion_mapping",
+      "proposed_status": "covered",
+      "static_assertions": 3,
+      "expanded_assertions": 3,
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs#original_25_upstream_disconnect_after_first_read_is_not_client_cancel"
+      ],
+      "shared_cases": [
+        "server-stream-failure-25"
+      ],
+      "assertions": [
+        {
+          "id": "test/server.test.mjs#25:assert-1",
+          "expression": "assert.rejects(async () => { while (!(await reader.read()).done) {} })",
+          "sha256": "b1ac88a75b94cc69ebd5b4c13cb8fada029e81fcdaa9702e9501dfdc538fa972",
+          "line": 981,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs#original_25_upstream_disconnect_after_first_read_is_not_client_cancel"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs",
+              "function": "original_25_upstream_disconnect_after_first_read_is_not_client_cancel",
+              "line": 681,
+              "fragment": "a.check(1, reply.body_rejected);",
+              "fragment_sha256": "4ef5049dc1ee2e73c2995fbb03af15fcf9e2a3d875cf68b144bdb2e561b4e2a5",
+              "file_sha256": "339d466476690153548d18cdcdbd0c3bad2366ee91fc2018b25dda49421eae3b"
+            }
+          ],
+          "native_check": "Original observable predicate through the actual native Gateway and real bounded HTTP client/provider peers. Per-site execution counts are pinned to the frozen complete callback capture; unsupported source preconditions remain partial.",
+          "api_adaptation": "Provider body failures are actual transport body errors after headers, represented as Err frames in Rust rather than JavaScript rejected body-read Promises. The original predicates assert rejection without matching Error identity or text. Complete delivered provider bytes stay exact, including the eight-byte : ping\\n\\n prefix; original source Error names/messages remain in its raw transcript."
+        },
+        {
+          "id": "test/server.test.mjs#25:assert-2",
+          "expression": "assert.equal(f.statuses.some(entry => entry.event === 'request_cancelled'), false)",
+          "sha256": "d947eba4150b059f640f2f3348aa761a918c3954251b79a03d51f2dd86162177",
+          "line": 983,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs#original_25_upstream_disconnect_after_first_read_is_not_client_cancel"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs",
+              "function": "original_25_upstream_disconnect_after_first_read_is_not_client_cancel",
+              "line": 682,
+              "fragment": "a.check(2, events(&seen.statuses, \"request_cancelled\").is_empty());",
+              "fragment_sha256": "f78653cb44d8f143b8a27b72662ea7f6992bf4337d3632f2db1489fef3bb04af",
+              "file_sha256": "339d466476690153548d18cdcdbd0c3bad2366ee91fc2018b25dda49421eae3b"
+            }
+          ],
+          "native_check": "Original observable predicate through the actual native Gateway and real bounded HTTP client/provider peers. Per-site execution counts are pinned to the frozen complete callback capture; unsupported source preconditions remain partial.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#25:assert-3",
+          "expression": "assert.equal(f.statuses.some(entry => entry.event === 'request_complete'), false)",
+          "sha256": "a68cb668e999bfe9edc64416f479924f6bcdf9963cb5c6b9babc444c570f5525",
+          "line": 984,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs#original_25_upstream_disconnect_after_first_read_is_not_client_cancel"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs",
+              "function": "original_25_upstream_disconnect_after_first_read_is_not_client_cancel",
+              "line": 683,
+              "fragment": "a.check(3, events(&seen.statuses, \"request_complete\").is_empty());",
+              "fragment_sha256": "f3a8b91adde901a4a914221961b3a6252aadd00971cefa9c310723016fffac3c",
+              "file_sha256": "339d466476690153548d18cdcdbd0c3bad2366ee91fc2018b25dda49421eae3b"
+            }
+          ],
+          "native_check": "Original observable predicate through the actual native Gateway and real bounded HTTP client/provider peers. Per-site execution counts are pinned to the frozen complete callback capture; unsupported source preconditions remain partial.",
+          "api_adaptation": null
+        }
+      ],
+      "comparison_boundary": "Provider body failures are actual transport body errors after headers, represented as Err frames in Rust rather than JavaScript rejected body-read Promises. The original predicates assert rejection without matching Error identity or text. Complete delivered provider bytes stay exact, including the eight-byte : ping\\n\\n prefix; original source Error names/messages remain in its raw transcript."
+    },
+    {
+      "id": "test/server.test.mjs#26",
+      "name": "synchronous and asynchronous telemetry failures never interfere with successful inference",
+      "statement": "test('synchronous and asynchronous telemetry failures never interfere with successful inference', async t => {\n  let callbacks = 0;\n  const f = await fixture(t, (req, res) => {\n    res.writeHead(200, { 'content-type': 'application/json' }); res.end('{\"model\":\"claude-haiku-4-5-20251001\"}');\n  }, {}, undefined, () => {\n    callbacks++;\n    if (callbacks % 2) throw new Error('Status storage unavailable');\n    return Promise.reject(new Error('Asynchronous status failure'));\n  });\n  const response = await f.call('/v1/messages', { method: 'POST', body: JSON.stringify(body) });\n  assert.equal(response.status, 200);\n  assert.equal((await response.json()).model, 'claude-haiku-4-5-20251001');\n  await waitForStatus(f, 'request_complete');\n  assert.equal(callbacks, 5);\n});",
+      "sha256": "08263a81dd8a2fa97b0e6a3709a2c3246a58aee05c7a26bd087593d8bb58234a",
+      "previous_status": "pending_assertion_mapping",
+      "proposed_status": "partial",
+      "static_assertions": 3,
+      "expanded_assertions": 3,
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs#original_26_sync_callback_unwinds_are_isolated_async_return_remains_partial"
+      ],
+      "shared_cases": [
+        "server-stream-failure-26"
+      ],
+      "assertions": [
+        {
+          "id": "test/server.test.mjs#26:assert-1",
+          "expression": "assert.equal(response.status, 200)",
+          "sha256": "503d187ec7538afffb689abd4b4f76cae6e78a8e95575725ea858621ef9a8735",
+          "line": 997,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "partial",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs#original_26_sync_callback_unwinds_are_isolated_async_return_remains_partial"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs",
+              "function": "original_26_sync_callback_unwinds_are_isolated_async_return_remains_partial",
+              "line": 714,
+              "fragment": "a.check(1, reply.status == Some(200));",
+              "fragment_sha256": "d07ab1b80d4e68af2e8aa0ae56a8e4b5173204458a87daff1b39affd352eb6d7",
+              "file_sha256": "339d466476690153548d18cdcdbd0c3bad2366ee91fc2018b25dda49421eae3b"
+            }
+          ],
+          "native_check": "Original observable predicate through the actual native Gateway and real bounded HTTP client/provider peers. Per-site execution counts are pinned to the frozen complete callback capture; unsupported source preconditions remain partial.",
+          "api_adaptation": "Original #26 alternates actual synchronous throws and returned rejected Promises. Native synchronous EventSink returns unit; the native replay reproduces three real callback unwinds and all five invocations, but even invocations are explicitly recorded as unsupported async returns. No detached Tokio task is substituted for a returned rejection. All three observable predicates pass; the complete original definition remains partial until a supported bounded async callback adapter is separately exercised."
+        },
+        {
+          "id": "test/server.test.mjs#26:assert-2",
+          "expression": "assert.equal((await response.json()).model, 'claude-haiku-4-5-20251001')",
+          "sha256": "642d3e7c03446e3fc326f9620852eb340583c60ae515e80ccaf5cdb5d5862b54",
+          "line": 998,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "partial",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs#original_26_sync_callback_unwinds_are_isolated_async_return_remains_partial"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs",
+              "function": "original_26_sync_callback_unwinds_are_isolated_async_return_remains_partial",
+              "line": 715,
+              "fragment": "a.check(\n        2,\n        parsed(&reply.bytes)[\"model\"] == \"claude-haiku-4-5-20251001\",\n    );",
+              "fragment_sha256": "2b602c361a3b0c05f7d51c0bb238be77384c6a1d74b8750529685a349b984a7f",
+              "file_sha256": "339d466476690153548d18cdcdbd0c3bad2366ee91fc2018b25dda49421eae3b"
+            }
+          ],
+          "native_check": "Original observable predicate through the actual native Gateway and real bounded HTTP client/provider peers. Per-site execution counts are pinned to the frozen complete callback capture; unsupported source preconditions remain partial.",
+          "api_adaptation": "Original #26 alternates actual synchronous throws and returned rejected Promises. Native synchronous EventSink returns unit; the native replay reproduces three real callback unwinds and all five invocations, but even invocations are explicitly recorded as unsupported async returns. No detached Tokio task is substituted for a returned rejection. All three observable predicates pass; the complete original definition remains partial until a supported bounded async callback adapter is separately exercised."
+        },
+        {
+          "id": "test/server.test.mjs#26:assert-3",
+          "expression": "assert.equal(callbacks, 5)",
+          "sha256": "ff07c408e4d09303c32d4e4e8ec0a73062b8713c1bce09b50d868096fb78ef44",
+          "line": 1000,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "partial",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs#original_26_sync_callback_unwinds_are_isolated_async_return_remains_partial"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs",
+              "function": "original_26_sync_callback_unwinds_are_isolated_async_return_remains_partial",
+              "line": 719,
+              "fragment": "a.check(3, seen.callback_outcomes.len() == 5);",
+              "fragment_sha256": "9adf19daafcf90417812c09f3df377dde5f0362eaac066dcc2054d6d72a0c9a9",
+              "file_sha256": "339d466476690153548d18cdcdbd0c3bad2366ee91fc2018b25dda49421eae3b"
+            }
+          ],
+          "native_check": "Original observable predicate through the actual native Gateway and real bounded HTTP client/provider peers. Per-site execution counts are pinned to the frozen complete callback capture; unsupported source preconditions remain partial.",
+          "api_adaptation": "Original #26 alternates actual synchronous throws and returned rejected Promises. Native synchronous EventSink returns unit; the native replay reproduces three real callback unwinds and all five invocations, but even invocations are explicitly recorded as unsupported async returns. No detached Tokio task is substituted for a returned rejection. All three observable predicates pass; the complete original definition remains partial until a supported bounded async callback adapter is separately exercised."
+        }
+      ],
+      "comparison_boundary": "Original #26 alternates actual synchronous throws and returned rejected Promises. Native synchronous EventSink returns unit; the native replay reproduces three real callback unwinds and all five invocations, but even invocations are explicitly recorded as unsupported async returns. No detached Tokio task is substituted for a returned rejection. All three observable predicates pass; the complete original definition remains partial until a supported bounded async callback adapter is separately exercised."
+    },
+    {
+      "id": "test/server.test.mjs#27",
+      "name": "an upstream timeout after streaming begins reports an error rather than cancellation",
+      "statement": "test('an upstream timeout after streaming begins reports an error rather than cancellation', async t => {\n  const f = await fixture(t, (req, res) => {\n    res.writeHead(200, { 'content-type': 'text/event-stream' }); res.write(': ping\\n\\n');\n  }, { upstreamTimeoutMs: 40 });\n  const response = await f.call('/v1/messages', { method: 'POST', body: JSON.stringify(body) });\n  await assert.rejects(response.text());\n  await waitForStatus(f, 'request_error');\n  assert.equal(f.statuses.some(entry => entry.event === 'request_cancelled'), false);\n  assert.equal(f.statuses.filter(entry => entry.event === 'request_error').length, 1);\n});",
+      "sha256": "56fbb224acf1da19293c2cc1445100b6d44f41f11745e25aef6aeec633593179",
+      "previous_status": "pending_assertion_mapping",
+      "proposed_status": "covered",
+      "static_assertions": 3,
+      "expanded_assertions": 3,
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs#original_27_production_upstream_deadline_after_headers_is_error"
+      ],
+      "shared_cases": [
+        "server-stream-failure-27"
+      ],
+      "assertions": [
+        {
+          "id": "test/server.test.mjs#27:assert-1",
+          "expression": "assert.rejects(response.text())",
+          "sha256": "7021dcd81c8a6cb7b579785eec58fb91f3cab7a21673924902074dcc2434e5d5",
+          "line": 1008,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs#original_27_production_upstream_deadline_after_headers_is_error"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs",
+              "function": "original_27_production_upstream_deadline_after_headers_is_error",
+              "line": 775,
+              "fragment": "a.check(1, reply.body_rejected);",
+              "fragment_sha256": "4ef5049dc1ee2e73c2995fbb03af15fcf9e2a3d875cf68b144bdb2e561b4e2a5",
+              "file_sha256": "339d466476690153548d18cdcdbd0c3bad2366ee91fc2018b25dda49421eae3b"
+            }
+          ],
+          "native_check": "Original observable predicate through the actual native Gateway and real bounded HTTP client/provider peers. Per-site execution counts are pinned to the frozen complete callback capture; unsupported source preconditions remain partial.",
+          "api_adaptation": "Provider body failures are actual transport body errors after headers, represented as Err frames in Rust rather than JavaScript rejected body-read Promises. The original predicates assert rejection without matching Error identity or text. Complete delivered provider bytes stay exact, including the eight-byte : ping\\n\\n prefix; original source Error names/messages remain in its raw transcript."
+        },
+        {
+          "id": "test/server.test.mjs#27:assert-2",
+          "expression": "assert.equal(f.statuses.some(entry => entry.event === 'request_cancelled'), false)",
+          "sha256": "d947eba4150b059f640f2f3348aa761a918c3954251b79a03d51f2dd86162177",
+          "line": 1010,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs#original_27_production_upstream_deadline_after_headers_is_error"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs",
+              "function": "original_27_production_upstream_deadline_after_headers_is_error",
+              "line": 776,
+              "fragment": "a.check(2, events(&seen.statuses, \"request_cancelled\").is_empty());",
+              "fragment_sha256": "f78653cb44d8f143b8a27b72662ea7f6992bf4337d3632f2db1489fef3bb04af",
+              "file_sha256": "339d466476690153548d18cdcdbd0c3bad2366ee91fc2018b25dda49421eae3b"
+            }
+          ],
+          "native_check": "Original observable predicate through the actual native Gateway and real bounded HTTP client/provider peers. Per-site execution counts are pinned to the frozen complete callback capture; unsupported source preconditions remain partial.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#27:assert-3",
+          "expression": "assert.equal(f.statuses.filter(entry => entry.event === 'request_error').length, 1)",
+          "sha256": "966bb1e600851486981a7059d69f97ce27b79f52eaa1952344a2a9227676372f",
+          "line": 1011,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs#original_27_production_upstream_deadline_after_headers_is_error"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs",
+              "function": "original_27_production_upstream_deadline_after_headers_is_error",
+              "line": 777,
+              "fragment": "a.check(3, events(&seen.statuses, \"request_error\").len() == 1);",
+              "fragment_sha256": "c9f0e8db24e67dab8dac8990d745e88c402389007507597b091cfa1a01c4c9b9",
+              "file_sha256": "339d466476690153548d18cdcdbd0c3bad2366ee91fc2018b25dda49421eae3b"
+            }
+          ],
+          "native_check": "Original observable predicate through the actual native Gateway and real bounded HTTP client/provider peers. Per-site execution counts are pinned to the frozen complete callback capture; unsupported source preconditions remain partial.",
+          "api_adaptation": null
+        }
+      ],
+      "comparison_boundary": "Provider body failures are actual transport body errors after headers, represented as Err frames in Rust rather than JavaScript rejected body-read Promises. The original predicates assert rejection without matching Error identity or text. Complete delivered provider bytes stay exact, including the eight-byte : ping\\n\\n prefix; original source Error names/messages remain in its raw transcript."
+    },
+    {
+      "id": "test/server.test.mjs#28",
+      "name": "cancellation during classification closes status without exposing a route or forwarding upstream",
+      "statement": "test('cancellation during classification closes status without exposing a route or forwarding upstream', async t => {\n  const decisions = [];\n  let evaluating;\n  const started = new Promise(resolve => { evaluating = resolve; });\n  const f = await fixture(t, () => assert.fail('Cancelled classification must not reach upstream'), {}, (request, { signal }) => {\n    evaluating();\n    return new Promise((resolve, reject) => signal.addEventListener('abort', () => reject(signal.reason), { once: true }));\n  }, undefined, entry => decisions.push(entry));\n  const controller = new AbortController();\n  const pending = f.call('/v1/messages', { method: 'POST', signal: controller.signal, body: JSON.stringify(body) });\n  const rejected = assert.rejects(pending);\n  await started;\n  controller.abort();\n  await rejected;\n  await waitForStatus(f, 'request_cancelled');\n  assert.deepEqual(f.statuses.map(entry => entry.event), ['request_start', 'request_cancelled']);\n  assert.deepEqual(decisions, []);\n});",
+      "sha256": "0621d3c138fd21086605581c84710dc531b52b56f90ddab2cbcaf19e6c10271a",
+      "previous_status": "pending_assertion_mapping",
+      "proposed_status": "covered",
+      "static_assertions": 4,
+      "expanded_assertions": 3,
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs#original_28_real_downstream_disconnect_cancels_classification_without_forwarding"
+      ],
+      "shared_cases": [
+        "server-stream-failure-28"
+      ],
+      "assertions": [
+        {
+          "id": "test/server.test.mjs#28:assert-1",
+          "expression": "assert.fail('Cancelled classification must not reach upstream')",
+          "sha256": "165662755ea73be10a4d9bf3ca2d170658a1490499449577da19ff397c0cf502",
+          "line": 1018,
+          "expanded_executions": 0,
+          "native_executions": 0,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs#original_28_real_downstream_disconnect_cancels_classification_without_forwarding"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs",
+              "function": "original_28_real_downstream_disconnect_cancels_classification_without_forwarding",
+              "line": 839,
+              "fragment": "assert!(\n        seen.requests.is_empty(),\n        \"server#28:assert-1 counterfactual guard\"\n    );",
+              "fragment_sha256": "20158f06f58f114ea2692f4fde00cf687fe01b428915890103b0971afa8e2bd9",
+              "file_sha256": "339d466476690153548d18cdcdbd0c3bad2366ee91fc2018b25dda49421eae3b"
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/server_stream_failure.rs",
+              "function": "Peer::start",
+              "line": 79,
+              "fragment": "shared.faults.lock().unwrap().push(\n                    \"server#28:assert-1: Cancelled classification must not reach upstream\".into(),\n                );",
+              "fragment_sha256": "664d4f3e2a8ec989ffa414a31fd3044b17c4066113f2f4336d66e4c0f3e3f8fd",
+              "file_sha256": "1d40c2a23f121cc44c9e9d054b32cbaa8a5b7a27d7f4119601e1cc1671d28818"
+            }
+          ],
+          "native_check": "Original counterfactual upstream guard is armed on a real bound HTTP peer and must execute zero times; an additional exact-site assertion checks the actual provider observation list stays empty.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#28:assert-2",
+          "expression": "assert.rejects(pending)",
+          "sha256": "178b4fd3a851f6ecbf897f0094e86c15e695139b776c5d662aa4277f38159e30",
+          "line": 1024,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs#original_28_real_downstream_disconnect_cancels_classification_without_forwarding"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs",
+              "function": "original_28_real_downstream_disconnect_cancels_classification_without_forwarding",
+              "line": 843,
+              "fragment": "a.check(\n        2,\n        result\n            .as_ref()\n            .is_err_and(|error| error == \"native_downstream_caller_cancelled\"),\n    );",
+              "fragment_sha256": "25bade9da2ad5dd691c627e9056ed9672d3a7a291850a4fd6802059b185c1cc6",
+              "file_sha256": "339d466476690153548d18cdcdbd0c3bad2366ee91fc2018b25dda49421eae3b"
+            }
+          ],
+          "native_check": "Original observable predicate through the actual native Gateway and real bounded HTTP client/provider peers. Per-site execution counts are pinned to the frozen complete callback capture; unsupported source preconditions remain partial.",
+          "api_adaptation": "Native #28 cancels a pending caller-owned real HTTP client task, dropping its actual socket while routing is held. Gateway cancellation of the actual borrowed token and destruction of the actual routing future are sampled before Gateway.close. The inner cancellation branch need not resume and did not resume in this run. No returned EvaluationError or rejected future result is fabricated. JavaScript AbortError identity/reason objects and native client error strings are explicit API differences; the original assert.rejects predicate has no error-identity condition."
+        },
+        {
+          "id": "test/server.test.mjs#28:assert-3",
+          "expression": "assert.deepEqual(f.statuses.map(entry => entry.event), ['request_start', 'request_cancelled'])",
+          "sha256": "b501c167882e7cc46b4077d5589ecd29e3c70e7aa9b73fc9f6fc3885a2d8d42a",
+          "line": 1029,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs#original_28_real_downstream_disconnect_cancels_classification_without_forwarding"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs",
+              "function": "original_28_real_downstream_disconnect_cancels_classification_without_forwarding",
+              "line": 849,
+              "fragment": "a.check(\n        3,\n        event_names(&seen.statuses) == [\"request_start\", \"request_cancelled\"],\n    );",
+              "fragment_sha256": "59597bd9b87d7305bfd93e711122703a8dc0d9b969e71afc8448cf7b2e094822",
+              "file_sha256": "339d466476690153548d18cdcdbd0c3bad2366ee91fc2018b25dda49421eae3b"
+            }
+          ],
+          "native_check": "Original observable predicate through the actual native Gateway and real bounded HTTP client/provider peers. Per-site execution counts are pinned to the frozen complete callback capture; unsupported source preconditions remain partial.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#28:assert-4",
+          "expression": "assert.deepEqual(decisions, [])",
+          "sha256": "ad518870f1b16ab6f89dc48c76dc059263d1d3e7bfe373c02113bc2e8e8f7fa6",
+          "line": 1030,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs#original_28_real_downstream_disconnect_cancels_classification_without_forwarding"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_stream_failure_contracts.rs",
+              "function": "original_28_real_downstream_disconnect_cancels_classification_without_forwarding",
+              "line": 853,
+              "fragment": "a.check(4, seen.decisions.is_empty());",
+              "fragment_sha256": "f635c3f45560eff4f95db9f267e613fe175418da0c2e2a8ab48ebae619059e60",
+              "file_sha256": "339d466476690153548d18cdcdbd0c3bad2366ee91fc2018b25dda49421eae3b"
+            }
+          ],
+          "native_check": "Original observable predicate through the actual native Gateway and real bounded HTTP client/provider peers. Per-site execution counts are pinned to the frozen complete callback capture; unsupported source preconditions remain partial.",
+          "api_adaptation": null
+        }
+      ],
+      "comparison_boundary": "Native #28 cancels a pending caller-owned real HTTP client task, dropping its actual socket while routing is held. Gateway cancellation of the actual borrowed token and destruction of the actual routing future are sampled before Gateway.close. The inner cancellation branch need not resume and did not resume in this run. No returned EvaluationError or rejected future result is fabricated. JavaScript AbortError identity/reason objects and native client error strings are explicit API differences; the original assert.rejects predicate has no error-identity condition."
+    }
+  ],
+  "comparison_boundaries": [
+    "Original #26 alternates actual synchronous throws and returned rejected Promises. Native synchronous EventSink returns unit; the native replay reproduces three real callback unwinds and all five invocations, but even invocations are explicitly recorded as unsupported async returns. No detached Tokio task is substituted for a returned rejection. All three observable predicates pass; the complete original definition remains partial until a supported bounded async callback adapter is separately exercised.",
+    "Native #28 cancels a pending caller-owned real HTTP client task, dropping its actual socket while routing is held. Gateway cancellation of the actual borrowed token and destruction of the actual routing future are sampled before Gateway.close. The inner cancellation branch need not resume and did not resume in this run. No returned EvaluationError or rejected future result is fabricated. JavaScript AbortError identity/reason objects and native client error strings are explicit API differences; the original assert.rejects predicate has no error-identity condition.",
+    "Provider body failures are actual transport body errors after headers, represented as Err frames in Rust rather than JavaScript rejected body-read Promises. The original predicates assert rejection without matching Error identity or text. Complete delivered provider bytes stay exact, including the eight-byte : ping\\n\\n prefix; original source Error names/messages remain in its raw transcript.",
+    "Only first_response_ms and total_latency_ms are measured timings without equal-value comparison; presence and finite nonnegative values are verified. Actual generated UUIDs, automatic HTTP Date values and separately bound loopback authorities differ. Full original projection ledger and every raw value are retained, without rewriting native observations.",
+    "Source JavaScript undefined safe metadata must be absent in native documents, not null. Typed optional RouteOptions identifiers are empty strings. The full forwarded body and semantic HTTP header policy are separately compared. Numeric metadata uses actual numeric values corresponding to JavaScript Number equality; raw number representation is unchanged.",
+    "Source mocked complete returns undefined and includes a redundant successful cleanup call for #26; native GatewayRouter.complete returns false and consumes its request lease once. All actual source/native callbacks remain retained separately. All completions have no execution evidence and cannot establish confirmed production continuation.",
+    "Original provider callbacks leave request streams unread. Source capture delegates IncomingMessage.push without reading or draining. Native bounded fixture reads complete finite synthetic request bytes before responding; original unread-stream API or timing equivalence is not asserted.",
+    "Routine safe logs and statuses omit payloads, fake credentials and callback error messages. This target tests isolation and sanitized structured diagnostics, not panic-hook stderr suppression; root-owned privacy subprocess evidence qualifies that separate boundary."
+  ],
+  "independent_review": {
+    "reviewed_at": "2026-10-13",
+    "scope": "Exact original callbacks/predicates and all source/native fragment hashes, original execution counts, actual cancellation/response/usage schedules and explicit typed API boundaries. Stream#26 stays partial pending returned-future replay; cancellation does not fabricate a resumed rejection."
+  }
+}

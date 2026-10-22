@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "kind": "frozen_static_contract_source_review",
+  "review_date": "2026-10-13",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "original_definitions": [
+    "test/static-checks.test.mjs#1",
+    "test/static-checks.test.mjs#2"
+  ],
+  "sources": [
+    {
+      "path": "test/static-checks.test.mjs",
+      "sha256": "7338e1f0582bfd557c553de875d251d2334c40aec547874a647afef509393b6e",
+      "source": "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { checkContractSources } from '../scripts/check-contracts.mjs';\n\ntest('static producer checks catch misspelled fields, invalid enum literals and timing types before execution', () => {\n  const errors = checkContractSources(new Map([\n    ['server.mjs', `status('answered', { selected_modle: 'opus', first_response_ms: '1ms' });\n      onStatus({ event: 'route', request_id: 'id', source: 'random', body: {} });`],\n    ['router.mjs', `class Router { route() { return { model:'opus', source:'jev', reason:'classified',\n      latency_ms:1,evaluation_latency_ms:1,selected_modle:'opus' }; } } const x = config.timoutMs;`],\n  ]));\n  for (const phrase of ['Unknown lifecycle event', 'selected_modle', 'first_response_ms', 'source', 'body', 'timoutMs']) {\n    assert.ok(errors.some(error => error.includes(phrase)), phrase);\n  }\n});\n\ntest('static producer checks accept the bounded documented contract with opaque runtime fields', () => {\n  assert.deepEqual(checkContractSources(new Map([\n    ['server.mjs', `status('route', { model: selected, source:'jev', latency_ms:1 });\n      onStatus({ ...context, event:'request_complete', completion_confirmed:true });`],\n    ['router.mjs', `class Router { route() { return { ...decision, model:chosen,reason:'classified',\n      latency_ms:1,evaluation_latency_ms:1 }; } } const x = config.jevTimeoutMs;`],\n  ])), []);\n});\n"
+    },
+    {
+      "path": "test/static-contracts.mts",
+      "sha256": "b72e0d89c8de5ff7d2636e50be9214214a45421fd2c0c63b9478a211e0de2dc0",
+      "source": "import type { RouterConfig, ClassifierDecision, RoutingDecision, LifecycleEvent, SessionRecord, TelemetryFields } from '../src/contracts.mjs';\nimport { readConfig } from '../src/config.mjs';\nimport { Router } from '../src/router.mjs';\n\nconst config: RouterConfig = readConfig({ AUTOROUTER_EVALUATOR: 'jev' });\nconst classification: ClassifierDecision = { tier: 'opus', evaluator: 'jev', source: 'jev', reason: 'classified' };\nconst route: RoutingDecision = { ...classification, model: config.models.opus, latency_ms: 1, evaluation_latency_ms: 1 };\nconst status: LifecycleEvent = { event: 'route', request_id: 'example', ...route };\nconst outcome: SessionRecord = { event: 'outcome', request_id: status.request_id, status: 'completed', completion_confirmed: true };\nvoid outcome;\nconst router = new Router(config);\nconst classified: ClassifierDecision = await router.classify({ model: config.models.haiku, messages: [] });\nconst routed: RoutingDecision = await router.route({ model: config.models.haiku, messages: [] });\nvoid [classified, routed];\n\n// These negative fixtures fail the checker if the contract becomes permissive.\n// @ts-expect-error Unknown event names cannot be persisted as lifecycle events.\nconst badEvent: LifecycleEvent = { event: 'answered', request_id: 'example' };\n// @ts-expect-error Timing is numeric.\nconst badTiming: RoutingDecision = { ...route, latency_ms: '1ms' };\n// @ts-expect-error Configuration cannot silently acquire an unrecognized setting.\nconst badConfig: RouterConfig = { ...config, timeout: 1 };\n// @ts-expect-error Only supported capability tiers are evaluator results.\nconst badTier: ClassifierDecision = { ...classification, tier: 'cheap' };\n// @ts-expect-error Prompt payloads are absent from the metadata contract.\nconst badPayload: LifecycleEvent = { ...status, body: { messages: [] } };\n// @ts-expect-error Misspelled fields cannot pass a producer check.\nconst badModel: SessionRecord = { ...outcome, selected_modle: 'opus' };\nvoid [badEvent, badTiming, badConfig, badTier, badPayload, badModel];\n"
+    },
+    {
+      "path": "src/contracts.mjs",
+      "sha256": "cf7ddd5d5cd5fcdead4c8ba49a4f51755a5c0eca1f0976b3a70bfac7a6278d65",
+      "source": "// Development-time contracts only; JSDoc is erased by JavaScript engines.\n/** @typedef {'haiku'|'sonnet'|'opus'} Tier */\n/** @typedef {'jev'|'ollama'} Evaluator */\n/** @typedef {'compatible'|'native'|'auto'} ClientProfile */\n/** @typedef {'jev'|'ollama'|'cache'|'fallback'|'passthrough'} DecisionSource */\n/** @typedef {'timeout'|'http_error'|'invalid_response'|'network_error'|'capacity_exhausted'} ClassifierError */\n/** @typedef {'request_start'|'route'|'upstream_response'|'upstream_model'|'upstream_usage'|'upstream_error'|'request_complete'|'request_error'|'request_cancelled'} LifecycleName */\n/** @typedef {'selected'|'confirmed'|'unknown'|'capacity_exhausted'} ContinuityState */\n/**\n * @typedef {object} RouterConfig\n * @property {Evaluator} evaluator\n * @property {'api-key'|'subscription'} authMode\n * @property {ClientProfile} clientProfile\n * @property {string|undefined} sessionLogDir\n * @property {'metadata'|'prompts'} sessionLogMode\n * @property {number|undefined} stopHookBlockCap\n * @property {string|undefined} anthropicKey\n * @property {string|undefined} jevKey\n * @property {string|undefined} localToken\n * @property {string} upstream\n * @property {string} jevEndpoint\n * @property {string} jevModel\n * @property {string} ollamaEndpoint\n * @property {string} ollamaModel\n * @property {number} ollamaTimeoutMs\n * @property {number} ollamaStateChars\n * @property {string} ollamaKeepAlive\n * @property {Record<Tier,string>} models\n * @property {number} port\n * @property {number} jevTimeoutMs\n * @property {number} tokenCountTimeoutMs\n * @property {number} [tokenCountCacheEntries]\n * @property {number} [tokenCountCacheTtlMs]\n * @property {number} minConfidence\n * @property {number} stateChars\n * @property {number} maxBodyBytes\n * @property {number} cacheEntries\n * @property {number} cacheTtlMs\n * @property {number} turnTtlMs\n * @property {number|undefined} [turnEntries]\n * @property {number} upstreamTimeoutMs\n */\n/**\n * @typedef {object} ClassifierDecision\n * @property {Tier} tier\n * @property {Tier} [classified_tier]\n * @property {number} [confidence]\n * @property {Evaluator} evaluator\n * @property {DecisionSource} source\n * @property {string} reason\n * @property {ClassifierError} [classifier_error]\n * @property {number} [classifier_status]\n */\n/**\n * @typedef {object} RoutingDecision\n * @property {string} model\n * @property {DecisionSource} source\n * @property {string} reason\n * @property {number} latency_ms\n * @property {number} evaluation_latency_ms\n * @property {Tier} [tier]\n * @property {Tier} [classified_tier]\n * @property {number} [confidence]\n * @property {Evaluator} [evaluator]\n * @property {ClassifierError} [classifier_error]\n * @property {number} [classifier_status]\n * @property {string} [compatibility_reason]\n * @property {ContinuityState} [continuity_state]\n * @property {'within_budget'|'over_budget'|'count_unavailable'} [context_check]\n * @property {number} [counted_input_tokens]\n */\n/**\n * @typedef {object} TelemetryFields\n * @property {number} [schema_version]\n * @property {string} [timestamp]\n * @property {string} [request_id]\n * @property {string} [session_id]\n * @property {string} [agent_id]\n * @property {string} [prompt_id]\n * @property {string} [request_class]\n * @property {string} [requested_model]\n * @property {string} [selected_model]\n * @property {string} [confirmed_model]\n * @property {string} [model]\n * @property {string} [baseline_model]\n * @property {string} [pricing_version]\n * @property {string} [reason]\n * @property {string} [compatibility_reason]\n * @property {ContinuityState} [continuity_state]\n * @property {DecisionSource} [source]\n * @property {Evaluator} [evaluator]\n * @property {Tier} [tier]\n * @property {Tier} [classified_tier]\n * @property {number} [latency_ms]\n * @property {number} [evaluation_latency_ms]\n * @property {number} [routing_latency_ms]\n * @property {number} [decision_latency_ms]\n * @property {number} [first_response_ms]\n * @property {number} [upstream_latency_ms]\n * @property {number} [total_latency_ms]\n * @property {ClassifierError} [classifier_error]\n * @property {number} [classifier_status]\n * @property {string} [error_type]\n * @property {number} [http_status]\n * @property {number|string} [status]\n * @property {'within_budget'|'over_budget'|'count_unavailable'} [context_check]\n * @property {number} [counted_input_tokens]\n * @property {string[]} [model_transitions]\n * @property {boolean} [model_transitions_truncated]\n * @property {object} [usage]\n * @property {object} [pricing_context]\n * @property {boolean} [usage_complete]\n * @property {boolean} [pricing_eligible]\n * @property {boolean} [completion_confirmed]\n * @property {string} [unpriced_reason]\n * @property {object} [savings]\n * @property {object} [savings_coverage]\n * @property {string} [prompt_excerpt]\n * @property {boolean} [prompt_truncated]\n */\n/** @typedef {TelemetryFields & {event:LifecycleName,request_id:string}} LifecycleEvent */\n/** @typedef {TelemetryFields & {event:'decision'|'outcome',request_id:string}} SessionRecord */\nexport {};\n"
+    }
+  ],
+  "native_test": "rust/crates/autorouter-core/tests/typed_contracts.rs#documented_producers_compile_and_each_invalid_contract_has_its_own_diagnostic",
+  "scope": "Rust compile-time producer counterparts; does not claim to run the TypeScript AST checker on Rust. Closed native types reject each original invalid field/event/type category; one complete positive consumer guards against unrelated compilation errors. Complete frozen route metadata and gateway lifecycle tests independently cover serialization.",
+  "migration": "Native fields use snake_case; closed enum values replace JavaScript string unions. Arbitrary custom callback JSON remains explicit legacy adapters and is not a first-party producer contract.",
+  "definition_hash_rule": "SHA256 of exact TypeScript-AST top-level test call source[start:end], UTF8, excluding the statement semicolon.",
+  "definitions": [
+    {
+      "id": "test/static-checks.test.mjs#1",
+      "name": "static producer checks catch misspelled fields, invalid enum literals and timing types before execution",
+      "start": 143,
+      "end": 900,
+      "definition_sha256": "32c4fd141cc0700c93943ae4e864e6c13330fa8c359e7385767b321b072551c2",
+      "assertions": [
+        {
+          "line": 13,
+          "expression": "assert.ok(errors.some(error => error.includes(phrase)), phrase)"
+        }
+      ]
+    },
+    {
+      "id": "test/static-checks.test.mjs#2",
+      "name": "static producer checks accept the bounded documented contract with opaque runtime fields",
+      "start": 903,
+      "end": 1431,
+      "definition_sha256": "e58dc6ef3382f14ae004f3844f7aaf1e59f4fd8c6a80a7c3750cd7fb5ecf105c",
+      "assertions": [
+        {
+          "line": 18,
+          "expression": "assert.deepEqual(checkContractSources(new Map([\n    ['server.mjs', `status('route', { model: selected, source:'jev', latency_ms:1 });\n      onStatus({ ...context, event:'request_complete', completion_confirmed:true });`],\n    ['router.mjs', `class Router { route() { return { ...decision, model:chosen,reason:'classified',\n      latency_ms:1,evaluation_latency_ms:1 }; } } const x = config.jevTimeoutMs;`],\n  ])), [])"
+        }
+      ]
+    }
+  ]
+}

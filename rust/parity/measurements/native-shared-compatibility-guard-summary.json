@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "kind": "native_shared_compatibility_guard_local_validation",
+  "recorded_at": "2026-10-17T20:17:09.314523+00:00",
+  "base_commit": "7b419cb5788a7f74698ce05a5e3789b38faf8534",
+  "status": "local_work_in_progress; full workspace fails the source-transfer gate",
+  "source": {
+    "snapshot": "artifacts/rust-rewrite/source-sharing-20261017-2/final-source.json",
+    "sha256": "81558f3d2d7c7797f7d601f3c84e15917f3cec8aba9ec3fd1a5478cf9ce5f49f",
+    "native_inputs": 695,
+    "frozen_original_files_verified": 111
+  },
+  "change": {
+    "routing": "One compatibility policy over borrowed serde Value or original JsDocument nodes; no eager conversion, subtree clone or serialization. Existing representation-specific thinking/equality delegates stay separate.",
+    "helpers": "Two identical JSON-observation predicates and repeated paired-transfer manifest/restore assertions are shared. Every fixture, assertion, byte/mode check, cap and test order remains.",
+    "raw_source_bytes_saved": 14906,
+    "changed_inputs": [
+      {
+        "path": "rust/crates/autorouter-core/src/auto_routing.rs",
+        "before_bytes": 63909,
+        "after_bytes": 52262,
+        "saved_bytes": 11647
+      },
+      {
+        "path": "rust/crates/autorouter-core/src/lib.rs",
+        "before_bytes": 485,
+        "after_bytes": 2117,
+        "saved_bytes": -1632
+      },
+      {
+        "path": "rust/crates/autorouter-core/src/status_state.rs",
+        "before_bytes": 19198,
+        "after_bytes": 17695,
+        "saved_bytes": 1503
+      },
+      {
+        "path": "rust/crates/autorouter-core/src/telemetry_event.rs",
+        "before_bytes": 30138,
+        "after_bytes": 28635,
+        "saved_bytes": 1503
+      },
+      {
+        "path": "rust/xtask/src/bundle_transfer_pair_tests.rs",
+        "before_bytes": 52930,
+        "after_bytes": 51045,
+        "saved_bytes": 1885
+      }
+    ],
+    "existing_auto_routing_test_suffix_byte_identical": true,
+    "new_tests": 0,
+    "public_api_signatures_changed": false
+  },
+  "validation": {
+    "workspace": {
+      "groups": 66,
+      "passed": 1373,
+      "failed": 1,
+      "ignored": 11,
+      "failed_test_lines": [
+        "bundle::transfer::tests::transfer_has_only_verified_sources_a_shared_budget_and_create_only_evidence"
+      ],
+      "permission_denied_occurrences": 0,
+      "raw_exit_code": 101
+    },
+    "full_workspace_passed": false,
+    "minimal_auditor_tests_passed": 29,
+    "differential_families": 17,
+    "differential_cases_matched": 207152,
+    "differential_failures": 0,
+    "whole_connection": "Deterministic parity only: 40 request rows and two loopback controls, clean close and no abandoned requests; no numerical samples. Performance gate remains incomplete.",
+    "node": "check passed; all 596 tests passed; exact 58-file JavaScript package smoke passed. This does not qualify native shipping artifacts.",
+    "records": {
+      "strict-clippy-final": {
+        "record": "artifacts/rust-rewrite/source-sharing-20261017-2/strict-clippy-final.json",
+        "sha256": "c55c1dd9635b048dafbb6b14ac94715f19658683ed7ffe8ac0873be054f60fe1",
+        "exit_code": 0
+      },
+      "workspace-loopback": {
+        "record": "artifacts/rust-rewrite/source-sharing-20261017-2/workspace-loopback.json",
+        "sha256": "c618686b927d0a6925bda1e159ce95c5be02a5c0c8892219830750dccfd07418",
+        "exit_code": 101
+      },
+      "parity-all": {
+        "record": "artifacts/rust-rewrite/source-sharing-20261017-2/parity-all.json",
+        "sha256": "8264f5d3b867b5b639408ff7d99d176ae4820924a51e520523ed7d2421b161d6",
+        "exit_code": 0
+      },
+      "whole-validate": {
+        "record": "artifacts/rust-rewrite/source-sharing-20261017-2/whole-validate.json",
+        "sha256": "31c84f8691098ff84297c676d35d44a0ea4f26e002371646406a4eb845c3c080",
+        "exit_code": 0
+      },
+      "minimal-strict": {
+        "record": "artifacts/rust-rewrite/source-sharing-20261017-2/minimal-strict.json",
+        "sha256": "c4fac628aabc911c0c902d77c4f3538f106b3c17657cc0eae648810464de8050",
+        "exit_code": 0
+      },
+      "minimal-tests": {
+        "record": "artifacts/rust-rewrite/source-sharing-20261017-2/minimal-tests.json",
+        "sha256": "bcc0c87c283e7a39cdec9ae2c784db0244bd4e2b5729163c0c586e6b95eeb826",
+        "exit_code": 0
+      },
+      "format": {
+        "record": "artifacts/rust-rewrite/source-sharing-20261017-2/format.json",
+        "sha256": "913b0d1c614edeab10f3bda00d33d3a33177f80f391bae5ecc17e7b95f64c764",
+        "exit_code": 0
+      },
+      "node-check": {
+        "record": "artifacts/rust-rewrite/source-sharing-20261017-2/node-check.json",
+        "sha256": "e61b6fa3a57e884341c46567c125db6cee102f3daf13c49567ea544072c24943",
+        "exit_code": 0
+      },
+      "node-tests": {
+        "record": "artifacts/rust-rewrite/source-sharing-20261017-2/node-tests.json",
+        "sha256": "5f31309059c883c279a98cdfa6e182c2ebb1bfe0ea73691f0d78a9c63f2cc9f9",
+        "exit_code": 0
+      },
+      "node-package": {
+        "record": "artifacts/rust-rewrite/source-sharing-20261017-2/node-package.json",
+        "sha256": "b19be59a20200440334726398a6fc43218dccb92c7d79b84bf465bd9bf21b091",
+        "exit_code": 0
+      },
+      "actual-transfer": {
+        "record": "artifacts/rust-rewrite/source-sharing-20261017-2/actual-transfer.json",
+        "sha256": "0feaee7ec1baeece8e876ac9e637d24d512c0c4dfe49713179a9eacabef950d0",
+        "exit_code": 1
+      }
+    }
+  },
+  "retained_failures": {
+    "first_strict_clippy": "Explicit auto-dereference lint; compiler automatic dereference and normal formatting fix it without a lint allowance. First source and actual failure logs remain retained.",
+    "first_workspace": "Sandboxed run retained 245 failed tests, including 215 explicit PermissionDenied observations. Not every failure is attributed to a specific cause; a separately recorded permitted-loopback run binds the same source.",
+    "actual_export": "Exit 1: Complete logical transfer exceeds 32 MiB. No destination created, carrier fit unqualified, no restore attempted."
+  },
+  "capacity": {
+    "logical_limit_bytes": 33554432,
+    "carrier_limit_bytes": 33554432,
+    "minimum_logical_overage_before_metadata_growth_bytes": 18941,
+    "estimate_is_not_export_qualification": true,
+    "no_source_or_fixture_files_removed_or_minified": true,
+    "no_manifest_or_schema_compaction": true
+  },
+  "qualification": {
+    "current_source_ci": false,
+    "numerical_performance_measured": false,
+    "representative_hardware": false,
+    "real_provider_or_task_quality": false,
+    "native_release_provenance": false,
+    "cutover_approved": false,
+    "provider_calls": 0,
+    "model_downloads": 0,
+    "user_configuration_changes": 0
+  },
+  "ledger_unchanged": {
+    "original_definitions": 588,
+    "covered": 538,
+    "partial": 50,
+    "configuration_keys_pending": 27,
+    "limit_reviews_pending": 51,
+    "areas_partial": 13
+  },
+  "shipping_default": "JavaScript 0.5.2; no commit, push, release, merge or cutover performed for this local increment."
+}

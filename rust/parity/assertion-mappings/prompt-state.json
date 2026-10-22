@@ -1,0 +1,295 @@
+{
+  "schema_version": 1,
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "scope": "All 16 baseline prompt-state definitions. Accessor and dynamically typed library boundaries remain explicit partial rows.",
+  "definition_hash_rule": "Exact source bytes from top-level test( through the byte before the next top-level test(, or end of file.",
+  "native_evidence": {
+    "log": "artifacts/rust-rewrite/prompt-state-contracts-2.log",
+    "sha256": "664730c6ce84a651b090ab325ff2cf94c051c07942444bbd1061bf5e07da8180",
+    "passed": 16
+  },
+  "counts": {
+    "covered": 13,
+    "partial": 3
+  },
+  "mappings": [
+    {
+      "baseline_test": "test/prompt-state.test.mjs#1",
+      "name": "prompt excerpts contain only the latest direct human text, never tool or multimodal payloads",
+      "baseline_file_sha256": "ea3cc66eeb4022258336f5b0ee7441c959d79de68904d500db6816b7045b5824",
+      "baseline_definition_sha256": "6f16a8e5544df586fabf99e77b2b26a3f52354aaffbd5d175f957e273c9452a9",
+      "baseline_line": 11,
+      "reviewed_assertion_calls": 6,
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/prompt_state_contracts.rs#excerpts_select_latest_direct_text_and_omit_all_opaque_payloads"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Reviewed every baseline assertion and local parameter scenario. Exact serialized budgets are checked using the authoritative JsDocument/PromptState representation; observation-only serde projections are not wire serialization."
+      ],
+      "remaining": [
+        "The baseline uses throwing JavaScript getters to prove that opaque fields are never accessed. Rust accepts already parsed immutable JSON and does not expose JavaScript accessor execution; value/privacy assertions pass, accessor API migration remains explicit."
+      ]
+    },
+    {
+      "baseline_test": "test/prompt-state.test.mjs#2",
+      "name": "prompt excerpts follow the established goal and human steering instead of Stop feedback",
+      "baseline_file_sha256": "ea3cc66eeb4022258336f5b0ee7441c959d79de68904d500db6816b7045b5824",
+      "baseline_definition_sha256": "3faefe0088560d0ee2220c5b9ab1806529643b17b6fa91842a9aabec2974ef97",
+      "baseline_line": 37,
+      "reviewed_assertion_calls": 6,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/prompt_state_contracts.rs#excerpts_follow_goal_then_human_steering_and_keep_unrecognized_feedback"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Reviewed every baseline assertion and local parameter scenario. Exact serialized budgets are checked using the authoritative JsDocument/PromptState representation; observation-only serde projections are not wire serialization."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/prompt-state.test.mjs#3",
+      "name": "new non-text human tasks have empty excerpts rather than stale earlier task text",
+      "baseline_file_sha256": "ea3cc66eeb4022258336f5b0ee7441c959d79de68904d500db6816b7045b5824",
+      "baseline_definition_sha256": "8f865fb8d3bafeb4dca67caf4fb030d26c33acc23c28ba10f961c2ecefc95594",
+      "baseline_line": 54,
+      "reviewed_assertion_calls": 2,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/prompt_state_contracts.rs#new_non_text_tasks_and_empty_inputs_never_reuse_earlier_excerpts"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Reviewed every baseline assertion and local parameter scenario. Exact serialized budgets are checked using the authoritative JsDocument/PromptState representation; observation-only serde projections are not wire serialization."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/prompt-state.test.mjs#4",
+      "name": "prompt excerpt limits count Unicode code points and never leave invalid surrogate pairs",
+      "baseline_file_sha256": "ea3cc66eeb4022258336f5b0ee7441c959d79de68904d500db6816b7045b5824",
+      "baseline_definition_sha256": "dcb5f93bd16f4ac664e79586f6755f2d1a996bedad1fb85367491860a5fba62a",
+      "baseline_line": 74,
+      "reviewed_assertion_calls": 6,
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/prompt_state_contracts.rs#excerpt_limits_count_scalars_and_repair_lone_surrogates"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Reviewed every baseline assertion and local parameter scenario. Exact serialized budgets are checked using the authoritative JsDocument/PromptState representation; observation-only serde projections are not wire serialization."
+      ],
+      "remaining": [
+        "Rust exposes a usize limit. Rejection of JavaScript NaN/Infinity, fractional, string and unsafe-integer inputs belongs to the fixture/embedding boundary and is not covered by this native test."
+      ]
+    },
+    {
+      "baseline_test": "test/prompt-state.test.mjs#5",
+      "name": "bounded excerpts avoid building evaluator history or reading text after the limit",
+      "baseline_file_sha256": "ea3cc66eeb4022258336f5b0ee7441c959d79de68904d500db6816b7045b5824",
+      "baseline_definition_sha256": "b368ff4d3b5633b85bdb00c08693a8e5332cbc0a2f48c6e534adf22cee5c0572",
+      "baseline_line": 90,
+      "reviewed_assertion_calls": 5,
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/prompt_state_contracts.rs#bounded_excerpts_preserve_literal_and_malformed_wrapper_text"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Reviewed every baseline assertion and local parameter scenario. Exact serialized budgets are checked using the authoritative JsDocument/PromptState representation; observation-only serde projections are not wire serialization."
+      ],
+      "remaining": [
+        "The baseline uses throwing getters to prove lazy text access after the bound and no earlier-history access. Native value and budget assertions pass; JavaScript accessor execution is not part of the parsed Rust document API."
+      ]
+    },
+    {
+      "baseline_test": "test/prompt-state.test.mjs#6",
+      "name": "exact goal feedback retains the human task and remains visible as history without changing messages",
+      "baseline_file_sha256": "ea3cc66eeb4022258336f5b0ee7441c959d79de68904d500db6816b7045b5824",
+      "baseline_definition_sha256": "fa6a0a0458c69252c99df50ab71ffd9de37263853b845a9d305e9dd54a5a2f3e",
+      "baseline_line": 105,
+      "reviewed_assertion_calls": 6,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/prompt_state_contracts.rs#exact_feedback_retains_human_task_and_unmodified_history"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Reviewed every baseline assertion and local parameter scenario. Exact serialized budgets are checked using the authoritative JsDocument/PromptState representation; observation-only serde projections are not wire serialization."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/prompt-state.test.mjs#7",
+      "name": "ordinary, unmatched, quoted, malformed, and mixed hook text remains a human task",
+      "baseline_file_sha256": "ea3cc66eeb4022258336f5b0ee7441c959d79de68904d500db6816b7045b5824",
+      "baseline_definition_sha256": "7b484c2e5332115de93afeadfa9d84a4038e4ae5ce1f899cf9fed0d700c015c6",
+      "baseline_line": 120,
+      "reviewed_assertion_calls": 3,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/prompt_state_contracts.rs#malformed_quoted_mixed_and_unestablished_feedback_remains_human"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Reviewed every baseline assertion and local parameter scenario. Exact serialized budgets are checked using the authoritative JsDocument/PromptState representation; observation-only serde projections are not wire serialization."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/prompt-state.test.mjs#8",
+      "name": "human steering remains the current task while later feedback still refers to the active goal",
+      "baseline_file_sha256": "ea3cc66eeb4022258336f5b0ee7441c959d79de68904d500db6816b7045b5824",
+      "baseline_definition_sha256": "c5c58ba9c71fa5f5baa98352c67443309a64c30f3a6679ff8e8bdf8c89353faf",
+      "baseline_line": 145,
+      "reviewed_assertion_calls": 2,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/prompt_state_contracts.rs#human_steering_remains_current_while_feedback_refers_to_active_goal"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Reviewed every baseline assertion and local parameter scenario. Exact serialized budgets are checked using the authoritative JsDocument/PromptState representation; observation-only serde projections are not wire serialization."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/prompt-state.test.mjs#9",
+      "name": "replacing or clearing a goal resets feedback recognition while a status query retains it",
+      "baseline_file_sha256": "ea3cc66eeb4022258336f5b0ee7441c959d79de68904d500db6816b7045b5824",
+      "baseline_definition_sha256": "535ec4eb952b792ba8a3474dd65e85051d1d073d336d09547956a85a3ae6200b",
+      "baseline_line": 153,
+      "reviewed_assertion_calls": 3,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/prompt_state_contracts.rs#goal_replacement_clear_commands_and_empty_status_reset_or_retain_recognition"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Reviewed every baseline assertion and local parameter scenario. Exact serialized budgets are checked using the authoritative JsDocument/PromptState representation; observation-only serde projections are not wire serialization."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/prompt-state.test.mjs#10",
+      "name": "short repeated condition labels require earlier full feedback and the exact UTF-16 truncation",
+      "baseline_file_sha256": "ea3cc66eeb4022258336f5b0ee7441c959d79de68904d500db6816b7045b5824",
+      "baseline_definition_sha256": "d9562ea3bfc12b35cfc47546f7b90a1e91d6891d85871f5470128d694e50b555",
+      "baseline_line": 166,
+      "reviewed_assertion_calls": 4,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/prompt_state_contracts.rs#short_goal_labels_require_full_feedback_and_exact_utf16_truncation"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Reviewed every baseline assertion and local parameter scenario. Exact serialized budgets are checked using the authoritative JsDocument/PromptState representation; observation-only serde projections are not wire serialization."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/prompt-state.test.mjs#11",
+      "name": "the actual task survives large Claude Code reminder and deferred-tool prefixes",
+      "baseline_file_sha256": "ea3cc66eeb4022258336f5b0ee7441c959d79de68904d500db6816b7045b5824",
+      "baseline_definition_sha256": "ce5d0fce570cad8e52748221ad857e852f71a265e95d0440de3dfa6baf84e21d",
+      "baseline_line": 182,
+      "reviewed_assertion_calls": 4,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/prompt_state_contracts.rs#large_client_prefixes_do_not_displace_the_human_task"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Reviewed every baseline assertion and local parameter scenario. Exact serialized budgets are checked using the authoritative JsDocument/PromptState representation; observation-only serde projections are not wire serialization."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/prompt-state.test.mjs#12",
+      "name": "a new human task takes priority over the original task and trailing tool results",
+      "baseline_file_sha256": "ea3cc66eeb4022258336f5b0ee7441c959d79de68904d500db6816b7045b5824",
+      "baseline_definition_sha256": "e42b25ec12d90764014a12ffdf96f763c2b3c8c76cf5ba6c7f189259d9982da6",
+      "baseline_line": 196,
+      "reviewed_assertion_calls": 4,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/prompt_state_contracts.rs#new_task_precedes_old_task_and_trailing_tool_results"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Reviewed every baseline assertion and local parameter scenario. Exact serialized budgets are checked using the authoritative JsDocument/PromptState representation; observation-only serde projections are not wire serialization."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/prompt-state.test.mjs#13",
+      "name": "tag mentions, mixed blocks, and malformed wrappers are preserved as human instructions",
+      "baseline_file_sha256": "ea3cc66eeb4022258336f5b0ee7441c959d79de68904d500db6816b7045b5824",
+      "baseline_definition_sha256": "48c768cb0205d19142d7a394e1be590dd8672f944d338f993d96b03fc9bc3f1a",
+      "baseline_line": 212,
+      "reviewed_assertion_calls": 2,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/prompt_state_contracts.rs#wrapper_mentions_and_plain_string_reminders_remain_human_instructions"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Reviewed every baseline assertion and local parameter scenario. Exact serialized budgets are checked using the authoritative JsDocument/PromptState representation; observation-only serde projections are not wire serialization."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/prompt-state.test.mjs#14",
+      "name": "long tasks retain both ends and receive most of the budget before background context",
+      "baseline_file_sha256": "ea3cc66eeb4022258336f5b0ee7441c959d79de68904d500db6816b7045b5824",
+      "baseline_definition_sha256": "4f08c933fd412958c5d5530efce3fe824356129288e86deb4bb451e542ab3007",
+      "baseline_line": 227,
+      "reviewed_assertion_calls": 6,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/prompt_state_contracts.rs#long_current_tasks_keep_both_ends_and_most_of_the_budget"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Reviewed every baseline assertion and local parameter scenario. Exact serialized budgets are checked using the authoritative JsDocument/PromptState representation; observation-only serde projections are not wire serialization."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/prompt-state.test.mjs#15",
+      "name": "escaping stays within both normal and small budgets without exposing non-text payloads",
+      "baseline_file_sha256": "ea3cc66eeb4022258336f5b0ee7441c959d79de68904d500db6816b7045b5824",
+      "baseline_definition_sha256": "b5004cddf91a242e24ebd8094e74eddad1c4ce7706239718b455c726a6364692",
+      "baseline_line": 243,
+      "reviewed_assertion_calls": 6,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/prompt_state_contracts.rs#escaped_state_fits_small_and_normal_budgets_without_opaque_payloads"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Reviewed every baseline assertion and local parameter scenario. Exact serialized budgets are checked using the authoritative JsDocument/PromptState representation; observation-only serde projections are not wire serialization."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/prompt-state.test.mjs#16",
+      "name": "balanced history excerpts retain tool errors at the end of long results",
+      "baseline_file_sha256": "ea3cc66eeb4022258336f5b0ee7441c959d79de68904d500db6816b7045b5824",
+      "baseline_definition_sha256": "74bf7399c7642423a2afcb913d5bb23e08e8247271b2ff5d0408bd1742d5dc94",
+      "baseline_line": 270,
+      "reviewed_assertion_calls": 3,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/prompt_state_contracts.rs#balanced_tool_history_preserves_errors_at_the_end_of_long_results"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Reviewed every baseline assertion and local parameter scenario. Exact serialized budgets are checked using the authoritative JsDocument/PromptState representation; observation-only serde projections are not wire serialization."
+      ],
+      "remaining": []
+    }
+  ]
+}

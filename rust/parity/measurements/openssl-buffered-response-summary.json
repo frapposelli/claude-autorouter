@@ -1,0 +1,608 @@
+{
+  "schema_version": 1,
+  "kind": "openssl_buffered_response_scoped_experiment",
+  "status": "partial_with_retained_exact_differential_failures",
+  "production_transport_promoted": false,
+  "scope": [
+    "Separate library-test-only buffered raw-pool constructor, bounded application blocks, generation-owned terminal propagation and first-frame downstream submission staging.",
+    "Successful upstream headers remain status 200 even if a body error is observed before response attachment; first-cause failure and Delivery::Flushed are serialized by the same request owner.",
+    "The producer owns Incoming; the consumer owns the exact pool reservation. Producer EOF and encoder/body handoff do not grant delivery or continuity authority.",
+    "No CompletionRegistry internals, vendor, Cargo or shipping TLS constructor changed for this experiment. Parent module registration, raw acquisition factoring and opt-in cfg(test) server hooks are included.",
+    "Only synthetic numeric-loopback HTTP/TLS peers and synthetic credentials were used. No provider calls or production transport qualification."
+  ],
+  "current_result": {
+    "declared_cases": 162,
+    "native_comparisons_selected": 150,
+    "matching": 146,
+    "mismatching": 4,
+    "executions_completed_with_declared_relations_and_cleanup": 300,
+    "reference_only_handoff_cases": 12,
+    "pending_families": [
+      "HEAD/204/304 and final-data/end semantics",
+      "downstream blocked writer and blocked final flush",
+      "request attachment failure races",
+      "pipelined A/B and retired-A notification ownership",
+      "independent same-origin sibling and raw/fetch separation",
+      "eight simultaneous saturated responses and repeated cancellation",
+      "long legal streaming body with allocation accounting"
+    ],
+    "report": {
+      "path": "artifacts/rust-rewrite/evidence/buffered-response-differential-eb5d02276c7d60f73c33e580de23d0a0f740de2006effb5de015896c431b2216.json",
+      "sha256": "eb5d02276c7d60f73c33e580de23d0a0f740de2006effb5de015896c431b2216",
+      "bytes": 4764300
+    },
+    "comparison_contract": {
+      "declared_before_execution": true,
+      "exact_fields": [
+        "upstream_status",
+        "first_failure_cause",
+        "delivery_completed",
+        "wire_status",
+        "body_bytes",
+        "body_sha256",
+        "complete_framing",
+        "trailer_bytes",
+        "consumer_released"
+      ],
+      "prerequisite": "Both executions pass the identical declared case relations and owned cleanup.",
+      "exclusions": [
+        "wire header formatting and chunk boundaries",
+        "raw timestamps and packet/frame segmentation",
+        "Node object flags and native implementation IDs",
+        "TLS session policy beyond the separate retained pool matrix",
+        "total process heap/RSS and allocator overhead"
+      ],
+      "pending_families": [
+        "HEAD/204/304 and final-data/end semantics",
+        "downstream blocked writer and blocked final flush",
+        "request attachment failure races",
+        "pipelined A/B and retired-A notification ownership",
+        "independent same-origin sibling and raw/fetch separation",
+        "eight simultaneous saturated responses and repeated cancellation",
+        "long legal streaming body with allocation accounting"
+      ]
+    },
+    "remaining_failures": [
+      {
+        "id": "HTTP-short-length-65537-single",
+        "comparison": {
+          "matches": false,
+          "differences": [
+            "body_bytes",
+            "body_sha256"
+          ],
+          "reference": {
+            "upstream_status": 200,
+            "first_failure_cause": "upstream",
+            "delivery_completed": false,
+            "wire_status": 200,
+            "body_bytes": 65537,
+            "body_sha256": "1abe08ebecf1c18cab71f6fe28aaddf20268f85bad78bb9a72f88ca47c874662",
+            "complete_framing": false,
+            "trailer_bytes": 0,
+            "consumer_released": true
+          },
+          "native": {
+            "upstream_status": 200,
+            "first_failure_cause": "upstream",
+            "delivery_completed": false,
+            "wire_status": 200,
+            "body_bytes": 65536,
+            "body_sha256": "1f8745f0d2d1387ec1af2211a3cf417b2e9e885e853472649c1d979d0e9370e3",
+            "complete_framing": false,
+            "trailer_bytes": 0,
+            "consumer_released": true
+          }
+        },
+        "reference": {
+          "path": "artifacts/rust-rewrite/evidence/fdb59c4e0d7c731ddac9b526691dd58031767b0fc1756ba1a1ac7d09b51d63e7.json",
+          "sha256": "fdb59c4e0d7c731ddac9b526691dd58031767b0fc1756ba1a1ac7d09b51d63e7",
+          "bytes": 8435
+        },
+        "native": {
+          "path": "artifacts/rust-rewrite/evidence/1bd3019873ecc16a668908428a953cfebb29c6a35b638e67a58fd2d830c69121.json",
+          "sha256": "1bd3019873ecc16a668908428a953cfebb29c6a35b638e67a58fd2d830c69121",
+          "bytes": 15552
+        }
+      },
+      {
+        "id": "HTTP-short-length-65537-tiny",
+        "comparison": {
+          "matches": false,
+          "differences": [
+            "body_bytes",
+            "body_sha256"
+          ],
+          "reference": {
+            "upstream_status": 200,
+            "first_failure_cause": "upstream",
+            "delivery_completed": false,
+            "wire_status": 200,
+            "body_bytes": 65537,
+            "body_sha256": "1abe08ebecf1c18cab71f6fe28aaddf20268f85bad78bb9a72f88ca47c874662",
+            "complete_framing": false,
+            "trailer_bytes": 0,
+            "consumer_released": true
+          },
+          "native": {
+            "upstream_status": 200,
+            "first_failure_cause": "upstream",
+            "delivery_completed": false,
+            "wire_status": 200,
+            "body_bytes": 65536,
+            "body_sha256": "1f8745f0d2d1387ec1af2211a3cf417b2e9e885e853472649c1d979d0e9370e3",
+            "complete_framing": false,
+            "trailer_bytes": 0,
+            "consumer_released": true
+          }
+        },
+        "reference": {
+          "path": "artifacts/rust-rewrite/evidence/f63030c6c4f2c7e9da57cec7532eeade2c2a81255922ce81374956ef0f1c3d3e.json",
+          "sha256": "f63030c6c4f2c7e9da57cec7532eeade2c2a81255922ce81374956ef0f1c3d3e",
+          "bytes": 8431
+        },
+        "native": {
+          "path": "artifacts/rust-rewrite/evidence/5efdb0f1f59980555c3330863c3ffa85392221e54f8397ed757fcac5e7d39a40.json",
+          "sha256": "5efdb0f1f59980555c3330863c3ffa85392221e54f8397ed757fcac5e7d39a40",
+          "bytes": 15551
+        }
+      },
+      {
+        "id": "TLSv1.2-short-length-65537-tiny",
+        "comparison": {
+          "matches": false,
+          "differences": [
+            "body_bytes",
+            "body_sha256"
+          ],
+          "reference": {
+            "upstream_status": 200,
+            "first_failure_cause": "upstream",
+            "delivery_completed": false,
+            "wire_status": 200,
+            "body_bytes": 65537,
+            "body_sha256": "1abe08ebecf1c18cab71f6fe28aaddf20268f85bad78bb9a72f88ca47c874662",
+            "complete_framing": false,
+            "trailer_bytes": 0,
+            "consumer_released": true
+          },
+          "native": {
+            "upstream_status": 200,
+            "first_failure_cause": "upstream",
+            "delivery_completed": false,
+            "wire_status": 200,
+            "body_bytes": 65536,
+            "body_sha256": "1f8745f0d2d1387ec1af2211a3cf417b2e9e885e853472649c1d979d0e9370e3",
+            "complete_framing": false,
+            "trailer_bytes": 0,
+            "consumer_released": true
+          }
+        },
+        "reference": {
+          "path": "artifacts/rust-rewrite/evidence/91f3af0c9139441ec55d693ddeebd1278c417882e19ee057ad5ab9773d9b5eb8.json",
+          "sha256": "91f3af0c9139441ec55d693ddeebd1278c417882e19ee057ad5ab9773d9b5eb8",
+          "bytes": 8437
+        },
+        "native": {
+          "path": "artifacts/rust-rewrite/evidence/db84d2db02049f6a5cbf4beaf6ee6a79fc9aa1d41063075d84ae50aed419c8ba.json",
+          "sha256": "db84d2db02049f6a5cbf4beaf6ee6a79fc9aa1d41063075d84ae50aed419c8ba",
+          "bytes": 15557
+        }
+      },
+      {
+        "id": "TLSv1.3-short-length-65537-tiny",
+        "comparison": {
+          "matches": false,
+          "differences": [
+            "body_bytes",
+            "body_sha256"
+          ],
+          "reference": {
+            "upstream_status": 200,
+            "first_failure_cause": "upstream",
+            "delivery_completed": false,
+            "wire_status": 200,
+            "body_bytes": 65537,
+            "body_sha256": "1abe08ebecf1c18cab71f6fe28aaddf20268f85bad78bb9a72f88ca47c874662",
+            "complete_framing": false,
+            "trailer_bytes": 0,
+            "consumer_released": true
+          },
+          "native": {
+            "upstream_status": 200,
+            "first_failure_cause": "upstream",
+            "delivery_completed": false,
+            "wire_status": 200,
+            "body_bytes": 65536,
+            "body_sha256": "1f8745f0d2d1387ec1af2211a3cf417b2e9e885e853472649c1d979d0e9370e3",
+            "complete_framing": false,
+            "trailer_bytes": 0,
+            "consumer_released": true
+          }
+        },
+        "reference": {
+          "path": "artifacts/rust-rewrite/evidence/b5784a608d440383e5f1e8256c54856d061ac933b0be9e6c258a13bd584e9294.json",
+          "sha256": "b5784a608d440383e5f1e8256c54856d061ac933b0be9e6c258a13bd584e9294",
+          "bytes": 8437
+        },
+        "native": {
+          "path": "artifacts/rust-rewrite/evidence/50ab951bc9b9f0591b3d2b31e5256bf6c13879370d9e43559ce397677e8dd53c.json",
+          "sha256": "50ab951bc9b9f0591b3d2b31e5256bf6c13879370d9e43559ce397677e8dd53c",
+          "bytes": 15557
+        }
+      }
+    ]
+  },
+  "first_frame_progress": {
+    "original_http_before": {
+      "path": "artifacts/rust-rewrite/evidence/buffered-response-differential-dcd13d4ad06693d761ec99258cf44d4da2a58ea2bad8f4119a87dc2de832f5b7.json",
+      "sha256": "dcd13d4ad06693d761ec99258cf44d4da2a58ea2bad8f4119a87dc2de832f5b7",
+      "bytes": 168297
+    },
+    "original_http_after": {
+      "path": "artifacts/rust-rewrite/evidence/buffered-response-differential-3b56b5cd9f0807a2087e06b55d8415efa7277433030c3a5677969e62891b8f9d.json",
+      "sha256": "3b56b5cd9f0807a2087e06b55d8415efa7277433030c3a5677969e62891b8f9d",
+      "bytes": 168745
+    },
+    "full_before": {
+      "path": "artifacts/rust-rewrite/evidence/buffered-response-differential-4e429dbc9c45a05c9fa6eb55899a9409e62deefc390ecf6ad3fd3aa7a1643c03.json",
+      "sha256": "4e429dbc9c45a05c9fa6eb55899a9409e62deefc390ecf6ad3fd3aa7a1643c03",
+      "bytes": 4606864
+    },
+    "resolved_header_only_differences": 42,
+    "note": "The first full matrix matched 98/144. All 42 early-header differences now match; the same four 65,537-byte truncation cases still forward only 65,536 native bytes. The six new 204/304 cases match. Byte counts, digests and wire status were not relaxed."
+  },
+  "native_validation": {
+    "focused_buffered_filter": {
+      "passed": 40,
+      "composition": {
+        "isolated_core": 17,
+        "adapter_tests": 18,
+        "preexisting_buffered_ownership_regressions": 4,
+        "environment_gated_child_no_fixture": 1
+      },
+      "log": {
+        "path": "artifacts/rust-rewrite/buffered-native-draft-3.log",
+        "sha256": "17215d07ff8bbb998973c8cc99a7c714921ac39e1cbd4e34794e755149d234a8",
+        "bytes": 18508
+      },
+      "note": "The ordinary child test returns immediately without its fixture environment; the differential actually exercises it."
+    },
+    "staging_tests": {
+      "passed": 4,
+      "new": 3,
+      "existing_trailer_regression": 1,
+      "log": {
+        "path": "artifacts/rust-rewrite/buffered-staging-draft-2.log",
+        "sha256": "af862e7d8775298210c42a363cece0ceedefc4d1ce76c43fdebdcc9278e29d9a",
+        "bytes": 1276
+      }
+    },
+    "terminal_initial_tests": {
+      "passed": 14,
+      "log": {
+        "path": "artifacts/rust-rewrite/gateway-terminal-draft-1.log",
+        "sha256": "a545ff8aea4e1e71a4e587a93d9d5739e5abcf6aa330d199215496612d9f9de6",
+        "bytes": 4326
+      }
+    },
+    "strict_clippy": {
+      "argv": [
+        "cargo",
+        "+1.99.0",
+        "clippy",
+        "-p",
+        "autorouter-runtime",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "environment": {
+        "CARGO_INCREMENTAL": "0"
+      },
+      "passed": true,
+      "log": {
+        "path": "artifacts/rust-rewrite/buffered-clippy-draft-1.log",
+        "sha256": "170bb6e1ae27e6122a5d37a68f99b6693bfcf6918d25605451c6899dc8c1c88e",
+        "bytes": 678
+      },
+      "note": "Existing vendor unused timer warning remains outside denied runtime warnings. Root broad workspace checks are recorded separately."
+    },
+    "independent_review": {
+      "path": "artifacts/rust-rewrite/evidence/8ff9ccc78d70cad4cdbdcca02d0cc5696df8d6c1d51c610e69f115def3e6fee7.json",
+      "sha256": "8ff9ccc78d70cad4cdbdcca02d0cc5696df8d6c1d51c610e69f115def3e6fee7",
+      "bytes": 15747
+    },
+    "independent_replay": {
+      "passed_test_definitions": 20,
+      "groups": {
+        "forwarding": 4,
+        "aggregate_clone_accounting": 1,
+        "actual_empty_constructor": 1,
+        "terminal_ownership": 14
+      },
+      "note": "Independent loopback replay initially hit sandbox EPERM before traffic; the same immutable binary passed the approved loopback retry. Both records are retained in the review."
+    }
+  },
+  "memory_scope": {
+    "application_payload": {
+      "blocks_per_live_pool": 12,
+      "bytes_per_block": 16384,
+      "requested_payload_backing_bytes_per_live_pool": 196608,
+      "logical_queue_threshold_bytes": 65536,
+      "maximum_queued_bytes_exclusive": 81920,
+      "ownership": "Final Bytes clone retains block credit, including detached pools after body/producer drop. Empty live pools remain counted for metadata ownership. Eight-pool aggregate recovery is tested."
+    },
+    "excluded_from_application_payload": [
+      "Hyper read backing and aliases",
+      "the one in-flight source frame",
+      "trailers and all descriptors/metadata",
+      "downstream encoder/writer buffers",
+      "TLS/crypto object and record allocations",
+      "allocator overhead and process RSS"
+    ],
+    "conditional_hyper_backing": "At the unchanged constructor default N=417792, B=4*max(N,65536)=1671168 requested bytes per read backing. Aggregate owner formula B*(2*C+P+Q+H); H includes retained old response headers and Q includes the dispatcher frame in transit. This is not a global five-backings-per-connection bound.",
+    "audits": [
+      {
+        "path": "artifacts/rust-rewrite/buffered-allocation-audit-1/report.json",
+        "sha256": "e5a6920f9892a3ef33cc68402ab0e396ccf15859ac5a5dd24c3e5dbb4c8bc108",
+        "bytes": 8527
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/72e3ad9e054ddbeae5cbb25a3088f1b6ea4d4d90fa9c1fcf9a86d5c74c2e8d07.json",
+        "sha256": "72e3ad9e054ddbeae5cbb25a3088f1b6ea4d4d90fa9c1fcf9a86d5c74c2e8d07",
+        "bytes": 4054
+      },
+      {
+        "path": "artifacts/rust-rewrite/buffered-live-backing-audit-1/report.json",
+        "sha256": "8e194df6223d8fd23072c28d3c82e7dbc2e301e4802a6d7ee7a85c6928d2c911",
+        "bytes": 13098
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/af4dcdc7f55b6611aec7e2effeb5bc06d9d288c2ab63b7a59b890358ca5e3991.json",
+        "sha256": "af4dcdc7f55b6611aec7e2effeb5bc06d9d288c2ab63b7a59b890358ca5e3991",
+        "bytes": 5487
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/44edbd9986692763f843e348e70d2f9504d751d7bc459369de6731d72e9baa99.json",
+        "sha256": "44edbd9986692763f843e348e70d2f9504d751d7bc459369de6731d72e9baa99",
+        "bytes": 18139
+      }
+    ],
+    "total_transport_memory_qualified": false
+  },
+  "reference_characterization": {
+    "original_http": {
+      "path": "artifacts/rust-rewrite/evidence/buffered-response-reference-7768bde2990615e655321b4f3bdd5b8db46994a41012b2ea3c699804c5420b27.json",
+      "sha256": "7768bde2990615e655321b4f3bdd5b8db46994a41012b2ea3c699804c5420b27",
+      "bytes": 99324
+    },
+    "original_tls": {
+      "path": "artifacts/rust-rewrite/evidence/buffered-response-reference-72d64bce9f58682c32d12be6870e79cca4527920ec4045f98e5764d306d2f273.json",
+      "sha256": "72d64bce9f58682c32d12be6870e79cca4527920ec4045f98e5764d306d2f273",
+      "bytes": 130008
+    },
+    "primary108": {
+      "path": "artifacts/rust-rewrite/evidence/buffered-response-reference-06be52aeb596a4f18d8d0784955e6847410040bc9270911fc5ac14ae8288aae0.json",
+      "sha256": "06be52aeb596a4f18d8d0784955e6847410040bc9270911fc5ac14ae8288aae0",
+      "bytes": 1151135
+    },
+    "framing15": {
+      "path": "artifacts/rust-rewrite/evidence/buffered-response-reference-057c9fb473c05b53dd88a17811dec40aa75450ce63f16c0f6d8827f5810ae856.json",
+      "sha256": "057c9fb473c05b53dd88a17811dec40aa75450ce63f16c0f6d8827f5810ae856",
+      "bytes": 222617
+    },
+    "order6": {
+      "path": "artifacts/rust-rewrite/evidence/buffered-response-reference-9f434b66b386a2504e35a4b9c19c559bff0531c6ee2b0162ed68203c14a85960.json",
+      "sha256": "9f434b66b386a2504e35a4b9c19c559bff0531c6ee2b0162ed68203c14a85960",
+      "bytes": 128039
+    },
+    "attachment3": {
+      "path": "artifacts/rust-rewrite/evidence/buffered-response-reference-5fb9cc1a1d86c9b1d06632ae90fee14629dd884f42a340ad7e32b6a70617ca21.json",
+      "sha256": "5fb9cc1a1d86c9b1d06632ae90fee14629dd884f42a340ad7e32b6a70617ca21",
+      "bytes": 102740
+    },
+    "legal_trailers3": {
+      "path": "artifacts/rust-rewrite/evidence/buffered-response-reference-8395fa55ae73dabe4e5a6564af149a4e374b29cddc9b9fdc657c20214058e7eb.json",
+      "sha256": "8395fa55ae73dabe4e5a6564af149a4e374b29cddc9b9fdc657c20214058e7eb",
+      "bytes": 101910
+    },
+    "empty_status6": {
+      "path": "artifacts/rust-rewrite/evidence/buffered-response-reference-17a13375cf64f65715f07c22b3faad9be4eb3c8ad9b421e67559654ab87e621c.json",
+      "sha256": "17a13375cf64f65715f07c22b3faad9be4eb3c8ad9b421e67559654ab87e621c",
+      "bytes": 141482
+    },
+    "flow_handoff12": {
+      "path": "artifacts/rust-rewrite/evidence/buffered-response-reference-4569b3d24d0ba5863e056f18db0fc243149861d23595575901e18288ce203cc3.json",
+      "sha256": "4569b3d24d0ba5863e056f18db0fc243149861d23595575901e18288ce203cc3",
+      "bytes": 219374
+    },
+    "flow_scope": "Ready writers transmit all 65,537 bytes. A held physical writer still permits source error and closure without demand or writer release, with zero wire bytes. Incoming data emission, intermediate Transform buffering, ServerResponse.write acceptance and physical IO are distinct; TLS blocked cases retain some bytes before ServerResponse.write.",
+    "reviews": [
+      {
+        "path": "artifacts/rust-rewrite/evidence/0d4c66058413f700ac965347cd0ba41609563a9b93de399668c93432240a421b.json",
+        "sha256": "0d4c66058413f700ac965347cd0ba41609563a9b93de399668c93432240a421b",
+        "bytes": 4360
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/f5c1f25a02d2adc69be8a25724088e62f9473d71758bda47f3d186af2d4ee499.json",
+        "sha256": "f5c1f25a02d2adc69be8a25724088e62f9473d71758bda47f3d186af2d4ee499",
+        "bytes": 3152
+      }
+    ],
+    "pinning": "Each capture retains its own pre-execution driver/helper/manifest sources, all 111 frozen baseline files, Node executable and nine builtin identities; historical captures are not claimed to share one evolving helper revision."
+  },
+  "retained_failures_and_corrections": [
+    {
+      "kind": "differential",
+      "detail": "Original 1/3, then full 98/144, followed by first-frame 3/3 and current full 146/150; all failed reports remain linked above."
+    },
+    {
+      "kind": "test_fixture",
+      "detail": "First staging test was 3/4 because resetting a Tokio timer to now did not establish readiness; the fixture now awaits actual timer readiness before asserting replay rejection. No deadline implementation change was used to pass this test.",
+      "log": {
+        "path": "artifacts/rust-rewrite/buffered-staging-draft-1.log",
+        "sha256": "d1bfac3d361697bb45ebb4bb5b2a21fa3bca1faa555ca23eaca4b395695bfaac",
+        "bytes": 947
+      }
+    },
+    {
+      "kind": "lint",
+      "detail": "Root first strict check found two collapsible_if lints in buffered_body; corrected with let chains.",
+      "log": {
+        "path": "artifacts/rust-rewrite/turn-routing-contracts-1/clippy-1.log",
+        "sha256": "f6580f08f29e5538eebbea963e6ec0de77a1ea7c5937eec01f69f6e6c4bf3dd3",
+        "bytes": 2688
+      }
+    },
+    {
+      "kind": "review_corrections",
+      "detail": "Guard-owned terminal publication now survives producer abort before first poll and consumer waker/callback panic; trailer acceptance preserves legal 1001 repeated empty fields; pending producer join retains its abort owner; actual empty Incoming state survives constructor scheduling; bounded child log observer errors are sticky and checked after cleanup."
+    },
+    {
+      "kind": "harness_mutation_and_interruption",
+      "detail": "Independent setup interruption and injected cleanup observer failure were both retained with explicit child/socket cleanup in the hardening review."
+    },
+    {
+      "kind": "formatting",
+      "detail": "Root broad fmt found module declaration ordering only, then reordered gateway_intent_tests before gateway_terminal. Draft4 source/binary stays distinct from current ordering; no claim of current byte-identical recompilation."
+    }
+  ],
+  "source_binding": {
+    "immutable_candidate": {
+      "path": "artifacts/rust-rewrite/buffered-gateway-draft-4/runtime-tests",
+      "sha256": "9df8e0e3197eeed3b87a9342e456557bb911a016ca4136e18e91ddec2a55c812",
+      "bytes": 95580960
+    },
+    "draft_transport_snapshot": {
+      "path": "artifacts/rust-rewrite/buffered-gateway-draft-4/inputs.json",
+      "sha256": "eafd71833d0de6b936d80bb44f9c6d27394ee3891ea26c479e02540e11ddf081",
+      "bytes": 5241
+    },
+    "provenance_limit": "The draft binary has a post-build transport-only source record, not a complete pre-build workspace input snapshot or a reproducible clean-build claim. Root source changes and broad checkpoint builds are separately recorded.",
+    "current_owned_rust": [
+      {
+        "path": "rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/buffered_body.rs",
+        "sha256": "3872f919c78f619fbc8b2967d7a853ec135dc1ec84868af6b9469d494704a0fe",
+        "bytes": 18247
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/buffered_body_tests.rs",
+        "sha256": "fa9a96a7cdd56fd02c28a8b47d48ea5d7707a6157ee17b669bc9a1bf89dfa3e6",
+        "bytes": 14522
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/gateway_terminal.rs",
+        "sha256": "edddcb747a28720990c01edd4f8203ca94e9dbf12e8be5578226b74baebb0359",
+        "bytes": 21816
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/gateway_terminal_tests.rs",
+        "sha256": "38b87b80922f1f85b371c98d909a426af619b1a0f7fe71b518190eaae1c9adea",
+        "bytes": 11418
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/raw_pool_buffered.rs",
+        "sha256": "b144e36646e41b07d375aa3e5362d3550cc06572f2dd9e068280820441394729",
+        "bytes": 7178
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/raw_pool_buffered_tests.rs",
+        "sha256": "7a97a8ac80be1a0611b91741579cc8ba17ac649f177debd7f5d5fb58c8e56f7d",
+        "bytes": 19177
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/raw_pool_buffered_child.rs",
+        "sha256": "10be5f0a37eda03d99f9d366b52d5dc28ba5f537add76f39a68289241141a730",
+        "bytes": 8942
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/raw_pool.rs",
+        "sha256": "ebdde6d154d3434bac25a14d3046f34e82ae1870d1dd9f3aef1a4f8ef4033873",
+        "bytes": 31205
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/src/tls_roots/openssl_spike.rs",
+        "sha256": "8f3029675db3b69f820b6866071e85ec5c0ebacd8b20c2d069663d008b413c52",
+        "bytes": 9162
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/src/server.rs",
+        "sha256": "da7fca1281d6e0f37a8a82f06799e578423d4db259ac09965171c1af124d1e92",
+        "bytes": 60488
+      }
+    ],
+    "current_js": [
+      {
+        "path": "rust/parity/buffered-response-cases.mjs",
+        "sha256": "bea7c9dd9407b945b73d01ba7c574317cfc9854fa2d85765439db504f615700f",
+        "bytes": 6020
+      },
+      {
+        "path": "rust/parity/buffered-response-reference.mjs",
+        "sha256": "c755903bb2f33f7042fde67512fd5f187c5d50951cf09dec9ac725917fedcc3f",
+        "bytes": 25918
+      },
+      {
+        "path": "rust/parity/buffered-response-native.mjs",
+        "sha256": "62d48f241e2d60ee82309d36c952db7b8ba062e6b4e75854f49b37749767dd79",
+        "bytes": 20207
+      },
+      {
+        "path": "rust/parity/check-openssl-buffered-response.mjs",
+        "sha256": "84dc2de246ed96fe78fd018f1360d3bd235f6aa3304fd5760553443464cbb6d7",
+        "bytes": 14725
+      },
+      {
+        "path": "rust/parity/check-openssl-buffered-differential.mjs",
+        "sha256": "126c81689c6ecc5f55072b54127615b2d971a70c4d75b666b2f36d332fa129be",
+        "bytes": 19021
+      }
+    ],
+    "only_transport_drift_from_draft4": {
+      "path": "rust/crates/autorouter-runtime/src/tls_roots/openssl_spike.rs",
+      "draft4_sha256": "8c02e19200c0fc51e8e122ec4697918e66f455491f6e2ffea3ec6aad4e003e89",
+      "current_sha256": "8f3029675db3b69f820b6866071e85ec5c0ebacd8b20c2d069663d008b413c52",
+      "detail": "Module declaration order only; semantic equivalence is a reviewed inference, current binary identity is not asserted."
+    }
+  },
+  "prior_scope_preserved": {
+    "raw_pool_summary": {
+      "path": "rust/parity/measurements/openssl-raw-pool-summary.json",
+      "sha256": "9b8da546088a177e28196ce4d5fde972bafd695bc887f836085dc0e51294a78d",
+      "bytes": 28093
+    },
+    "historical_results": {
+      "original_session": "13/18",
+      "intent_session": "15/18",
+      "idle_close": "4/10",
+      "raw_pool_original_sessions": "15/18",
+      "raw_pool_policy": "63/63"
+    },
+    "note": "These historical artifacts remain unchanged. This buffered phase does not erase their mismatch sets or claim those full old differential matrices were rerun against every evolving buffered binary."
+  },
+  "next_work": [
+    "Resolve the four exact final-byte failures with a source-grounded per-request forwarding handoff; a scheduling turn, yield, post-error drain or comparison relaxation is insufficient.",
+    "Assess an additive default-off Hyper encoder-admission/write-attempt observation API; vendor changes remain unapplied and require concrete reviewed scope.",
+    "Complete seven pending families, native equivalents of the 12 reference-only handoff cases, held final flush/continuity controls and complete allocation terms before any broader qualification.",
+    "Add a targeted cancellation-of-ConnectionTerminal.close-future control after the source freeze; normal close/join and fallback ownership were inspected/tested, but this boundary lacks a dedicated regression."
+  ],
+  "designs": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/15be67bcdc29e08d8d9b7b711728521319967c0b4c2dcefbe7c3c06708d0cdd5.md",
+      "sha256": "15be67bcdc29e08d8d9b7b711728521319967c0b4c2dcefbe7c3c06708d0cdd5",
+      "bytes": 4967
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/c5f1ba6d363ddb1dc4787a602802d7d2214743b6e2a23cfcd0b1e6cd81ca3cb6.md",
+      "sha256": "c5f1ba6d363ddb1dc4787a602802d7d2214743b6e2a23cfcd0b1e6cd81ca3cb6",
+      "bytes": 5374
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/92446b403136869e84632070b19f7b4c8790b1e0ce22b7ebb5428edd55e11160.md",
+      "sha256": "92446b403136869e84632070b19f7b4c8790b1e0ce22b7ebb5428edd55e11160",
+      "bytes": 6608
+    }
+  ]
+}

@@ -1,0 +1,1988 @@
+--- a/src/error.rs
++++ b/src/error.rs
+@@ -32,6 +32,16 @@
+ #[cfg(any(boringssl, awslc))]
+ type ErrType = libc::c_uint;
+ 
++/// Clears the current thread's error queue after explicit OpenSSL initialization.
++///
++/// Call immediately before a TLS I/O operation whose result is interpreted by
++/// `SSL_get_error`. This does not initialize configuration, decode error text or
++/// allocate Rust diagnostic objects. The caller must already have completed
++/// coordinated OpenSSL initialization.
++pub fn clear_initialized() {
++    unsafe { ffi::ERR_clear_error() }
++}
++
+ /// Collection of [`Error`]s from OpenSSL.
+ ///
+ /// [`Error`]: struct.Error.html
+@@ -43,6 +53,17 @@
+     pub fn get() -> ErrorStack {
+         let mut vec = vec![];
+         while let Some(err) = Error::get() {
++            vec.push(err);
++        }
++        ErrorStack(vec)
++    }
++
++    // Initialization owns the error queue before ffi::init is permitted. Do not
++    // let reporting a configuration failure implicitly select default settings.
++    #[cfg(ossl300)]
++    pub(crate) fn get_initialized() -> ErrorStack {
++        let mut vec = vec![];
++        while let Some(err) = Error::get_initialized() {
+             vec.push(err);
+         }
+         ErrorStack(vec)
+@@ -115,9 +136,18 @@
+ impl Error {
+     /// Returns the first error on the OpenSSL error stack.
+     pub fn get() -> Option<Error> {
+-        unsafe {
+-            ffi::init();
+-
++        ffi::init();
++        Self::get_impl(false)
++    }
++
++    // Caller has performed explicit OpenSSL initialization. This must not call
++    // ffi::init, including while that initialization is reporting a failure.
++    pub(crate) fn get_initialized() -> Option<Error> {
++        Self::get_impl(true)
++    }
++
++    fn get_impl(initialization: bool) -> Option<Error> {
++        unsafe {
+             let mut file = ptr::null();
+             let mut line = 0;
+             let mut func = ptr::null();
+@@ -130,11 +160,18 @@
+                     // in the error stack, so we'll need to copy it off if it's dynamic
+                     let data = if flags & ffi::ERR_TXT_STRING != 0 {
+                         let bytes = CStr::from_ptr(data as *const _).to_bytes();
+-                        let data = str::from_utf8(bytes).unwrap();
+-                        let data = if flags & ffi::ERR_TXT_MALLOCED != 0 {
+-                            Cow::Owned(data.to_string())
++                        let data = if initialization {
++                            // Config paths/section names can contain non-UTF8.
++                            // Reporting must not panic after OpenSSL's once gate
++                            // commits but before our cached identity is stored.
++                            Cow::Owned(String::from_utf8_lossy(bytes).into_owned())
+                         } else {
+-                            Cow::Borrowed(data)
++                            let data = str::from_utf8(bytes).unwrap();
++                            if flags & ffi::ERR_TXT_MALLOCED != 0 {
++                                Cow::Owned(data.to_string())
++                            } else {
++                                Cow::Borrowed(data)
++                            }
+                         };
+                         Some(data)
+                     } else {
+@@ -280,6 +317,12 @@
+     // OpenSSL/LibreSSL they're safe.
+     #[allow(unused_unsafe)]
+     pub fn reason_code(&self) -> libc::c_int {
++        // The pinned OpenSSL3 binding returns ERR_LIB_SYS for every system
++        // reason. Match the public C ERR_GET_REASON system-mask branch.
++        #[cfg(ossl300)]
++        if ffi::ERR_SYSTEM_ERROR(self.code) {
++            return (self.code & ffi::ERR_SYSTEM_MASK) as libc::c_int;
++        }
+         unsafe { ffi::ERR_GET_REASON(self.code) }
+     }
+ 
+@@ -429,3 +472,111 @@
+         assert_eq!(errors[0].library_code(), ffi::ERR_LIB_OBJ as libc::c_int);
+     }
+ }
++
++#[cfg(all(test, ossl300))]
++mod system_reason_tests {
++    use super::*;
++    use libc::c_int;
++
++    fn system_reasons() -> [c_int; 5] {
++        let high = (ffi::ERR_REASON_MASK + 17) as c_int;
++        assert!(high as ErrType > ffi::ERR_REASON_MASK);
++        assert_eq!(ffi::ERR_SYSTEM_MASK, i32::MAX as ErrType);
++        [2, 32, 104, high, i32::MAX]
++    }
++
++    // Every seed goes through the actual public C error API; no ERR_PACK or
++    // fabricated SSL_get_error operation result is used by these tests.
++    fn capture(rows: &[(c_int, c_int)]) -> ErrorStack {
++        assert!(rows.len() < 16);
++        crate::init_without_config().unwrap();
++        clear_initialized();
++        for &(library, reason) in rows {
++            unsafe {
++                ffi::ERR_new();
++                ffi::ERR_set_debug(c"synthetic-system-reason".as_ptr(), 1, c"capture".as_ptr());
++                ffi::ERR_set_error(library, reason, ptr::null::<libc::c_char>());
++            }
++        }
++        let captured = ErrorStack::get();
++        assert_eq!(captured.errors().len(), rows.len());
++        captured
++    }
++
++    fn raw_codes(errors: &ErrorStack) -> Vec<ErrType> {
++        errors.errors().iter().map(Error::code).collect()
++    }
++
++    fn check_rows(errors: &ErrorStack, rows: &[(c_int, c_int)]) {
++        assert_eq!(errors.errors().len(), rows.len());
++        for (error, &(library, reason)) in errors.errors().iter().zip(rows) {
++            assert_eq!(error.library_code(), library);
++            assert_eq!(error.reason_code(), reason);
++            if library == ffi::ERR_LIB_SYS {
++                assert!(ffi::ERR_SYSTEM_ERROR(error.code()));
++                assert_eq!(error.code(), ffi::ERR_SYSTEM_FLAG | reason as ErrType);
++                assert_eq!((error.code() & ffi::ERR_SYSTEM_MASK) as c_int, reason);
++            } else {
++                assert!(!ffi::ERR_SYSTEM_ERROR(error.code()));
++                assert_eq!((error.code() & ffi::ERR_REASON_MASK) as c_int, reason);
++                assert_eq!(
++                    ((error.code() >> ffi::ERR_LIB_OFFSET) & ffi::ERR_LIB_MASK) as c_int,
++                    library
++                );
++                assert_eq!(
++                    error.code() & ffi::ERR_RFLAG_FATAL,
++                    reason as ErrType & ffi::ERR_RFLAG_FATAL
++                );
++            }
++        }
++    }
++
++    #[test]
++    fn system_reasons_keep_all_public_mask_bits() {
++        for reason in system_reasons() {
++            let rows = [(ffi::ERR_LIB_SYS, reason)];
++            let errors = capture(&rows);
++            check_rows(&errors, &rows);
++            assert!(ErrorStack::get().errors().is_empty());
++        }
++    }
++
++    #[test]
++    fn system_error_roundtrip_preserves_raw_code_and_reason() {
++        let rows = system_reasons().map(|reason| (ffi::ERR_LIB_SYS, reason));
++        let before = capture(&rows);
++        let original_codes = raw_codes(&before);
++        before.put();
++        let after = ErrorStack::get();
++        // Compare raw roundtrip identity first, independently of the decoder.
++        assert_eq!(raw_codes(&after), original_codes);
++        check_rows(&before, &rows);
++        check_rows(&after, &rows);
++        assert!(ErrorStack::get().errors().is_empty());
++    }
++
++    #[test]
++    fn mixed_and_nonsystem_roundtrips_preserve_order_and_flags() {
++        let fatal = ffi::ERR_RFLAG_FATAL as c_int;
++        let nonsystem = [(20, 185), (9, 108 | fatal), (20, 186 | fatal), (9, 109)];
++        let mixed = [
++            (2, 32),
++            (20, 185 | fatal),
++            (9, 108),
++            (2, 104),
++            (9, 109 | fatal),
++            (20, 186),
++        ];
++        let reverse = mixed.iter().rev().copied().collect::<Vec<_>>();
++        for rows in [&nonsystem[..], &mixed[..], &reverse[..]] {
++            let before = capture(rows);
++            let original_codes = raw_codes(&before);
++            before.put();
++            let after = ErrorStack::get();
++            assert_eq!(raw_codes(&after), original_codes);
++            check_rows(&before, rows);
++            check_rows(&after, rows);
++            assert!(ErrorStack::get().errors().is_empty());
++        }
++    }
++}
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -133,6 +133,11 @@
+ 
+ #[doc(inline)]
+ pub use ffi::init;
++
++#[cfg(ossl300)]
++mod node_init;
++#[cfg(ossl300)]
++pub use node_init::{init_with_config_first_use, init_without_config};
+ 
+ use libc::c_int;
+ #[cfg(ossl300)]
+--- /dev/null
++++ b/src/node_init.rs
+@@ -0,0 +1,162 @@
++//! AutoRouter's first-use initialization extension for OpenSSL 3.
++//!
++//! All users of these entrypoints share one immutable identity and result.
++//! This cannot detect earlier initialization through third-party FFI or another
++//! OpenSSL API. Call before any such use, and stop startup on error. Configuration
++//! can load arbitrary modules/includes; callers own the selected configuration.
++use std::ffi::{CStr, CString};
++use std::ptr;
++use std::sync::OnceLock;
++
++use libc::{c_char, c_int, c_ulong};
++
++use crate::error::ErrorStack;
++
++#[derive(Clone, Eq, PartialEq)]
++enum Request {
++    NoConfig,
++    Config {
++        filename: Option<CString>,
++        shared: bool,
++    },
++}
++
++struct Initialized {
++    request: Request,
++    result: Result<(), ErrorStack>,
++}
++static INITIALIZED: OnceLock<Initialized> = OnceLock::new();
++
++pub(crate) fn initialized_successfully() -> bool {
++    INITIALIZED.get().is_some_and(|state| state.result.is_ok())
++}
++
++// Public OpenSSL 3 crypto.h/conf.h ABI. openssl-sys does not expose these
++// settings functions. Keep this FFI in the audited supplier, not the runtime.
++unsafe extern "C" {
++    fn OPENSSL_INIT_new() -> *mut ffi::OPENSSL_INIT_SETTINGS;
++    fn OPENSSL_INIT_free(settings: *mut ffi::OPENSSL_INIT_SETTINGS);
++    fn OPENSSL_INIT_set_config_filename(
++        settings: *mut ffi::OPENSSL_INIT_SETTINGS,
++        filename: *const c_char,
++    ) -> c_int;
++    fn OPENSSL_INIT_set_config_appname(
++        settings: *mut ffi::OPENSSL_INIT_SETTINGS,
++        appname: *const c_char,
++    ) -> c_int;
++    fn OPENSSL_INIT_set_config_file_flags(
++        settings: *mut ffi::OPENSSL_INIT_SETTINGS,
++        flags: c_ulong,
++    );
++    fn OPENSSL_init_crypto(options: u64, settings: *const ffi::OPENSSL_INIT_SETTINGS) -> c_int;
++}
++
++struct Settings(*mut ffi::OPENSSL_INIT_SETTINGS);
++impl Drop for Settings {
++    fn drop(&mut self) {
++        unsafe { OPENSSL_INIT_free(self.0) }
++    }
++}
++
++/// Initializes OpenSSL without implicitly loading a configuration file.
++///
++/// Call before any independent OpenSSL use. Repeated identical requests return
++/// the original outcome. A prior configuration request is an error, even if its
++/// file was empty; an already selected initialization policy cannot be undone.
++pub fn init_without_config() -> Result<(), ErrorStack> {
++    initialize(Request::NoConfig)
++}
++
++/// Initializes OpenSSL using Node 22's configuration selection at first use.
++///
++/// `filename == None` delegates default filename resolution to OpenSSL (including
++/// its empty OPENSSL_CONF behavior). Shared selects the `openssl_conf` key;
++/// otherwise `nodejs_conf` is selected. Only IGNORE_MISSING_FILE is enabled: no
++/// fallback section or ignored module failure. Environment variables are not
++/// mutated. Repeated identical requests return the cached outcome without reload;
++/// a conflicting path, appname or no-config request is rejected.
++///
++/// This must precede every independent OpenSSL API/FFI use; this extension cannot
++/// detect or reverse initialization performed outside its coordinator. On error
++/// callers must stop startup. This does not qualify any configuration as safe,
++/// provide a FIPS provider, seed a language runtime, or verify certificates.
++/// Configuration error data is copied with lossy UTF-8 replacement; it is not a
++/// byte-preserving diagnostic API. Ordinary Error::get behavior is unchanged.
++pub fn init_with_config_first_use(filename: Option<&CStr>, shared: bool) -> Result<(), ErrorStack> {
++    initialize(Request::Config {
++        filename: filename.map(CStr::to_owned),
++        shared,
++    })
++}
++
++fn initialize(request: Request) -> Result<(), ErrorStack> {
++    let initialized = INITIALIZED.get_or_init(|| {
++        let request = request.clone();
++        let result = perform(&request);
++        Initialized { request, result }
++    });
++    if initialized.request != request {
++        return Err(ErrorStack::internal_error(
++            "conflicting OpenSSL initialization request",
++        ));
++    }
++    initialized.result.clone()
++}
++
++fn perform(request: &Request) -> Result<(), ErrorStack> {
++    const NO_LOAD_CONFIG: u64 = 0x0000_0080;
++    const LOAD_CONFIG: u64 = 0x0000_0040;
++    const IGNORE_MISSING_FILE: c_ulong = 0x10;
++    match request {
++        Request::NoConfig => unsafe {
++            if ffi::OPENSSL_init_ssl(
++                NO_LOAD_CONFIG | ffi::OPENSSL_INIT_LOAD_SSL_STRINGS | ffi::OPENSSL_INIT_NO_ATEXIT,
++                ptr::null(),
++            ) <= 0
++            {
++                Err(ErrorStack::get_initialized())
++            } else {
++                Ok(())
++            }
++        },
++        Request::Config { filename, shared } => unsafe {
++            let settings = Settings(OPENSSL_INIT_new());
++            if settings.0.is_null() {
++                return Err(ErrorStack::internal_error(
++                    "OpenSSL initialization settings allocation failed",
++                ));
++            }
++            if OPENSSL_INIT_set_config_filename(
++                settings.0,
++                filename.as_ref().map_or(ptr::null(), |name| name.as_ptr()),
++            ) <= 0
++                || OPENSSL_INIT_set_config_appname(
++                    settings.0,
++                    if *shared {
++                        c"openssl_conf".as_ptr()
++                    } else {
++                        c"nodejs_conf".as_ptr()
++                    },
++                ) <= 0
++            {
++                return Err(ErrorStack::internal_error(
++                    "OpenSSL initialization settings assignment failed",
++                ));
++            }
++            OPENSSL_INIT_set_config_file_flags(settings.0, IGNORE_MISSING_FILE);
++            // Like Node, queued errors determine configuration failure, not
++            // this function's return code. Capture on this thread before any
++            // implicit ffi::init or other OpenSSL operation can touch the queue.
++            OPENSSL_init_crypto(LOAD_CONFIG, settings.0);
++            drop(settings);
++            let errors = ErrorStack::get_initialized();
++            if !errors.errors().is_empty() {
++                return Err(errors);
++            }
++            // The configuration once gate has now been selected. Complete the
++            // ordinary rust-openssl SSL initialization without reloading it.
++            ffi::init();
++            Ok(())
++        },
++    }
++}
+--- a/src/ssl/bio.rs
++++ b/src/ssl/bio.rs
+@@ -82,6 +82,26 @@
+     &mut *(BIO_get_data(bio) as *mut _)
+ }
+ 
++// A Rust IO error owns its OS code; it need not match C's thread-local errno.
++// OpenSSL's record writer reads errno after a fatal BIO write. Publish an
++// actual supplied OS code after Rust bookkeeping; keep upstream behavior for
++// custom/retry errors without an OS code and for unqualified platforms.
++fn set_write_errno(code: Option<c_int>) {
++    let Some(code) = code else {
++        return;
++    };
++    #[cfg(target_os = "macos")]
++    unsafe {
++        *libc::__error() = code;
++    }
++    #[cfg(target_os = "linux")]
++    unsafe {
++        *libc::__errno_location() = code;
++    }
++    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
++    let _ = code;
++}
++
+ unsafe extern "C" fn bwrite<S: Write>(bio: *mut BIO, buf: *const c_char, len: c_int) -> c_int {
+     BIO_clear_retry_flags(bio);
+ 
+@@ -91,10 +111,12 @@
+     match catch_unwind(AssertUnwindSafe(|| state.stream.write(buf))) {
+         Ok(Ok(len)) => len as c_int,
+         Ok(Err(err)) => {
++            let code = err.raw_os_error();
+             if retriable_error(&err) {
+                 BIO_set_retry_write(bio);
+             }
+             state.error = Some(err);
++            set_write_errno(code);
+             -1
+         }
+         Err(err) => {
+@@ -218,3 +240,220 @@
+         }
+     }
+ }
++
++#[cfg(all(test, any(target_os = "macos", target_os = "linux")))]
++mod write_errno_tests {
++    use super::*;
++    use std::sync::Arc;
++
++    // Public OpenSSL ABI (bio.h); not exported by the pinned openssl-sys.
++    extern "C" {
++        #[link_name = "BIO_test_flags"]
++        fn c_bio_test_flags(bio: *const BIO, flags: c_int) -> c_int;
++    }
++
++    fn errno_slot() -> *mut c_int {
++        #[cfg(target_os = "macos")]
++        unsafe {
++            libc::__error()
++        }
++        #[cfg(target_os = "linux")]
++        unsafe {
++            libc::__errno_location()
++        }
++    }
++
++    enum Failure {
++        Os(c_int),
++        Custom(io::Error),
++    }
++    struct Planned {
++        failure: Option<Failure>,
++        writes: usize,
++        observed_len: usize,
++        observed_first: Option<u8>,
++    }
++    impl Planned {
++        fn new(failure: Failure) -> Self {
++            Self {
++                failure: Some(failure),
++                writes: 0,
++                observed_len: 0,
++                observed_first: None,
++            }
++        }
++    }
++    impl Read for Planned {
++        fn read(&mut self, _buf: &mut [u8]) -> io::Result<usize> {
++            Ok(0)
++        }
++    }
++    impl Write for Planned {
++        fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
++            self.writes += 1;
++            self.observed_len = buf.len();
++            self.observed_first = buf.first().copied();
++            // No errno writes, allocations, foreign calls or error formatting.
++            match self.failure.take().expect("one declared write") {
++                Failure::Os(code) => Err(io::Error::from_raw_os_error(code)),
++                Failure::Custom(error) => Err(error),
++            }
++        }
++        fn flush(&mut self) -> io::Result<()> {
++            Ok(())
++        }
++    }
++
++    struct Fixture {
++        pointer: *mut BIO,
++        _method: BioMethod,
++    }
++    impl Fixture {
++        fn new(failure: Failure) -> Self {
++            #[cfg(ossl300)]
++            crate::init_without_config().unwrap();
++            #[cfg(not(ossl300))]
++            crate::init();
++            let (pointer, method) = new(Planned::new(failure)).unwrap();
++            Self {
++                pointer,
++                _method: method,
++            }
++        }
++        fn write(&self, sentinel: c_int) -> (c_int, c_int) {
++            let slot = errno_slot();
++            assert!(!slot.is_null());
++            // Prove that bwrite clears stale READ flags before classifying IO.
++            unsafe {
++                ffi::BIO_set_retry_read(self.pointer);
++                *slot = sentinel;
++                let returned = ffi::BIO_write(self.pointer, b"w".as_ptr().cast(), 1);
++                // Capture before assertions, flag reads, error extraction or Drop.
++                let observed_errno = *slot;
++                (returned, observed_errno)
++            }
++        }
++        fn retry_flags(&self) -> c_int {
++            unsafe {
++                c_bio_test_flags(
++                    self.pointer,
++                    ffi::BIO_FLAGS_RWS | ffi::BIO_FLAGS_SHOULD_RETRY,
++                )
++            }
++        }
++        fn owned_error(&self) -> io::Error {
++            let stream = unsafe { get_ref::<Planned>(self.pointer) };
++            assert_eq!(stream.writes, 1);
++            assert_eq!(stream.observed_len, 1);
++            assert_eq!(stream.observed_first, Some(b'w'));
++            assert!(stream.failure.is_none());
++            assert!(unsafe { take_panic::<Planned>(self.pointer) }.is_none());
++            let error = unsafe { take_error::<Planned>(self.pointer) }
++                .expect("actual BIO callback retained its owned IO error");
++            assert!(unsafe { take_error::<Planned>(self.pointer) }.is_none());
++            error
++        }
++    }
++    impl Drop for Fixture {
++        fn drop(&mut self) {
++            // The BIO method field remains alive through this destructor body.
++            unsafe { ffi::BIO_free_all(self.pointer) }
++        }
++    }
++
++    fn direct_os_control(code: c_int, kind: io::ErrorKind, sentinel: c_int) {
++        let mut planned = Planned::new(Failure::Os(code));
++        let slot = errno_slot();
++        assert!(!slot.is_null());
++        unsafe { *slot = sentinel };
++        let returned = planned.write(b"w");
++        let observed_errno = unsafe { *slot };
++        let owned = returned.unwrap_err();
++        assert_eq!(
++            observed_errno, sentinel,
++            "Rust IO did not publish the OS code"
++        );
++        assert_eq!(owned.kind(), kind);
++        assert_eq!(owned.raw_os_error(), Some(code));
++        assert_eq!(planned.writes, 1);
++    }
++
++    #[test]
++    fn os_error_is_preserved_across_actual_bio_write() {
++        for (code, kind) in [
++            (libc::EPIPE, io::ErrorKind::BrokenPipe),
++            (libc::ECONNRESET, io::ErrorKind::ConnectionReset),
++        ] {
++            let sentinel = libc::ENOENT;
++            assert_ne!(code, sentinel);
++            direct_os_control(code, kind, sentinel);
++            let fixture = Fixture::new(Failure::Os(code));
++            let (returned, observed_errno) = fixture.write(sentinel);
++            assert_eq!(returned, -1);
++            assert_eq!(
++                observed_errno, code,
++                "the actual C BIO callback publishes its OS error"
++            );
++            assert_eq!(fixture.retry_flags(), 0);
++            let owned = fixture.owned_error();
++            assert_eq!(owned.kind(), kind);
++            assert_eq!(owned.raw_os_error(), Some(code));
++        }
++    }
++
++    #[test]
++    fn raw_retry_error_keeps_bio_retry_and_owned_errno() {
++        let code = libc::EAGAIN;
++        let sentinel = libc::ENOENT;
++        assert_ne!(code, sentinel);
++        direct_os_control(code, io::ErrorKind::WouldBlock, sentinel);
++        let fixture = Fixture::new(Failure::Os(code));
++        let (returned, observed_errno) = fixture.write(sentinel);
++        assert_eq!(returned, -1);
++        assert_eq!(observed_errno, code);
++        assert_eq!(
++            fixture.retry_flags(),
++            ffi::BIO_FLAGS_WRITE | ffi::BIO_FLAGS_SHOULD_RETRY
++        );
++        let owned = fixture.owned_error();
++        assert_eq!(owned.kind(), io::ErrorKind::WouldBlock);
++        assert_eq!(owned.raw_os_error(), Some(code));
++    }
++
++    #[derive(Debug)]
++    struct Payload(Arc<()>);
++    impl std::fmt::Display for Payload {
++        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
++            f.write_str("synthetic owned BIO error")
++        }
++    }
++    impl std::error::Error for Payload {}
++
++    #[test]
++    fn custom_error_keeps_original_payload_without_an_os_code() {
++        let identity = Arc::new(());
++        let failure = io::Error::new(io::ErrorKind::Other, Payload(identity.clone()));
++        assert_eq!(failure.raw_os_error(), None);
++        let fixture = Fixture::new(Failure::Custom(failure));
++        let sentinel = libc::ENOENT;
++        let (returned, observed_errno) = fixture.write(sentinel);
++        assert_eq!(returned, -1);
++        assert_eq!(
++            observed_errno, sentinel,
++            "rawNone does not invent an OS error"
++        );
++        assert_eq!(fixture.retry_flags(), 0);
++        let owned = fixture.owned_error();
++        assert_eq!(owned.kind(), io::ErrorKind::Other);
++        assert_eq!(owned.raw_os_error(), None);
++        let payload = owned
++            .get_ref()
++            .unwrap()
++            .downcast_ref::<Payload>()
++            .expect("retain the original payload type");
++        assert!(Arc::ptr_eq(&payload.0, &identity));
++        assert_eq!(Arc::strong_count(&identity), 2);
++        drop(owned);
++        assert_eq!(Arc::strong_count(&identity), 1);
++    }
++}
+--- a/src/ssl/mod.rs
++++ b/src/ssl/mod.rs
+@@ -107,10 +107,70 @@
+ };
+ pub use crate::ssl::error::{Error, ErrorCode, HandshakeError};
+ 
++/// Snapshot of OpenSSL 3's public nonblocking operation state.
++///
++/// This is not an IO result or permission to replace an unfinished operation.
++/// Unknown states retain their numeric value without being guessed as read/write.
++#[cfg(ossl300)]
++#[derive(Clone, Copy, Debug, Eq, PartialEq)]
++#[non_exhaustive]
++pub enum SslWant {
++    Nothing,
++    Writing,
++    Reading,
++    X509Lookup,
++    AsyncPaused,
++    AsyncNoJobs,
++    ClientHelloCallback,
++    RetryVerify,
++    Other(c_int),
++}
++
++#[cfg(ossl300)]
++impl SslWant {
++    fn from_raw(value: c_int) -> Self {
++        match value {
++            1 => Self::Nothing,
++            2 => Self::Writing,
++            3 => Self::Reading,
++            4 => Self::X509Lookup,
++            5 => Self::AsyncPaused,
++            6 => Self::AsyncNoJobs,
++            7 => Self::ClientHelloCallback,
++            8 => Self::RetryVerify,
++            value => Self::Other(value),
++        }
++    }
++
++    /// Returns the public SSL_want state value, including an unknown value.
++    pub fn as_raw(self) -> c_int {
++        match self {
++            Self::Nothing => 1,
++            Self::Writing => 2,
++            Self::Reading => 3,
++            Self::X509Lookup => 4,
++            Self::AsyncPaused => 5,
++            Self::AsyncNoJobs => 6,
++            Self::ClientHelloCallback => 7,
++            Self::RetryVerify => 8,
++            Self::Other(value) => value,
++        }
++    }
++}
++
++// Public OpenSSL 3 declaration; no private SSL layout or openssl-sys mutation.
++#[cfg(ossl300)]
++unsafe extern "C" {
++    #[link_name = "SSL_want"]
++    fn public_ssl_want(ssl: *const ffi::SSL) -> c_int;
++}
++
+ mod bio;
+ mod callbacks;
+ mod connector;
+ mod error;
++#[cfg(ossl300)]
++mod node_defaults;
+ #[cfg(test)]
+ mod test;
+ 
+@@ -745,6 +805,21 @@
+ pub struct SslContextBuilder(SslContext);
+ 
+ impl SslContextBuilder {
++    /// Creates a client context with frozen Node 22 defaults before configuration.
++    ///
++    /// AutoRouter extension, restricted to the reviewed OpenSSL 3.6.3 constructor
++    /// order. Call a coordinated first-use initializer successfully beforehand.
++    /// The existing `system_default` application can override these defaults once.
++    /// Ordinary constructors and unarmed threads are unchanged. Earlier third-party
++    /// initialization and recursive context-creating callbacks/providers are not
++    /// qualified: a parent mismatch is rejected but cannot undo their side effects.
++    /// A failed void callback rejects the returned context after configuration;
++    /// this is not a guarantee against configuration side effects.
++    #[cfg(ossl300)]
++    pub fn new_node_client() -> Result<SslContextBuilder, ErrorStack> {
++        node_defaults::new_client()
++    }
++
+     /// Creates a new `SslContextBuilder`.
+     #[corresponds(SSL_CTX_new)]
+     pub fn new(method: SslMethod) -> Result<SslContextBuilder, ErrorStack> {
+@@ -1438,6 +1513,30 @@
+             self.set_ex_data(SslContext::cached_ex_index::<F>(), callback);
+             ffi::SSL_CTX_sess_set_new_cb(self.as_ptr(), Some(callbacks::raw_new_session::<F>));
+         }
++    }
++
++    /// Receives immutable sessions bound to the connection's original context.
++    ///
++    /// AutoRouter's local OpenSSL 3 extension. This replaces the ordinary new
++    /// session callback and uses its existing callback trampoline. Session
++    /// caching must be enabled separately. No snapshot is produced when the
++    /// connection's current context differs from its original context.
++    ///
++    /// A snapshot proves context ownership, not successful peer verification.
++    /// Callers must delay cache publication until their connection acceptance
++    /// checks pass, isolate cache keys by peer and verification policy, and
++    /// bound cache memory. A callback which retains snapshots must capture its
++    /// cache weakly: a strong context -> callback -> cache -> snapshot -> context
++    /// cycle would otherwise retain the context indefinitely.
++    #[cfg(ossl300)]
++    pub fn set_bound_new_session_callback<F>(&mut self, callback: F)
++    where
++        F: Fn(&mut SslRef, Result<ContextBoundSession, BoundSessionError>) + 'static + Sync + Send,
++    {
++        self.set_new_session_callback(move |ssl, session| {
++            let snapshot = ContextBoundSession::capture(ssl, &session);
++            callback(ssl, snapshot);
++        });
+     }
+ 
+     /// Sets the callback which is called when sessions are removed from the context.
+@@ -2263,6 +2362,118 @@
+     }
+ }
+ 
++/// A private immutable session snapshot retained with its original context.
++///
++/// AutoRouter's local OpenSSL 3 extension. Only an actual new-session callback
++/// can construct this value. It exposes neither serialized bytes nor a native
++/// mutable session and deliberately implements no `Debug` or deserialization.
++/// Cloning shares the immutable snapshot, not a mutable `SSL_SESSION` object.
++/// Each installation decodes a fresh independent session.
++///
++/// No public byte constructor or field access can forge context ownership:
++///
++/// ```compile_fail
++/// use openssl::ssl::ContextBoundSession;
++/// let forged = ContextBoundSession::from_der(b"arbitrary session");
++/// ```
++///
++/// ```compile_fail
++/// use openssl::ssl::ContextBoundSession;
++/// fn inspect(snapshot: &ContextBoundSession) { let _ = &snapshot.inner; }
++/// ```
++///
++/// Formatting must not accidentally expose session material:
++///
++/// ```compile_fail
++/// use openssl::ssl::ContextBoundSession;
++/// fn log(snapshot: &ContextBoundSession) { let _ = format!("{snapshot:?}"); }
++/// ```
++///
++/// Context identity alone does not establish peer, hostname or policy identity.
++/// Applications must isolate caches and publish only accepted connections.
++#[cfg(ossl300)]
++#[derive(Clone)]
++pub struct ContextBoundSession {
++    inner: Arc<ContextBoundSessionInner>,
++}
++
++#[cfg(ossl300)]
++struct ContextBoundSessionInner {
++    der: Box<[u8]>,
++    context: SslContext,
++}
++
++/// Sanitized failures from the context-bound session extension.
++///
++/// These variants carry no session bytes, keys, certificate contents, addresses
++/// or OpenSSL error-stack data. A failure never selects a replacement context.
++#[cfg(ossl300)]
++#[derive(Clone, Copy, Debug, Eq, PartialEq)]
++#[non_exhaustive]
++pub enum BoundSessionError {
++    /// The connection was not created with the binding's original-context slot.
++    MissingOriginalContext,
++    /// The current context differs from the connection's original context.
++    ContextChanged,
++    /// The snapshot originated from a different context.
++    ForeignContext,
++    /// OpenSSL could not serialize the callback's session.
++    SnapshotFailed,
++    /// OpenSSL could not decode the private snapshot for this attempt.
++    DecodeFailed,
++    /// OpenSSL rejected installation of the decoded session.
++    InstallFailed,
++}
++
++#[cfg(ossl300)]
++impl fmt::Display for BoundSessionError {
++    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
++        formatter.write_str(match self {
++            Self::MissingOriginalContext => "original TLS context is unavailable",
++            Self::ContextChanged => "TLS context was changed",
++            Self::ForeignContext => "TLS session belongs to a different context",
++            Self::SnapshotFailed => "TLS session snapshot failed",
++            Self::DecodeFailed => "TLS session snapshot could not be decoded",
++            Self::InstallFailed => "TLS session could not be installed",
++        })
++    }
++}
++
++#[cfg(ossl300)]
++impl std::error::Error for BoundSessionError {}
++
++#[cfg(ossl300)]
++impl ContextBoundSession {
++    // Deliberately private: never bind caller-supplied bytes or an arbitrary
++    // (session, context) pair. The sole caller is the actual callback adapter.
++    fn capture(ssl: &SslRef, session: &SslSessionRef) -> Result<Self, BoundSessionError> {
++        let index = SESSION_CTX_INDEX
++            .get()
++            .ok_or(BoundSessionError::MissingOriginalContext)?;
++        let original = ssl
++            .ex_data(*index)
++            .ok_or(BoundSessionError::MissingOriginalContext)?;
++        if original.as_ptr() != ssl.ssl_context().as_ptr() {
++            return Err(BoundSessionError::ContextChanged);
++        }
++        let der = session
++            .to_der()
++            .map_err(|_| BoundSessionError::SnapshotFailed)?;
++        Ok(Self {
++            inner: Arc::new(ContextBoundSessionInner {
++                der: der.into_boxed_slice(),
++                context: original.clone(),
++            }),
++        })
++    }
++
++    /// Returns the encoded size for application cache accounting, without
++    /// exposing the secret serialized session itself.
++    pub fn encoded_len(&self) -> usize {
++        self.inner.der.len()
++    }
++}
++
+ foreign_type_and_impl_send_sync! {
+     type CType = ffi::SSL;
+     fn drop = ffi::SSL_free;
+@@ -2699,6 +2910,20 @@
+     #[corresponds(SSL_pending)]
+     pub fn pending(&self) -> usize {
+         unsafe { ffi::SSL_pending(self.as_ptr()) as usize }
++    }
++
++    /// Returns the public OpenSSL 3 state of the last nonblocking operation.
++    ///
++    /// Sample immediately after an actual TLS call returns Pending and before
++    /// another TLS operation. A credit/readiness stall before any TLS call has
++    /// no new state; callers must track that distinction themselves. This only
++    /// reads SSL_want: it does not initialize, poll IO, call SSL_get_error, or
++    /// inspect or clear the thread error queue. Reading/Writing describe the
++    /// underlying dependency, not which application method was called.
++    #[cfg(ossl300)]
++    #[corresponds(SSL_want)]
++    pub fn want(&self) -> SslWant {
++        SslWant::from_raw(unsafe { public_ssl_want(self.as_ptr()) })
+     }
+ 
+     /// Returns the servername sent by the client via Server Name Indication (SNI).
+@@ -2875,6 +3100,43 @@
+     #[corresponds(SSL_set_session)]
+     pub unsafe fn set_session(&mut self, session: &SslSessionRef) -> Result<(), ErrorStack> {
+         cvt(ffi::SSL_set_session(self.as_ptr(), session.as_ptr())).map(|_| ())
++    }
++
++    /// Installs an independently decoded session from this original context.
++    ///
++    /// AutoRouter's local OpenSSL 3 extension. Call before the client handshake.
++    /// Both the binding's original context and the current context must match
++    /// the snapshot's retained context. Identity checks happen before decoding
++    /// or installing anything; an identity failure leaves the existing session alone.
++    ///
++    /// Like `set_session`, success does not promise the server will resume.
++    /// This operation performs no network action, retry, cache lookup, peer
++    /// verification or hostname check. Application cache-key/acceptance rules
++    /// remain the caller's responsibility.
++    #[cfg(ossl300)]
++    pub fn set_bound_session(
++        &mut self,
++        snapshot: &ContextBoundSession,
++    ) -> Result<(), BoundSessionError> {
++        let index = SESSION_CTX_INDEX
++            .get()
++            .ok_or(BoundSessionError::MissingOriginalContext)?;
++        let original = self
++            .ex_data(*index)
++            .ok_or(BoundSessionError::MissingOriginalContext)?;
++        if original.as_ptr() != self.ssl_context().as_ptr() {
++            return Err(BoundSessionError::ContextChanged);
++        }
++        if original.as_ptr() != snapshot.inner.context.as_ptr() {
++            return Err(BoundSessionError::ForeignContext);
++        }
++        let session = SslSession::from_der(&snapshot.inner.der)
++            .map_err(|_| BoundSessionError::DecodeFailed)?;
++        // SAFETY: Only the real new-session callback can create a snapshot.
++        // Its original context stays alive with the immutable DER, preventing
++        // pointer reuse. Both original/current target contexts match it above.
++        // A fresh decode avoids sharing a native session's mutable state.
++        unsafe { self.set_session(&session) }.map_err(|_| BoundSessionError::InstallFailed)
+     }
+ 
+     /// Determines if the session provided to `set_session` was successfully reused.
+@@ -4285,3 +4547,108 @@
+         }
+     }
+ }
++
++#[cfg(all(test, ossl300))]
++mod want_tests {
++    use super::*;
++
++    struct NonblockingIo {
++        block_write: bool,
++        reads: usize,
++        writes: usize,
++        written: usize,
++    }
++    impl Read for NonblockingIo {
++        fn read(&mut self, _: &mut [u8]) -> io::Result<usize> {
++            self.reads += 1;
++            Err(io::ErrorKind::WouldBlock.into())
++        }
++    }
++    impl Write for NonblockingIo {
++        fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
++            self.writes += 1;
++            if self.block_write {
++                return Err(io::ErrorKind::WouldBlock.into());
++            }
++            if bytes.len() > 64 * 1024 - self.written {
++                return Err(io::Error::other("synthetic ClientHello output bound"));
++            }
++            self.written += bytes.len();
++            Ok(bytes.len())
++        }
++        fn flush(&mut self) -> io::Result<()> {
++            Ok(())
++        }
++    }
++
++    fn ssl() -> Ssl {
++        crate::init_without_config().unwrap();
++        let context = SslContextBuilder::new(SslMethod::tls_client())
++            .unwrap()
++            .build();
++        Ssl::new(&context).unwrap()
++    }
++
++    #[test]
++    fn new_ssl_want_preserves_the_actual_error_queue() {
++        let ssl = ssl();
++        crate::error::clear_initialized();
++        unsafe {
++            ffi::ERR_new();
++            ffi::ERR_set_debug(c"synthetic-want-state".as_ptr(), 1, c"idle".as_ptr());
++            ffi::ERR_set_error(ffi::ERR_LIB_SYS, 32, ptr::null::<c_char>());
++        }
++        let original = unsafe { ffi::ERR_peek_last_error() };
++        assert_ne!(original, 0);
++        assert_eq!(ssl.want(), SslWant::Nothing);
++        assert_eq!(ssl.want().as_raw(), 1);
++        let stack = ErrorStack::get();
++        assert_eq!(stack.errors().len(), 1);
++        assert_eq!(stack.errors()[0].code(), original);
++        assert_eq!(stack.errors()[0].library_code(), ffi::ERR_LIB_SYS);
++        assert_eq!(stack.errors()[0].reason_code(), 32);
++    }
++
++    #[test]
++    fn nonblocking_connect_want_read_is_observed_after_real_ssl_call() {
++        let mut stream = SslStream::new(
++            ssl(),
++            NonblockingIo {
++                block_write: false,
++                reads: 0,
++                writes: 0,
++                written: 0,
++            },
++        )
++        .unwrap();
++        crate::error::clear_initialized();
++        let error = stream.connect().unwrap_err();
++        assert_eq!(error.code(), ErrorCode::WANT_READ);
++        assert_eq!(stream.ssl().want(), SslWant::Reading);
++        assert_eq!(stream.ssl().want().as_raw(), 3);
++        assert!(stream.get_ref().reads > 0);
++        assert!(stream.get_ref().writes > 0);
++        assert!(stream.get_ref().written > 0);
++    }
++
++    #[test]
++    fn nonblocking_connect_want_write_is_observed_after_real_ssl_call() {
++        let mut stream = SslStream::new(
++            ssl(),
++            NonblockingIo {
++                block_write: true,
++                reads: 0,
++                writes: 0,
++                written: 0,
++            },
++        )
++        .unwrap();
++        crate::error::clear_initialized();
++        let error = stream.connect().unwrap_err();
++        assert_eq!(error.code(), ErrorCode::WANT_WRITE);
++        assert_eq!(stream.ssl().want(), SslWant::Writing);
++        assert_eq!(stream.ssl().want().as_raw(), 2);
++        assert!(stream.get_ref().writes > 0);
++        assert_eq!(stream.get_ref().written, 0);
++    }
++}
+--- /dev/null
++++ b/src/ssl/node_defaults.rs
+@@ -0,0 +1,418 @@
++//! Scoped public ex-data hook for the reviewed OpenSSL 3.6.3 constructor order.
++//! Groups/CERT exist before ex-data new callbacks; system_default runs afterwards.
++//! This is not a cross-version pre-configuration API or an arbitrary-plugin contract.
++use std::cell::Cell;
++use std::ffi::{c_char, c_int, c_long, c_void, CStr};
++use std::marker::PhantomData;
++use std::panic::{catch_unwind, AssertUnwindSafe};
++use std::ptr;
++use std::sync::OnceLock;
++
++use super::{SslContextBuilder, SslMethod};
++use crate::error::ErrorStack;
++
++// Node 22.14.0/OpenSSL 3.0.15 default-provider list. Do not inherit 3.6 ML-KEM.
++const GROUPS: &CStr =
++    c"X25519:P-256:X448:P-521:P-384:ffdhe2048:ffdhe3072:ffdhe4096:ffdhe6144:ffdhe8192";
++static INDEX: OnceLock<Result<c_int, ErrorStack>> = OnceLock::new();
++
++#[derive(Clone, Copy)]
++struct Scope {
++    groups: *const c_char,
++    parent: *mut ffi::SSL_CTX,
++    calls: u8,
++    succeeded: bool,
++}
++thread_local! {
++    static ACTIVE: Cell<Option<Scope>> = const { Cell::new(None) };
++}
++
++// Never transfer a thread's armed scope or outlive its borrowed Groups string.
++struct Guard<'a> {
++    armed: bool,
++    _borrow: PhantomData<&'a CStr>,
++    _thread: PhantomData<*mut ()>,
++}
++
++fn failure() -> ErrorStack {
++    ErrorStack::internal_error("Node-default context construction rejected")
++}
++
++fn register() -> Result<(), ErrorStack> {
++    if !crate::node_init::initialized_successfully() || crate::version::number() != 0x3060_0030 {
++        return Err(failure());
++    }
++    INDEX
++        .get_or_init(|| unsafe {
++            let index = ffi::CRYPTO_get_ex_new_index(
++                ffi::CRYPTO_EX_INDEX_SSL_CTX,
++                0,
++                ptr::null_mut(),
++                Some(created),
++                None,
++                None,
++            );
++            if index < 0 {
++                Err(ErrorStack::get_initialized())
++            } else {
++                Ok(index)
++            }
++        })
++        .as_ref()
++        .map(|_| ())
++        .map_err(Clone::clone)
++}
++
++impl<'a> Guard<'a> {
++    fn begin(groups: &'a CStr) -> Result<Self, ErrorStack> {
++        let armed = ACTIVE.try_with(|slot| {
++            if slot.get().is_some() {
++                return false;
++            }
++            slot.set(Some(Scope {
++                groups: groups.as_ptr(),
++                parent: ptr::null_mut(),
++                calls: 0,
++                succeeded: false,
++            }));
++            true
++        });
++        if armed != Ok(true) {
++            return Err(failure());
++        }
++        Ok(Self {
++            armed: true,
++            _borrow: PhantomData,
++            _thread: PhantomData,
++        })
++    }
++
++    // The constructor owns its pointer even on a callback/postcondition failure.
++    unsafe fn finish(
++        mut self,
++        pointer: *mut ffi::SSL_CTX,
++    ) -> Result<SslContextBuilder, ErrorStack> {
++        let state = ACTIVE.try_with(|slot| slot.replace(None)).ok().flatten();
++        self.armed = false;
++        if pointer.is_null() {
++            return Err(ErrorStack::get_initialized());
++        }
++        let context = SslContextBuilder::from_ptr(pointer);
++        if !state.is_some_and(|s| s.calls == 1 && s.succeeded && s.parent == pointer) {
++            // Drop the owned context while unarmed. Do not leak failed-setter
++            // errors into another operation's queue, including after a retry.
++            let _ = ErrorStack::get_initialized();
++            return Err(failure());
++        }
++        Ok(context)
++    }
++}
++
++impl Drop for Guard<'_> {
++    fn drop(&mut self) {
++        if self.armed {
++            let _ = ACTIVE.try_with(|slot| slot.set(None));
++        }
++    }
++}
++
++unsafe extern "C" fn created(
++    parent: *mut c_void,
++    _: *mut c_void,
++    _: *mut ffi::CRYPTO_EX_DATA,
++    _: c_int,
++    _: c_long,
++    _: *mut c_void,
++) {
++    run_callback(parent.cast(), |context, groups| {
++        // Only the reviewed initialized fields and public setters are accessed.
++        ffi::SSL_CTX_set_security_level(context, 1);
++        ffi::SSL_CTX_set1_groups_list(context, groups) > 0
++    });
++}
++
++fn run_callback(
++    parent: *mut ffi::SSL_CTX,
++    configure: impl FnOnce(*mut ffi::SSL_CTX, *const c_char) -> bool,
++) {
++    let scope = ACTIVE
++        .try_with(|slot| {
++            let mut scope = slot.get()?;
++            // Consume before calling OpenSSL: a recursive or duplicate callback may
++            // invalidate this construction but cannot apply these defaults again.
++            scope.calls = scope.calls.saturating_add(1);
++            if scope.calls != 1 || parent.is_null() {
++                scope.succeeded = false;
++                slot.set(Some(scope));
++                return None;
++            }
++            scope.parent = parent;
++            slot.set(Some(scope));
++            Some(scope)
++        })
++        .ok()
++        .flatten();
++    let Some(scope) = scope else { return };
++    // No borrow/lock crosses C, and Rust unwinding must not cross this callback.
++    // panic=abort, foreign unwinding and arbitrary other callbacks are separate.
++    let succeeded = matches!(
++        catch_unwind(AssertUnwindSafe(|| configure(parent, scope.groups))),
++        Ok(true)
++    );
++    let _ = ACTIVE.try_with(|slot| {
++        if let Some(mut current) = slot.get() {
++            if current.calls == 1 && current.parent == parent {
++                current.succeeded = succeeded;
++                slot.set(Some(current));
++            }
++        }
++    });
++}
++
++fn construct(
++    groups: &CStr,
++    constructor: impl FnOnce() -> *mut ffi::SSL_CTX,
++) -> Result<SslContextBuilder, ErrorStack> {
++    register()?;
++    let guard = Guard::begin(groups)?;
++    let context = constructor();
++    unsafe { guard.finish(context) }
++}
++
++pub(super) fn new_client() -> Result<SslContextBuilder, ErrorStack> {
++    construct(GROUPS, || unsafe {
++        ffi::SSL_CTX_new(SslMethod::tls_client().as_ptr())
++    })
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use foreign_types::ForeignType;
++    use std::sync::atomic::{AtomicUsize, Ordering};
++    use std::sync::{mpsc, Arc};
++    use std::time::Duration;
++
++    struct DropCount(Arc<AtomicUsize>);
++    impl Drop for DropCount {
++        fn drop(&mut self) {
++            self.0.fetch_add(1, Ordering::SeqCst);
++        }
++    }
++
++    fn ready() {
++        crate::init_without_config().unwrap();
++        register().unwrap();
++    }
++    fn clear() {
++        assert!(ACTIVE.with(|slot| slot.get().is_none()));
++    }
++    fn raw() -> *mut ffi::SSL_CTX {
++        unsafe { ffi::SSL_CTX_new(SslMethod::tls_client().as_ptr()) }
++    }
++
++    // Execute alone in a fresh process. Ordinary test returns are not evidence
++    // of either guard: the owner supplies only its synthetic configuration file.
++    #[test]
++    fn first_use_gate_child() {
++        let Ok(mode) = std::env::var("AUTOROUTER_SYNTHETIC_NODE_DEFAULTS_INIT") else {
++            return;
++        };
++        assert!(!crate::node_init::initialized_successfully());
++        assert!(new_client().is_err());
++        assert!(INDEX.get().is_none());
++        match mode.as_str() {
++            "success" => {
++                crate::init_without_config().unwrap();
++                assert_eq!(new_client().unwrap().build().security_level(), 1);
++            }
++            "failure" => {
++                let filename = std::ffi::CString::new(
++                    std::env::var("AUTOROUTER_SYNTHETIC_NODE_DEFAULTS_FILE").unwrap(),
++                )
++                .unwrap();
++                assert!(crate::init_with_config_first_use(Some(&filename), false).is_err());
++                assert!(new_client().is_err());
++                assert!(INDEX.get().is_none());
++            }
++            _ => panic!("unknown owned first-use gate mode"),
++        }
++        clear();
++        eprintln!("Node-default first-use gate verified");
++    }
++
++    #[test]
++    fn two_live_contexts_bind_distinct_parents_and_leave_unarmed_defaults() {
++        ready();
++        let first = new_client().unwrap();
++        let second = new_client().unwrap();
++        assert_ne!(first.as_ptr(), second.as_ptr());
++        for context in [first, second] {
++            assert_eq!(context.build().security_level(), 1);
++        }
++        assert_eq!(
++            SslContextBuilder::new(SslMethod::tls_client())
++                .unwrap()
++                .build()
++                .security_level(),
++            2
++        );
++        clear();
++    }
++
++    #[test]
++    fn invalid_groups_reject_real_context_and_allow_clean_retry() {
++        ready();
++        let drops = Arc::new(AtomicUsize::new(0));
++        let index = super::super::SslContext::new_ex_index::<DropCount>().unwrap();
++        assert!(construct(c"not-a-real-group", || unsafe {
++            let pointer = raw();
++            assert!(!pointer.is_null());
++            let mut context = SslContextBuilder::from_ptr(pointer);
++            context.set_ex_data(index, DropCount(Arc::clone(&drops)));
++            let pointer = context.as_ptr();
++            std::mem::forget(context);
++            pointer
++        })
++        .is_err());
++        assert_eq!(drops.load(Ordering::SeqCst), 1);
++        clear();
++        assert!(ErrorStack::get_initialized().errors().is_empty());
++        assert_eq!(new_client().unwrap().build().security_level(), 1);
++    }
++
++    #[test]
++    fn real_null_method_and_owned_post_callback_failure_clear_scope() {
++        ready();
++        assert!(construct(GROUPS, || unsafe { ffi::SSL_CTX_new(ptr::null()) }).is_err());
++        clear();
++        // Labelled post-callback failure seam; not a claim to induce real OOM.
++        assert!(construct(GROUPS, || unsafe {
++            let context = raw();
++            assert!(!context.is_null());
++            ffi::SSL_CTX_free(context);
++            ptr::null_mut()
++        })
++        .is_err());
++        clear();
++        assert_eq!(new_client().unwrap().build().security_level(), 1);
++    }
++
++    #[test]
++    fn nested_guard_rejects_before_a_second_constructor_and_preserves_outer() {
++        ready();
++        let outer = construct(GROUPS, || {
++            assert!(construct(GROUPS, || panic!("nested constructor must not run")).is_err());
++            raw()
++        })
++        .unwrap();
++        assert_eq!(outer.build().security_level(), 1);
++        clear();
++    }
++
++    #[test]
++    fn synchronized_threads_keep_invalid_valid_and_unarmed_scopes_independent() {
++        ready();
++        let (entered_tx, entered_rx) = mpsc::channel();
++        let (release_tx, release_rx) = mpsc::channel();
++        let worker = std::thread::spawn(move || {
++            let context = construct(c"not-a-real-group", || {
++                entered_tx.send(()).unwrap();
++                release_rx.recv_timeout(Duration::from_secs(3)).unwrap();
++                raw()
++            });
++            assert!(context.is_err());
++            clear();
++            assert_eq!(new_client().unwrap().build().security_level(), 1);
++        });
++        // A failing main assertion still releases and joins the owned worker.
++        struct Worker(
++            Option<mpsc::Sender<()>>,
++            Option<std::thread::JoinHandle<()>>,
++        );
++        impl Drop for Worker {
++            fn drop(&mut self) {
++                if let Some(release) = self.0.take() {
++                    let _ = release.send(());
++                }
++                if let Some(handle) = self.1.take() {
++                    let _ = handle.join();
++                }
++            }
++        }
++        let mut owner = Worker(Some(release_tx), Some(worker));
++        entered_rx.recv_timeout(Duration::from_secs(3)).unwrap();
++        assert_eq!(new_client().unwrap().build().security_level(), 1);
++        assert_eq!(
++            SslContextBuilder::new(SslMethod::tls_client())
++                .unwrap()
++                .build()
++                .security_level(),
++            2
++        );
++        owner.0.take().unwrap().send(()).unwrap();
++        owner.1.take().unwrap().join().unwrap();
++        clear();
++    }
++
++    #[test]
++    fn wrong_missing_and_duplicate_callback_records_reject_owned_contexts() {
++        ready();
++        let other = SslContextBuilder::new(SslMethod::tls_client())
++            .unwrap()
++            .build();
++        let drops = Arc::new(AtomicUsize::new(0));
++        let index = super::super::SslContext::new_ex_index::<DropCount>().unwrap();
++        for mode in 0..3 {
++            assert!(construct(GROUPS, || {
++                let context = raw();
++                assert!(!context.is_null());
++                let mut owned = unsafe { SslContextBuilder::from_ptr(context) };
++                owned.set_ex_data(index, DropCount(Arc::clone(&drops)));
++                std::mem::forget(owned);
++                if mode == 2 {
++                    let called = Cell::new(false);
++                    run_callback(context, |_, _| {
++                        called.set(true);
++                        true
++                    });
++                    assert!(!called.get(), "duplicate callback must not configure");
++                } else {
++                    // Record-only seams using two live owned context pointers.
++                    ACTIVE.with(|slot| {
++                        let mut state = slot.get().unwrap();
++                        if mode == 0 {
++                            state.parent = other.as_ptr();
++                        } else {
++                            state.calls = 0;
++                        }
++                        slot.set(Some(state));
++                    });
++                }
++                context
++            })
++            .is_err());
++            assert_eq!(drops.load(Ordering::SeqCst), mode + 1);
++            clear();
++        }
++        assert_eq!(other.security_level(), 2);
++        assert_eq!(new_client().unwrap().build().security_level(), 1);
++    }
++
++    #[test]
++    fn callback_panic_is_contained_and_constructor_unwind_drops_scope() {
++        ready();
++        let context = SslContextBuilder::new(SslMethod::tls_client()).unwrap();
++        let guard = Guard::begin(GROUPS).unwrap();
++        run_callback(context.as_ptr(), |_, _| panic!("synthetic callback panic"));
++        assert!(!ACTIVE.with(|slot| slot.get().unwrap().succeeded));
++        drop(guard);
++        clear();
++        assert!(catch_unwind(|| {
++            let _ = construct(GROUPS, || panic!("synthetic constructor unwind"));
++        })
++        .is_err());
++        clear();
++        assert_eq!(new_client().unwrap().build().security_level(), 1);
++    }
++}
+--- a/src/ssl/test/mod.rs
++++ b/src/ssl/test/mod.rs
+@@ -1869,3 +1869,365 @@
+     let cipher_id = cipher.protocol_id();
+     assert_eq!(cipher_id, [0x13, 0x02]);
+ }
++// AutoRouter B2 ownership tests. Synthetic loopback only; no trust-policy claim.
++// Run this filtered module in a fresh process with the pinned vendored backend.
++#[cfg(ossl300)]
++mod autorouter_bound_sessions {
++    use super::*;
++    use crate::ssl::{BoundSessionError, ContextBoundSession, SslRef};
++    use foreign_types::{ForeignType, ForeignTypeRef};
++    use std::sync::{Arc, Mutex};
++    use std::time::Instant;
++
++    type Captures = Arc<Mutex<Vec<Result<ContextBoundSession, BoundSessionError>>>>;
++
++    fn initialize() {
++        crate::init_without_config().unwrap();
++        assert_eq!(
++            crate::version::number(),
++            0x30600030,
++            "B2 requires pinned OpenSSL3.6.3"
++        );
++    }
++
++    struct CallbackLifetime(Arc<AtomicUsize>);
++    impl Drop for CallbackLifetime {
++        fn drop(&mut self) {
++            self.0.fetch_add(1, Ordering::SeqCst);
++        }
++    }
++
++    fn client_context(
++        version: SslVersion,
++        captures: &Captures,
++        dropped: Arc<AtomicUsize>,
++    ) -> SslContext {
++        initialize();
++        let mut builder = SslContextBuilder::new(SslMethod::tls_client()).unwrap();
++        builder.set_min_proto_version(Some(version)).unwrap();
++        builder.set_max_proto_version(Some(version)).unwrap();
++        // Certificate qualification belongs to runtime matrix tests, not these
++        // ownership tests using the upstream crate's public synthetic fixture.
++        builder.set_verify(SslVerifyMode::NONE);
++        builder
++            .set_session_cache_mode(SslSessionCacheMode::CLIENT | SslSessionCacheMode::NO_INTERNAL);
++        let weak = Arc::downgrade(captures);
++        let lifetime = CallbackLifetime(dropped);
++        builder.set_bound_new_session_callback(move |_, session| {
++            let _keep_lifetime_in_callback = &lifetime;
++            if let Some(captures) = weak.upgrade() {
++                // Snapshot creation already finished; no OpenSSL operation
++                // occurs while holding this application's cache mutex.
++                captures.lock().unwrap().push(session);
++            }
++        });
++        builder.build()
++    }
++
++    fn peer(
++        version: SslVersion,
++        attempts: usize,
++    ) -> (
++        SocketAddr,
++        thread::JoinHandle<Result<Vec<bool>, &'static str>>,
++    ) {
++        initialize();
++        let mut builder = SslContextBuilder::new(SslMethod::tls_server()).unwrap();
++        builder
++            .set_certificate(&X509::from_pem(CERT).unwrap())
++            .unwrap();
++        builder
++            .set_private_key(&PKey::private_key_from_pem(KEY).unwrap())
++            .unwrap();
++        builder.set_min_proto_version(Some(version)).unwrap();
++        builder.set_max_proto_version(Some(version)).unwrap();
++        builder
++            .set_session_id_context(b"synthetic-bound-session")
++            .unwrap();
++        builder
++            .set_session_cache_mode(SslSessionCacheMode::SERVER | SslSessionCacheMode::NO_INTERNAL);
++        let context = builder.build();
++        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
++        let address = listener.local_addr().unwrap();
++        listener.set_nonblocking(true).unwrap();
++        let worker = thread::spawn(move || {
++            let mut reused = Vec::new();
++            for _ in 0..attempts {
++                let deadline = Instant::now() + Duration::from_secs(3);
++                let socket = loop {
++                    match listener.accept() {
++                        Ok((socket, _)) => break socket,
++                        Err(error)
++                            if error.kind() == io::ErrorKind::WouldBlock
++                                && Instant::now() < deadline =>
++                        {
++                            thread::sleep(Duration::from_millis(5))
++                        }
++                        Err(_) => return Err("bounded synthetic accept failed"),
++                    }
++                };
++                // macOS inherits the listener's nonblocking flag on accept;
++                // this helper deliberately drives the blocking OpenSSL API.
++                socket
++                    .set_nonblocking(false)
++                    .map_err(|_| "blocking fixture socket")?;
++                socket
++                    .set_read_timeout(Some(Duration::from_secs(3)))
++                    .map_err(|_| "read deadline")?;
++                socket
++                    .set_write_timeout(Some(Duration::from_secs(3)))
++                    .map_err(|_| "write deadline")?;
++                let ssl = Ssl::new(&context).map_err(|_| "server allocation")?;
++                let mut stream = ssl.accept(socket).map_err(|_| "server handshake")?;
++                reused.push(stream.ssl().session_reused());
++                stream
++                    .write_all(&[1])
++                    .map_err(|_| "server application write")?;
++                let mut acknowledgement = [0];
++                stream
++                    .read_exact(&mut acknowledgement)
++                    .map_err(|_| "server acknowledgement")?;
++                if acknowledgement != [2] {
++                    return Err("wrong synthetic acknowledgement");
++                }
++                // Send close_notify without requiring an abrupt client to reply.
++                let _ = stream.shutdown();
++            }
++            Ok(reused)
++        });
++        (address, worker)
++    }
++
++    fn connect(mut ssl: Ssl, address: SocketAddr, clean: bool) -> bool {
++        let socket = TcpStream::connect_timeout(&address, Duration::from_secs(3)).unwrap();
++        socket
++            .set_read_timeout(Some(Duration::from_secs(3)))
++            .unwrap();
++        socket
++            .set_write_timeout(Some(Duration::from_secs(3)))
++            .unwrap();
++        ssl.set_connect_state();
++        let mut stream = ssl.connect(socket).unwrap();
++        let reused = stream.ssl().session_reused();
++        stream.read_exact(&mut [0]).unwrap(); // also processes TLS1.3 tickets
++        stream.write_all(&[2]).unwrap();
++        if clean {
++            let _ = stream.shutdown();
++            let _ = stream.shutdown();
++        }
++        // An unclean drop can mark the native session non-resumable. The saved
++        // DER must remain independent of that mutable native object.
++        drop(stream);
++        reused
++    }
++
++    fn captured_session(captures: &Captures) -> ContextBoundSession {
++        let captured = captures.lock().unwrap();
++        assert!(!captured.is_empty(), "missing actual new-session callback");
++        assert!(captured.iter().all(Result::is_ok));
++        captured.last().unwrap().as_ref().unwrap().clone()
++    }
++
++    #[test]
++    fn immutable_snapshots_resume_after_clean_and_unclean_close_tls12_tls13() {
++        for version in [SslVersion::TLS1_2, SslVersion::TLS1_3] {
++            for clean in [false, true] {
++                let captures = Arc::new(Mutex::new(Vec::new()));
++                let context = client_context(version, &captures, Arc::new(AtomicUsize::new(0)));
++                let (address, worker) = peer(version, 2);
++                assert!(!connect(Ssl::new(&context).unwrap(), address, clean));
++                let snapshot = captured_session(&captures);
++                assert!(snapshot.encoded_len() > 0);
++                let same_context = context.clone();
++                let mut ssl = Ssl::new(&same_context).unwrap();
++                ssl.set_bound_session(&snapshot.clone()).unwrap();
++                assert!(connect(ssl, address, true));
++                assert_eq!(worker.join().unwrap().unwrap(), [false, true]);
++            }
++        }
++    }
++
++    #[test]
++    fn foreign_original_and_current_contexts_reject_before_changing_session() {
++        let captures = Arc::new(Mutex::new(Vec::new()));
++        let context = client_context(SslVersion::TLS1_2, &captures, Arc::new(AtomicUsize::new(0)));
++        let (address, worker) = peer(SslVersion::TLS1_2, 1);
++        connect(Ssl::new(&context).unwrap(), address, true);
++        worker.join().unwrap().unwrap();
++        let snapshot = captured_session(&captures);
++        let foreign = SslContextBuilder::new(SslMethod::tls_client())
++            .unwrap()
++            .build();
++        let mut other = Ssl::new(&foreign).unwrap();
++        assert_eq!(
++            other.set_bound_session(&snapshot),
++            Err(BoundSessionError::ForeignContext)
++        );
++        assert!(other.session().is_none());
++        // Current context now matches the snapshot, but original context does
++        // not: a guard based only on ssl_context() would incorrectly accept.
++        other.set_ssl_context(&context).unwrap();
++        assert_eq!(
++            other.set_bound_session(&snapshot),
++            Err(BoundSessionError::ContextChanged)
++        );
++        assert!(other.session().is_none());
++        let mut original = Ssl::new(&context).unwrap();
++        original.set_bound_session(&snapshot).unwrap();
++        let installed = original.session().unwrap().to_der().unwrap();
++        original.set_ssl_context(&foreign).unwrap();
++        assert_eq!(
++            original.set_bound_session(&snapshot),
++            Err(BoundSessionError::ContextChanged)
++        );
++        assert_eq!(original.session().unwrap().to_der().unwrap(), installed);
++        // Restoring the original context is allowed; the API checks current
++        // identity and original ownership, not a historical context-swap bit.
++        original.set_ssl_context(&context).unwrap();
++        original.set_bound_session(&snapshot).unwrap();
++    }
++
++    #[test]
++    fn callback_refuses_snapshots_from_a_currently_swapped_context() {
++        let captures = Arc::new(Mutex::new(Vec::new()));
++        let original = client_context(SslVersion::TLS1_2, &captures, Arc::new(AtomicUsize::new(0)));
++        let mut builder = SslContextBuilder::new(SslMethod::tls_client()).unwrap();
++        builder
++            .set_max_proto_version(Some(SslVersion::TLS1_2))
++            .unwrap();
++        let changed = builder.build();
++        let (address, worker) = peer(SslVersion::TLS1_2, 1);
++        let mut ssl = Ssl::new(&original).unwrap();
++        ssl.set_ssl_context(&changed).unwrap();
++        connect(ssl, address, true);
++        worker.join().unwrap().unwrap();
++        let captured = captures.lock().unwrap();
++        assert!(!captured.is_empty());
++        assert!(captured
++            .iter()
++            .all(|result| matches!(result, Err(BoundSessionError::ContextChanged))));
++    }
++
++    #[test]
++    fn retained_snapshots_keep_original_context_alive_without_callback_cycle() {
++        let captures = Arc::new(Mutex::new(Vec::new()));
++        let dropped = Arc::new(AtomicUsize::new(0));
++        let context = client_context(SslVersion::TLS1_2, &captures, dropped.clone());
++        let (address, worker) = peer(SslVersion::TLS1_2, 1);
++        connect(Ssl::new(&context).unwrap(), address, true);
++        worker.join().unwrap().unwrap();
++        let snapshot = captured_session(&captures);
++        drop(context);
++        drop(captures);
++        assert_eq!(
++            dropped.load(Ordering::SeqCst),
++            0,
++            "snapshot must retain original context"
++        );
++        let clone = snapshot.clone();
++        drop(snapshot);
++        assert_eq!(dropped.load(Ordering::SeqCst), 0);
++        drop(clone);
++        assert_eq!(
++            dropped.load(Ordering::SeqCst),
++            1,
++            "weak cache capture must release context and callback"
++        );
++    }
++
++    #[test]
++    fn missing_original_slot_and_wrong_context_never_reach_der_installation() {
++        initialize();
++        // This test deliberately exercises existing unsafe raw interop inside
++        // the vendor unit module; runtime and public extension APIs stay safe.
++        let context = SslContextBuilder::new(SslMethod::tls_client())
++            .unwrap()
++            .build();
++        let wrong = SslContextBuilder::new(SslMethod::tls_client())
++            .unwrap()
++            .build();
++        let malformed = ContextBoundSession {
++            inner: Arc::new(super::super::ContextBoundSessionInner {
++                der: b"not a session".to_vec().into_boxed_slice(),
++                context: context.clone(),
++            }),
++        };
++        let mut foreign = Ssl::new(&wrong).unwrap();
++        assert_eq!(
++            foreign.set_bound_session(&malformed),
++            Err(BoundSessionError::ForeignContext)
++        );
++        let raw = unsafe { ffi::SSL_new(context.as_ptr()) };
++        assert!(!raw.is_null());
++        let mut missing = unsafe { Ssl::from_ptr(raw) };
++        assert_eq!(
++            missing.set_bound_session(&malformed),
++            Err(BoundSessionError::MissingOriginalContext)
++        );
++        assert!(missing.session().is_none());
++        let mut same = Ssl::new(&context).unwrap();
++        assert_eq!(
++            same.set_bound_session(&malformed),
++            Err(BoundSessionError::DecodeFailed)
++        );
++        assert!(same.session().is_none());
++    }
++
++    #[test]
++    fn concurrent_installations_decode_distinct_native_sessions() {
++        let captures = Arc::new(Mutex::new(Vec::new()));
++        let context = client_context(SslVersion::TLS1_2, &captures, Arc::new(AtomicUsize::new(0)));
++        let (address, worker) = peer(SslVersion::TLS1_2, 1);
++        connect(Ssl::new(&context).unwrap(), address, true);
++        worker.join().unwrap().unwrap();
++        let snapshot = captured_session(&captures);
++        let attempts: Vec<_> = (0..2)
++            .map(|_| {
++                let context = context.clone();
++                let snapshot = snapshot.clone();
++                thread::spawn(move || {
++                    let mut ssl = Ssl::new(&context).unwrap();
++                    ssl.set_bound_session(&snapshot).unwrap();
++                    ssl
++                })
++            })
++            .collect();
++        let mut connections: Vec<_> = attempts
++            .into_iter()
++            .map(|attempt| attempt.join().unwrap())
++            .collect();
++        assert_ne!(
++            connections[0].session().unwrap().as_ptr(),
++            connections[1].session().unwrap().as_ptr()
++        );
++        drop(connections.remove(0));
++        assert!(connections[0].session().unwrap().to_der().is_ok());
++    }
++
++    #[test]
++    fn store_clones_share_one_snapshot_and_outlive_original_owners() {
++        initialize();
++        let certificate = X509::from_pem(ROOT_CERT).unwrap();
++        let expected = certificate.to_der().unwrap();
++        let mut builder = X509StoreBuilder::new().unwrap();
++        builder.add_cert(certificate).unwrap();
++        let store = builder.build();
++        let shared = store.try_clone().unwrap();
++        assert_eq!(store.as_ptr(), shared.as_ptr());
++        let mut first = SslContextBuilder::new(SslMethod::tls_client()).unwrap();
++        first.set_cert_store(store.try_clone().unwrap());
++        let first = first.build();
++        let mut second = SslContextBuilder::new(SslMethod::tls_client()).unwrap();
++        second.set_cert_store(shared);
++        let second = second.build();
++        assert_eq!(first.cert_store().as_ptr(), second.cert_store().as_ptr());
++        drop(store);
++        drop(first);
++        let retained = second.cert_store().try_clone().unwrap();
++        drop(second);
++        let certificates = retained.all_certificates();
++        assert_eq!(certificates.len(), 1);
++        assert_eq!(certificates[0].to_der().unwrap(), expected);
++        drop(retained); // final owned up_ref is released exactly once
++    }
++}
+--- a/src/x509/mod.rs
++++ b/src/x509/mod.rs
+@@ -804,6 +804,34 @@
+             }
+ 
+             Ok(certs)
++        }
++    }
++
++    /// Reads ordinary PEM certificates, retaining records before a parse error.
++    ///
++    /// AutoRouter's local compatibility extension. This has the same parser and
++    /// EOF rules as `stack_from_pem`, but exposes partial success as required by
++    /// Node's NODE_EXTRA_CA_CERTS loader. It does not load X509_AUX trust records.
++    pub fn stack_from_pem_partial(
++        pem: &[u8],
++    ) -> Result<(Vec<X509>, Option<ErrorStack>), ErrorStack> {
++        unsafe {
++            ffi::init();
++            let bio = MemBioSlice::new(pem)?;
++            let mut certs = vec![];
++            loop {
++                let r =
++                    ffi::PEM_read_bio_X509(bio.as_ptr(), ptr::null_mut(), None, ptr::null_mut());
++                if r.is_null() {
++                    let error = ErrorStack::get();
++                    let eof = error.errors().last().is_some_and(|error| {
++                        error.library_code() == ffi::ERR_LIB_PEM as libc::c_int
++                            && error.reason_code() == ffi::PEM_R_NO_START_LINE as libc::c_int
++                    });
++                    return Ok((certs, if eof { None } else { Some(error) }));
++                }
++                certs.push(X509(r));
++            }
+         }
+     }
+ }
+@@ -2377,6 +2405,25 @@
+         self.ia5_string(ffi::GEN_DNS)
+     }
+ 
++    /// Returns the raw IA5 bytes of a dNSName, including malformed UTF-8.
++    ///
++    /// AutoRouter's local compatibility extension. Presence must not be lost
++    /// when deciding whether the certificate's common name may be considered.
++    pub fn dnsname_bytes(&self) -> Option<&[u8]> {
++        unsafe {
++            if (*self.as_ptr()).type_ != ffi::GEN_DNS {
++                return None;
++            }
++            #[cfg(any(boringssl, awslc))]
++            let data = (*self.as_ptr()).d.ptr;
++            #[cfg(not(any(boringssl, awslc)))]
++            let data = (*self.as_ptr()).d;
++            let pointer = ASN1_STRING_get0_data(data as *mut _);
++            let length = ffi::ASN1_STRING_length(data as *mut _);
++            Some(util::from_raw_parts(pointer as *const u8, length as usize))
++        }
++    }
++
+     /// Returns the contents of this `GeneralName` if it is an `uniformResourceIdentifier`.
+     pub fn uri(&self) -> Option<&str> {
+         self.ia5_string(ffi::GEN_URI)
+--- a/src/x509/store.rs
++++ b/src/x509/store.rs
+@@ -155,6 +155,40 @@
+ /// [`X509_LOOKUP_hash_dir`]: https://docs.openssl.org/master/man3/X509_LOOKUP_hash_dir/
+ // FIXME should be an enum
+ pub struct HashDir;
++
++/// AutoRouter compatibility extension for OpenSSL 3's URI store lookup.
++#[cfg(ossl300)]
++pub struct Store;
++
++#[cfg(ossl300)]
++impl X509Lookup<Store> {
++    /// The third lookup used by OpenSSL's X509_STORE_set_default_paths.
++    pub fn store() -> &'static X509LookupMethodRef<Store> {
++        extern "C" {
++            fn X509_LOOKUP_store() -> *mut ffi::X509_LOOKUP_METHOD;
++        }
++        unsafe { X509LookupMethodRef::from_const_ptr(X509_LOOKUP_store()) }
++    }
++}
++
++#[cfg(ossl300)]
++impl X509LookupRef<Store> {
++    /// Registers a URI for lazy lookup, preserving OpenSSL's directory policy.
++    pub fn add_store(&mut self, uri: &std::ffi::CStr) -> Result<(), ErrorStack> {
++        // X509_LOOKUP_add_store is this macro in OpenSSL's public x509_vfy.h.
++        const X509_L_ADD_STORE: libc::c_int = 3;
++        unsafe {
++            cvt(ffi::X509_LOOKUP_ctrl(
++                self.as_ptr(),
++                X509_L_ADD_STORE,
++                uri.as_ptr(),
++                0,
++                std::ptr::null_mut(),
++            ))
++            .map(|_| ())
++        }
++    }
++}
+ 
+ impl X509Lookup<HashDir> {
+     /// Lookup method that loads certificates and CRLs on demand and caches
+@@ -259,6 +293,24 @@
+ }
+ 
+ impl X509StoreRef {
++    /// Acquires another owned reference to this same certificate store.
++    ///
++    /// AutoRouter's local OpenSSL 3 extension. This shares the store, including
++    /// lazy lookup caches; it does not copy certificates or broaden trust. Each
++    /// successful returned owner releases exactly one reference on drop.
++    #[cfg(ossl300)]
++    pub fn try_clone(&self) -> Result<X509Store, ErrorStack> {
++        // OpenSSL 3.6.3 include/openssl/x509_vfy.h.in. The pinned sys binding
++        // omits this existing public function; no alternate implementation.
++        extern "C" {
++            fn X509_STORE_up_ref(store: *mut ffi::X509_STORE) -> libc::c_int;
++        }
++        unsafe {
++            cvt(X509_STORE_up_ref(self.as_ptr()))?;
++            Ok(X509Store::from_ptr(self.as_ptr()))
++        }
++    }
++
+     /// Get a reference to the cache of certificates in this store.
+     ///
+     /// This method is deprecated. It is **unsound** and will be removed in a

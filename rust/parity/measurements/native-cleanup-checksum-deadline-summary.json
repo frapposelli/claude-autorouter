@@ -1,0 +1,233 @@
+{
+  "schema_version": 1,
+  "kind": "NATIVE_CLEANUP_CHECKSUM_AND_COUNT_DEADLINE_SUMMARY",
+  "status": "ACCEPTED_ONLY_FOUR_DEFAULT_LIMITS_AND_THREE_ORIGINAL_DEFINITIONS",
+  "root_acceptance": {
+    "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/root-scoped-acceptance.json",
+    "bytes": 5423,
+    "sha256": "ade5a4ec265640d7630127e1ed15269d1af9749c9640fab432001b903913973d"
+  },
+  "source_snapshot": {
+    "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/candidate-source.json",
+    "bytes": 118480,
+    "sha256": "ab539f4ccd328890ad81f3b0c5826504c4b66bc6f8c73ad0a66beb4b295eb897"
+  },
+  "assertion_supplement": {
+    "path": "rust/parity/assertion-mappings/release-checksum-native-api-migrations.json",
+    "bytes": 12189,
+    "sha256": "e2e613748fcc7976e37716a93d34e33c6cefc9d03ab6b35dd3d373444d4e1778"
+  },
+  "decision": "Accept cleanup candidate count 200, stable snapshot bytes 1048576, unreadable grace 600000ms and heartbeat staleness 86400000ms individually. Accept only release-check original definitions #8, #9 and #16 under the stated native fixture, typed error and production-command migration. All other areas and release gates retain their status.",
+  "production_changes": [
+    "A bounded max heap retains the same lexical first 200 matching names before trust checks. Skipped unsafe entries do not refill the selection. Directory traversal still visits every entry.",
+    "Release sidecars require strict UTF-8, 64 lowercase hex digits, exactly two spaces, the exact canonical filename, and zero or one LF before digest comparison. CRLF, extra LF and trailing whitespace are rejected.",
+    "The release-check command projects checksum, filename and regular-file failures to fixed safe diagnostics. Unknown failures stay generic, and reports retain only known reason values. Final native authorization already required canonical LF sidecars and is unchanged."
+  ],
+  "cleanup_actuals": {
+    "cases": 19,
+    "common_rows": "All complete Source/native/predeclared row values match without dropping fields. Parsed JSON numbers match; raw number token spelling is not asserted.",
+    "selection": "199/200/201 candidates, reverse creation order, unrelated file, and a regular first candidate among 202 prefix entries. The mixed case removes 199 directories without refilling its unsafe slot.",
+    "snapshot": "Valid UTF-8 JSON at 1048575/1048576/1048577 bytes; fresh oversized input has no PID probe or removal. Source opens/closes it without reading.",
+    "ages": "Missing, malformed and invalid-PID snapshots at grace minus one/equal/plus one; live PID at heartbeat staleness minus one/equal/plus one. Equality stays live. Current time is injected; actual private file mtimes and bytes are preserved.",
+    "ownership": "Source reports 810 opened/closed handles, 809 reads and 39 survivor identity proofs. Its work root is empty after cleanup. Native assertion success separately verifies complete surviving fixture bytes and metadata."
+  },
+  "token_regression": "Two paused-clock head/body schedules use the actual 1500ms count default with offset operations, exact 1499/1500 boundary, owner Drop, cancellation isolation, retries/cache and unchanged inputs. The count-deadline row remains pending; no Source default timeout or wall-clock comparison is claimed.",
+  "checks": {
+    "runtime_passed": 581,
+    "release_focused_passed": 53,
+    "release_focused_filtered": 261,
+    "source_release_original_passed": 16,
+    "workspace": {
+      "result_groups": 66,
+      "totals": {
+        "passed": 1503,
+        "failed": 1,
+        "ignored": 11,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "failed_names": [
+        "bundle::transfer::tests::transfer_has_only_verified_sources_a_shared_budget_and_create_only_evidence"
+      ]
+    },
+    "fmt_exit": 0,
+    "strict_clippy_exit": 0,
+    "default_cli_build_exit": 0,
+    "prior_statuses_retained": 1509,
+    "new_passes": 6,
+    "warning": "Existing vendored hyper-util unused timer warning remains."
+  },
+  "pre_fix_red": [
+    {
+      "path": "artifacts/rust-rewrite/release-checksum-diagnostic-validation-20261018-1/red.json",
+      "bytes": 1301,
+      "sha256": "3f47c0c476ee0b8e04d5df43e46eaff38d206452ffa4baaa10303bf7fb124809"
+    },
+    {
+      "path": "artifacts/rust-rewrite/release-checksum-diagnostic-validation-20261018-1/red.stdout",
+      "bytes": 599,
+      "sha256": "47679556f0a7d6cc8eb445e628c44f5ac6edc12ac6a66a1a9bb836202f364cb6"
+    },
+    {
+      "path": "artifacts/rust-rewrite/release-checksum-diagnostic-validation-20261018-1/red.stderr",
+      "bytes": 1481,
+      "sha256": "72e2f49a03fd01ea9d0481f0b392ebebc84172a2ecbe3654212a372d5102b1f1"
+    }
+  ],
+  "actuals": [
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/runtime.json",
+      "bytes": 1527,
+      "sha256": "42d57d5706db0046ebc2d078d77d2a870ab66e49c9b3117191df6eb011ff32db"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/runtime.stdout",
+      "bytes": 62649,
+      "sha256": "bf0b0029dc26e5585cf817bd3b0b0902c41090fc17458d78a055f719cd4e4156"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/runtime.stderr",
+      "bytes": 738,
+      "sha256": "2015cf2de5cde0efb907fbc67982913ea05ca659e06e01b73ecfc9c5e2e0b02a"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/release-focused.json",
+      "bytes": 1353,
+      "sha256": "67f5e6f380fcd60c9905e4463749b6469175e7397267c8f19edbf3f10a00764e"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/release-focused.stdout",
+      "bytes": 7602,
+      "sha256": "a72fd9dc2f8dc2fbc293a8d05086255bb11f0bbad34f01e086d4115a43deb884"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/release-focused.stderr",
+      "bytes": 803,
+      "sha256": "50b2251f608d12f59f432748a2ba43b0f28aef29ae49b24c1845fd866af75839"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/source-cleanup.json",
+      "bytes": 1636,
+      "sha256": "8d80e3adf3ebf1c9887a87f17a50c3cae64807fc8f58992f4add56c3e2581e7a"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/source-cleanup.stdout",
+      "bytes": 68620,
+      "sha256": "c0102e0292f15072b2c3a51948643715d07c6d0c4f3bc6b8aa37a7e101fe8b16"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/source-cleanup.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/source-release.json",
+      "bytes": 1818,
+      "sha256": "62e088447c27a58d1e5d171dbdd051269756205f393f696be61ab67b5d2ddb8a"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/source-release.stdout",
+      "bytes": 3251,
+      "sha256": "efc5c135fda6cd60e2c417449cac3a63d7a36a542e6e32cc7f7438e4cd1664d8"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/source-release.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/workspace.json",
+      "bytes": 1252,
+      "sha256": "290ad10b208c33d4e3d9c07ebbb1b0cb392e3e9749ca1972c9a9c726fd4ef299"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/workspace.stdout",
+      "bytes": 158681,
+      "sha256": "83eb3614493c72f29be5136b1e9caa9fcf474b61936bd9905b899a8dcc07c66d"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/workspace.stderr",
+      "bytes": 7911,
+      "sha256": "e4399da54025e26014e51858279d2c06b7713f19ce0cd5e5ba3e6658acd9b076"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/fmt.json",
+      "bytes": 1248,
+      "sha256": "701b1533a748a7119ae43e5b6fdda0d6a45281e4fd42311ccd5a55cf6530117e"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/fmt.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/fmt.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/clippy.json",
+      "bytes": 1335,
+      "sha256": "b7754360da0251e09b0fb1732872deba16fb24d55cdf28d7d11f972c53c565b3"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/clippy.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/clippy.stderr",
+      "bytes": 856,
+      "sha256": "bffc67c5ad37c6e5c4dd267ef21be5e04a9951016ecc23ceb81e0579859dcdee"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/build-default.json",
+      "bytes": 1326,
+      "sha256": "34f187a1b199a6c4f1d33bcecd8eaffa63996fab8a198b2d54149e5241c9ec33"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/build-default.stdout",
+      "bytes": 162945,
+      "sha256": "d51690160ec2fe5205f2febc2b4e3b061ffc9fc750c122f3cbed2c4f30f1bf0c"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/build-default.stderr",
+      "bytes": 278,
+      "sha256": "596a85d972d23ceb8cb1c7d24ac7c582fd79aa880c871693e3310acca34172d2"
+    }
+  ],
+  "reviews": [
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/independent-cleanup-paired-actual-and-four-row-review.json",
+      "bytes": 17743,
+      "sha256": "d01c43d7f76d3b4272ce910ada0bdc01f498ae552009d0cdc3506465b06be157"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/independent-workspace-default-build-census37-and-cleanup-gate-review.json",
+      "bytes": 38324,
+      "sha256": "423064f5e63cd89d2392a3064edf23a130d224c7c70ae999ea298f2a6c8621ee"
+    },
+    {
+      "path": "artifacts/rust-rewrite/release-checksum-diagnostic-repair-draft-20261018-1/v2/independent-static-review.json",
+      "bytes": 10950,
+      "sha256": "12f8218c678cd2d8ecb5ceb4822f01745578852b82d95c380e49cfc59f52478c"
+    },
+    {
+      "path": "artifacts/rust-rewrite/release-check-8-9-16-acceptance-review-20261018-1/independent-three-definition-acceptance-review.json",
+      "bytes": 21479,
+      "sha256": "e4eb263cf4f11e3b084a89ce9e1dbbad667fbeeb98f72c7a050e57d8f545ac77"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-default-deadline-gap-review-20261018-1/v2/independent-static-admission-review.json",
+      "bytes": 4327,
+      "sha256": "22a772dba3f86139399afaa17c2fbe4ac929fe498f80e5d26d9eebfd586e9911"
+    }
+  ],
+  "source_transfer_census": {
+    "path": "artifacts/rust-rewrite/source-transfer-census-20261018-37/census.json",
+    "bytes": 13924,
+    "sha256": "b1072fa4ba253d5be06f9822891e12cdfcf76f2594c489cc0a268910e90b9c9a"
+  },
+  "limits": "The 200 selected candidates are not a total traversal, syscall, CPU or RSS bound. Stable snapshot and injected-age cases do not qualify all filesystem races, FIFOs, errors or real wall waits. Synthetic native approvals authorize no real publication. Parent #7 stays partial. All 13 behavior areas, platform/performance/distribution/provenance/stabilization/cutover gates remain separate.",
+  "release_scope": "JavaScript 0.5.2 still ships. No version, commit, push, CI, npm publication, release or cutover occurred. Both development source caps remain 32 MiB; the 40 MiB proposal is unanswered and unapplied. Historical checks for unchanged JavaScript shipping inputs remain historical."
+}

@@ -1,0 +1,262 @@
+{
+  "schema_version": 1,
+  "kind": "frozen_redaction_adversarial_identities",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "baseline_file_sha256": "2c39564dea427488ffa04caeb78281a77c753d6a9deb61c067e8d1d505dab3a6",
+  "sources": [
+    {
+      "path": "test/redaction.test.mjs",
+      "sha256": "2c39564dea427488ffa04caeb78281a77c753d6a9deb61c067e8d1d505dab3a6"
+    },
+    {
+      "path": "src/redaction.mjs",
+      "sha256": "880c883c68cae3bde03d93e7231b1d2a6d5f7b907c2f2555859894e5475fdff1"
+    }
+  ],
+  "definitions": [
+    {
+      "id": "test/redaction.test.mjs#5",
+      "name": "redaction is idempotent and stays linear on adversarial input",
+      "definition_sha256": "0d9fec8f69d65dc344ee7c64b015bd1eafb8295aa5250189ab79be1ea97f945a",
+      "definition_statement_sha256": "6dd638f4c8ed240fe68c693a10032e8914fa6e1c0387a2028908e7b246a08edf",
+      "timing_assertion_sha256": "71d53105fb601cbd3c32f49b8b572eb3b0bcd3b268c98bc64b7f9d96aaad91d9",
+      "adversarial_cases": 8,
+      "now_calls_per_case": 2
+    },
+    {
+      "id": "test/redaction.test.mjs#16",
+      "name": "the widened rules are idempotent and stay linear on adversarial input",
+      "definition_sha256": "8dc19f60fc16fb9053096d247311fe8444b4f895448d6ed266bae6886baf8f3a",
+      "definition_statement_sha256": "9daf176d2ba0dfaf8ef9bf7407ce3bf9d21986b4a2fa3fa8d6f5e0165dd2c81c",
+      "timing_assertion_sha256": "3ec2c9c2a7b5ebaba45d9bac4f6d9b1f19bbacb70a26491ccff47a0ffba3842f",
+      "adversarial_cases": 20,
+      "now_calls_per_case": 3
+    }
+  ],
+  "cases": [
+    {
+      "id": "redaction-adversarial-5-1",
+      "source_test": "test/redaction.test.mjs#5",
+      "input_bytes": 400000,
+      "input_sha256": "d275b996830cf498869dd5bdee82e937439282fc87e22ccc77ba0e187170c3fa",
+      "output_bytes": 400000,
+      "output_sha256": "d275b996830cf498869dd5bdee82e937439282fc87e22ccc77ba0e187170c3fa"
+    },
+    {
+      "id": "redaction-adversarial-5-2",
+      "source_test": "test/redaction.test.mjs#5",
+      "input_bytes": 400000,
+      "input_sha256": "3f71edb0cd562ce29e8350041fb3e2b9c2872a58b4aa5c46cbdf016ca8d4300a",
+      "output_bytes": 400000,
+      "output_sha256": "3f71edb0cd562ce29e8350041fb3e2b9c2872a58b4aa5c46cbdf016ca8d4300a"
+    },
+    {
+      "id": "redaction-adversarial-5-3",
+      "source_test": "test/redaction.test.mjs#5",
+      "input_bytes": 400000,
+      "input_sha256": "6918f230cd9c6cdbf5b2a73ce8932aaa4dc5b132bc3a58be926a577e21879b91",
+      "output_bytes": 400000,
+      "output_sha256": "6918f230cd9c6cdbf5b2a73ce8932aaa4dc5b132bc3a58be926a577e21879b91"
+    },
+    {
+      "id": "redaction-adversarial-5-4",
+      "source_test": "test/redaction.test.mjs#5",
+      "input_bytes": 500000,
+      "input_sha256": "06f967cff41fe221493025896b45089a4ecbf6128fdc138705d749972dfc421c",
+      "output_bytes": 500000,
+      "output_sha256": "06f967cff41fe221493025896b45089a4ecbf6128fdc138705d749972dfc421c"
+    },
+    {
+      "id": "redaction-adversarial-5-5",
+      "source_test": "test/redaction.test.mjs#5",
+      "input_bytes": 135027,
+      "input_sha256": "50c9cdbf4d9b71d93c25350da0577426a17da889275bd0ae599d3170777a4570",
+      "output_bytes": 22,
+      "output_sha256": "fee800e672674ac3ced584bdbff3ed7de8c6dc30156f1033a125a7a08cc053f3"
+    },
+    {
+      "id": "redaction-adversarial-5-6",
+      "source_test": "test/redaction.test.mjs#5",
+      "input_bytes": 400000,
+      "input_sha256": "2c968cb327c71b2c10cb4f82f24cbd011320cf6fb007e3061146bd8ffb41ee8a",
+      "output_bytes": 400000,
+      "output_sha256": "2c968cb327c71b2c10cb4f82f24cbd011320cf6fb007e3061146bd8ffb41ee8a"
+    },
+    {
+      "id": "redaction-adversarial-5-7",
+      "source_test": "test/redaction.test.mjs#5",
+      "input_bytes": 400026,
+      "input_sha256": "98b2b4459a322704534c7fbe8bee3c5310e9bd707e3907abd47aafa1a7a6faae",
+      "output_bytes": 22,
+      "output_sha256": "fee800e672674ac3ced584bdbff3ed7de8c6dc30156f1033a125a7a08cc053f3"
+    },
+    {
+      "id": "redaction-adversarial-5-8",
+      "source_test": "test/redaction.test.mjs#5",
+      "input_bytes": 420000,
+      "input_sha256": "9697beb66dc9b79e40f45b09f052aba9288c4e594c0242e18dac071d847c5749",
+      "output_bytes": 420000,
+      "output_sha256": "9697beb66dc9b79e40f45b09f052aba9288c4e594c0242e18dac071d847c5749"
+    },
+    {
+      "id": "redaction-adversarial-16-1",
+      "source_test": "test/redaction.test.mjs#16",
+      "input_bytes": 360000,
+      "input_sha256": "01c8381965c01fca0dbce9d5a97fd68d42782cb26c56ca2e82f1f845b441c0d7",
+      "output_bytes": 360000,
+      "output_sha256": "01c8381965c01fca0dbce9d5a97fd68d42782cb26c56ca2e82f1f845b441c0d7"
+    },
+    {
+      "id": "redaction-adversarial-16-2",
+      "source_test": "test/redaction.test.mjs#16",
+      "input_bytes": 360000,
+      "input_sha256": "cd6a332ab9e43afcafe35f4c2e96c1687f63fc0f7fa9ab17caad31591d9a4699",
+      "output_bytes": 360000,
+      "output_sha256": "cd6a332ab9e43afcafe35f4c2e96c1687f63fc0f7fa9ab17caad31591d9a4699"
+    },
+    {
+      "id": "redaction-adversarial-16-3",
+      "source_test": "test/redaction.test.mjs#16",
+      "input_bytes": 400000,
+      "input_sha256": "73024ab908abd02610146432252e746cf980ade37f21be93b3301880f1e902ba",
+      "output_bytes": 560000,
+      "output_sha256": "53a6892a27b90a22e18bb050dc541c299c5effd518873b61765fbabf28e556e7"
+    },
+    {
+      "id": "redaction-adversarial-16-4",
+      "source_test": "test/redaction.test.mjs#16",
+      "input_bytes": 320000,
+      "input_sha256": "fded42bf15315cdce2f1cd3f5fda17909622735aaa82f3fec663f1bf935fc2cb",
+      "output_bytes": 520000,
+      "output_sha256": "51f2bc73e5f44c6716bfae3a060d980d7e90404c8118ed60ad20fb42847f1131"
+    },
+    {
+      "id": "redaction-adversarial-16-5",
+      "source_test": "test/redaction.test.mjs#16",
+      "input_bytes": 400000,
+      "input_sha256": "097987b9f2a08f71bda02d9a824e28ea7090d6252d0ed1f3fd9b7703fa710288",
+      "output_bytes": 400000,
+      "output_sha256": "097987b9f2a08f71bda02d9a824e28ea7090d6252d0ed1f3fd9b7703fa710288"
+    },
+    {
+      "id": "redaction-adversarial-16-6",
+      "source_test": "test/redaction.test.mjs#16",
+      "input_bytes": 300000,
+      "input_sha256": "07023c3acf865b0a5d541c1084543380003b53d905d080096a2b5e14eca8eabe",
+      "output_bytes": 300000,
+      "output_sha256": "07023c3acf865b0a5d541c1084543380003b53d905d080096a2b5e14eca8eabe"
+    },
+    {
+      "id": "redaction-adversarial-16-7",
+      "source_test": "test/redaction.test.mjs#16",
+      "input_bytes": 300007,
+      "input_sha256": "f1db653ac4f86c3da70ba08930fd8bbe3047b0c2cc057d54b1352fa505387263",
+      "output_bytes": 300007,
+      "output_sha256": "f1db653ac4f86c3da70ba08930fd8bbe3047b0c2cc057d54b1352fa505387263"
+    },
+    {
+      "id": "redaction-adversarial-16-8",
+      "source_test": "test/redaction.test.mjs#16",
+      "input_bytes": 300007,
+      "input_sha256": "889f49bdc50ee81de0830af23a76a4ea8e6028f489ad3f00835f064463108c9d",
+      "output_bytes": 300007,
+      "output_sha256": "889f49bdc50ee81de0830af23a76a4ea8e6028f489ad3f00835f064463108c9d"
+    },
+    {
+      "id": "redaction-adversarial-16-9",
+      "source_test": "test/redaction.test.mjs#16",
+      "input_bytes": 300000,
+      "input_sha256": "0e2da849647bb6d47ce139ae5862d0c8e4bc4c02f4b23bddaaf11b8323e27ced",
+      "output_bytes": 300000,
+      "output_sha256": "0e2da849647bb6d47ce139ae5862d0c8e4bc4c02f4b23bddaaf11b8323e27ced"
+    },
+    {
+      "id": "redaction-adversarial-16-10",
+      "source_test": "test/redaction.test.mjs#16",
+      "input_bytes": 300000,
+      "input_sha256": "674268cc6a22613db052325591c0ae293d2cab988a2df36836137d95d19be761",
+      "output_bytes": 300000,
+      "output_sha256": "674268cc6a22613db052325591c0ae293d2cab988a2df36836137d95d19be761"
+    },
+    {
+      "id": "redaction-adversarial-16-11",
+      "source_test": "test/redaction.test.mjs#16",
+      "input_bytes": 400000,
+      "input_sha256": "4d24a674499376ce85a113f08916ac5b040426802bff66fc2d7b55ac1488e109",
+      "output_bytes": 400000,
+      "output_sha256": "4d24a674499376ce85a113f08916ac5b040426802bff66fc2d7b55ac1488e109"
+    },
+    {
+      "id": "redaction-adversarial-16-12",
+      "source_test": "test/redaction.test.mjs#16",
+      "input_bytes": 300005,
+      "input_sha256": "65aea01976348a3e02c88b98ba0afacfcdf8a9feef8dd2161ed81cff8aced4a1",
+      "output_bytes": 300005,
+      "output_sha256": "65aea01976348a3e02c88b98ba0afacfcdf8a9feef8dd2161ed81cff8aced4a1"
+    },
+    {
+      "id": "redaction-adversarial-16-13",
+      "source_test": "test/redaction.test.mjs#16",
+      "input_bytes": 300000,
+      "input_sha256": "00991783c44049f03986076c420b29cf215525f621ac0310acc3f1c6309c20e4",
+      "output_bytes": 300000,
+      "output_sha256": "00991783c44049f03986076c420b29cf215525f621ac0310acc3f1c6309c20e4"
+    },
+    {
+      "id": "redaction-adversarial-16-14",
+      "source_test": "test/redaction.test.mjs#16",
+      "input_bytes": 360000,
+      "input_sha256": "419f32d332bbe6ffd10209f0500af0b18d135591011b0ce2924fb0f50bf9739b",
+      "output_bytes": 360000,
+      "output_sha256": "419f32d332bbe6ffd10209f0500af0b18d135591011b0ce2924fb0f50bf9739b"
+    },
+    {
+      "id": "redaction-adversarial-16-15",
+      "source_test": "test/redaction.test.mjs#16",
+      "input_bytes": 360000,
+      "input_sha256": "468c851dde8c63642de0077b5cfd19a1089189eaf243e51147908d753fde0bac",
+      "output_bytes": 23,
+      "output_sha256": "b9a191bb9ed9b9f3741ffdd0487c6231a3b4455cc560b813ca3b20ab88c145de"
+    },
+    {
+      "id": "redaction-adversarial-16-16",
+      "source_test": "test/redaction.test.mjs#16",
+      "input_bytes": 420000,
+      "input_sha256": "0a229b8af313f4355d542a35973c38ffb6e74d2717d36104e16b50b3a2e1ae6f",
+      "output_bytes": 24,
+      "output_sha256": "8bb5dbe5bac599a8262ed10ada60a0b59f405e56bbd643cdbbadc6a2dfea093c"
+    },
+    {
+      "id": "redaction-adversarial-16-17",
+      "source_test": "test/redaction.test.mjs#16",
+      "input_bytes": 330000,
+      "input_sha256": "b8b29408898f1918117e7195bcfbbb7f0971d38a0ad1c97ac8542700bc26e649",
+      "output_bytes": 480000,
+      "output_sha256": "2163f34d3d83fac210fdcc87d0795ba5ede46f1bee29049f000a62350608dce3"
+    },
+    {
+      "id": "redaction-adversarial-16-18",
+      "source_test": "test/redaction.test.mjs#16",
+      "input_bytes": 300004,
+      "input_sha256": "43c6e2f87450dd6ef744b7c977d80004f3ad43ec40f4b3c461f1c82162a3261d",
+      "output_bytes": 300004,
+      "output_sha256": "43c6e2f87450dd6ef744b7c977d80004f3ad43ec40f4b3c461f1c82162a3261d"
+    },
+    {
+      "id": "redaction-adversarial-16-19",
+      "source_test": "test/redaction.test.mjs#16",
+      "input_bytes": 300009,
+      "input_sha256": "db55166c40940bc18c717f3c0b902acede2e924ccf3a0dcb6f14da07f92e2da3",
+      "output_bytes": 27,
+      "output_sha256": "3c12327b84209c697f9736398a8402322f594b48fda1492f60af4c51ab6a8b8d"
+    },
+    {
+      "id": "redaction-adversarial-16-20",
+      "source_test": "test/redaction.test.mjs#16",
+      "input_bytes": 300009,
+      "input_sha256": "222f441caca74e151b4d9250bc82135bfbeea21c129d0eb48697bb52433ff965",
+      "output_bytes": 27,
+      "output_sha256": "d6180dd33b978084d6b2605511d2894236d46105b81614f08fff29a76fed13d8"
+    }
+  ]
+}

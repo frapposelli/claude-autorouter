@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "kind": "explicit_user_memory_target_decision",
+  "policy_id": "memory-target-2026-10-19-v1",
+  "recorded_at_utc": "2026-10-19T13:39:28.420062+00:00",
+  "authorization": "I'm fine with a memory ration of 0.8, we can proceed further",
+  "timing": "Explicit user approval after the latest numerical result was reported. This is a new acceptance decision, not a claim that0.8 was predeclared before the v5 measurement.",
+  "scope": {
+    "gate_id": "gateway_peak_memory",
+    "candidate_over_node_maximum": 0.8,
+    "previous_maximum": 0.7,
+    "all_other_targets_unchanged": true,
+    "normal_use_host_observation_only": true
+  },
+  "historical_frozen_gate": {
+    "path": "rust/parity/performance-gates.json",
+    "bytes": 4792,
+    "sha256": "a9a8d7e1f9868e23303972117a19d5f899a934ebf7e50c0e8fc7498870cbd84f"
+  },
+  "retained_latest_result": {
+    "path": "rust/parity/measurements/native-request-body-lifetime-memory-summary.json",
+    "bytes": 57717,
+    "sha256": "b3f9d9ed712e4113e09d91ae242a888e6ce26fbd7781a06129265cf223571970"
+  },
+  "assessment": [
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 1,
+      "retained_interval": {
+        "median": 0.14252696456086286,
+        "low": 0.14069767441860465,
+        "high": 0.14748558934605446
+      },
+      "original_threshold": 0.7,
+      "original_status": "observed_target_met",
+      "approved_threshold": 0.8,
+      "reviewed_status": "observed_target_met"
+    },
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 8,
+      "retained_interval": {
+        "median": 0.21574570606979093,
+        "low": 0.21415996938384999,
+        "high": 0.22015625
+      },
+      "original_threshold": 0.7,
+      "original_status": "observed_target_met",
+      "approved_threshold": 0.8,
+      "reviewed_status": "observed_target_met"
+    },
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 32,
+      "retained_interval": {
+        "median": 0.3189500807966109,
+        "low": 0.22248479582971328,
+        "high": 0.37224691856940795
+      },
+      "original_threshold": 0.7,
+      "original_status": "observed_target_met",
+      "approved_threshold": 0.8,
+      "reviewed_status": "observed_target_met"
+    },
+    {
+      "workload": "large_catalog_miss",
+      "concurrency": 128,
+      "retained_interval": {
+        "median": 0.7719731197084172,
+        "low": 0.7487595349181664,
+        "high": 0.7906352171882298
+      },
+      "original_threshold": 0.7,
+      "original_status": "observed_target_not_met",
+      "approved_threshold": 0.8,
+      "reviewed_status": "observed_target_met"
+    }
+  ],
+  "interpretation": "The retained128client interval0.7487595349181664..0.7906352171882298 lies below the approved0.8 maximum. This host/workload observation meets the revised target. Originalv5 report still correctly records failure under0.7. No timing, sample, label, report or baseline data was modified or rerun.",
+  "preservation": {
+    "original_gate_file_unchanged": true,
+    "original_v5_protocol_unchanged": true,
+    "earlier_failed_reports_unchanged": true,
+    "post_result_decision_explicit": true
+  },
+  "future_measurements": "Do not silently apply0.8 to legacyv5 report generation. New numerical experiments under this revised target need a distinctly versioned protocol and fresh paired Node baseline; retained original reports keep their original thresholds.",
+  "representative_hardware_acceptance": false,
+  "overall_plan_performance_gate": "incomplete",
+  "remaining": [
+    "Complete declared workloads and missing metrics.",
+    "Representative hardware, wider/minimum platforms/WSL, protocol/TLS/resources, real evaluator/task evidence, final build/license/archive provenance, stabilization and separately authorized cutover."
+  ],
+  "release_approved": false
+}

@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "kind": "test_only_hyper_util_http1_reservation_foundation",
+  "passed": true,
+  "private_tests_passed": 13,
+  "native_runtime_tests_passed": 14,
+  "mutation_controls_detected": 3,
+  "mutation_controls_count": 3,
+  "production_eligible": false,
+  "destructive_io_abort_implemented": false,
+  "actual_tls_alpn_qualified": false,
+  "final_report": {
+    "path": "artifacts/rust-rewrite/evidence/hyper-util-lease-foundation-903cc83f8265531a455351eeeb8b2710829c43d31d25e919eaf303f49a8a5db4.json",
+    "sha256": "903cc83f8265531a455351eeeb8b2710829c43d31d25e919eaf303f49a8a5db4",
+    "bytes": 9824
+  },
+  "source_snapshot": {
+    "path": "artifacts/rust-rewrite/hyper-util-lease-final-snapshot/snapshot.json",
+    "sha256": "288b973e10b9e91b89f32b7c49ed6589f1a9c55c7b9c468b774bfe6b4cffd973",
+    "bytes": 43613
+  },
+  "private_test_binary": {
+    "path": "artifacts/rust-rewrite/hyper-util-lease-final-snapshot/hyper-util-lease-tests",
+    "sha256": "91930a8483d6d317206a7fb507097610deeba288cfca5dad5ec72ab652714211",
+    "bytes": 15715864
+  },
+  "provenance": {
+    "upstream_members": 62,
+    "added_members": 1,
+    "changed_paths": 5,
+    "manifest": {
+      "path": "rust/vendor/hyper-util-provenance.json",
+      "sha256": "65a2f9e7bd6f13a73870d385adad35237372b3cdf45daa7841889dfb3ebb8ad8",
+      "bytes": 13693
+    },
+    "patch": {
+      "path": "rust/vendor/hyper-util-request-lease.patch",
+      "sha256": "3a5ddc176a49ec6767a6fe2580cc5ef44edb72f3d1046fec904888e327c2d53b",
+      "bytes": 27267
+    },
+    "verifier": {
+      "path": "rust/vendor/verify-hyper-util.mjs",
+      "sha256": "dcd1887932dd70097f4c6257352985ee1cbd26fac81c8249b51351aa433c63a6",
+      "bytes": 3336
+    },
+    "forward_reverse_verified": true,
+    "license": "MIT retained verbatim; local patch not upstream approved",
+    "ignored_retained_path_requiring_explicit_staging": "rust/vendor/hyper-util/Cargo.lock"
+  },
+  "upstream_exact_graph": {
+    "library_passed": 115,
+    "library_ignored": 1,
+    "legacy_client_passed": 21,
+    "source_qualification": "Hyper1.12/Tokio1.53.2 and unchanged upstream source; private metadata-Drop test was the earlier broad-panic version. Final private13 evidence above supersedes that one assertion, not the unchanged upstream cases."
+  },
+  "isolated_graph_packages": 91,
+  "verified_registry_archives": 89,
+  "scope": "Feature-gated request-owned HTTP1 reservation/retirement and once-only exact-connection pool poisoning. Final13 private tests +3 decisive mutation negatives; native14 fixtures and prior115/21 upstream suites separately scoped. Shipping feature audit is parent-owned final-release evidence. No production promotion or central coverage change.",
+  "retained_failures": [
+    {
+      "path": "artifacts/rust-rewrite/hyper-util-lease-runtime-tests-1.log",
+      "sha256": "9ddecb91e11d31bb22772622752a6eebb76de4fb2eb73784c50420afc683c69b",
+      "bytes": 6555
+    },
+    {
+      "path": "artifacts/rust-rewrite/hyper-util-lease-runtime-tests-2.log",
+      "sha256": "cd9b752088c5e85047335855aab54872af0b079aca707c849b5824321a15c150",
+      "bytes": 3731
+    },
+    {
+      "path": "artifacts/rust-rewrite/hyper-util-lease-private-tests-3.log",
+      "sha256": "afa7d15bb2aeb01744d057bfaecc05ed96ad305a268ca7e68cabf24407028c34",
+      "bytes": 117
+    },
+    {
+      "path": "artifacts/rust-rewrite/hyper-util-lease-negatives-1/report.json",
+      "sha256": "09f4a9fbbf17c7f4013a46dc64d00c4daf9dc780b1a8301b17316235962b42e4",
+      "bytes": 1511
+    },
+    {
+      "path": "artifacts/rust-rewrite/hyper-util-lease-enospc-incident.json",
+      "sha256": "db94edbc9a023bef56be678758f5dd71287b48848d78b3af48aeb3500fd230f0",
+      "bytes": 587
+    }
+  ],
+  "superseded_hyper19_graph_retained": true,
+  "original_failed_b2": {
+    "report": {
+      "path": "artifacts/rust-rewrite/evidence/openssl-b2-sessions-75bf037a3335c4da57d8a9b8f02ede587754f23f87809356649bcc6c5f4c15f4.json",
+      "sha256": "75bf037a3335c4da57d8a9b8f02ede587754f23f87809356649bcc6c5f4c15f4",
+      "bytes": 66837
+    },
+    "passed": false,
+    "matched": 13,
+    "count": 18,
+    "original_five_gaps_unchanged": true
+  },
+  "remaining_qualification": [
+    "No NativeHttpClient/Rustls/server transport change or actual IO abort/session-eviction integration.",
+    "Synthetic negotiated-H2 metadata rejection does not qualify TLS ALPN or a complete HTTP2 exchange.",
+    "Arbitrary strong Connected extras preserve their supplied ownership; spike extras are weak.",
+    "Single-use attachment rejects HTTP2/CONNECT/upgrade, retry-enabled and pool-disabled modes rather than granting unproved authority.",
+    "Double-panic and panic=abort process termination are not claimed as graceful cleanup.",
+    "B3 configuration, actual gateway cancellation intent, fetch caches, full pooling and original five B2 differences remain unqualified."
+  ]
+}

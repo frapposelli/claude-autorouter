@@ -1,0 +1,229 @@
+{
+  "schema_version": 1,
+  "kind": "DIRECT_PACKAGE_LIFECYCLE_READINESS_HELPER_NATIVE_CONTRACT",
+  "status": "ACCEPTED_INDIVIDUAL_NATIVE_HELPER_API_CONTRACT",
+  "scope": {
+    "only_original": "test/package-lifecycle.test.mjs#1",
+    "static_sites": 3,
+    "expanded_observations": 6,
+    "signals": [
+      "SIGINT",
+      "SIGTERM"
+    ],
+    "other_originals_limits_keys_areas_unchanged": true
+  },
+  "original": {
+    "test": {
+      "path": "artifacts/rust-rewrite/reference/test/package-lifecycle.test.mjs",
+      "bytes": 1484,
+      "sha256": "b97bad7a875b88151f2583395d13dcee65cee339304f6bbd575c9b65c92587ad"
+    },
+    "helper": {
+      "path": "artifacts/rust-rewrite/reference/scripts/package-lifecycle.mjs",
+      "bytes": 27849,
+      "sha256": "ee508ee079d60c208e0a52909a4085c68a28faedca717b03f1f15ba5561aa744"
+    },
+    "statement": {
+      "bytes": 581,
+      "sha256": "bf8fd2ea730ced021b4ecf29e8b839d78071d949533e29dc15c0e1791a3f8039",
+      "start_line": 5,
+      "end_line": 16
+    },
+    "expressions": [
+      {
+        "expression": "assert.equal(result.code, 23)",
+        "sha256": "e633f0f1c89874542ee43054c03fc83a19729615948471c1f1c3df67df78270f",
+        "expanded": 2,
+        "native_observation": "process.exit_code ==23 for actualINTandTERM leadertraps"
+      },
+      {
+        "expression": "assert.equal(result.ready.gateway, 'synthetic')",
+        "sha256": "851a677db0483bae6e430fe3beda0934019a8eb3ae2d48232f440fa38e6872c9",
+        "expanded": 2,
+        "native_observation": "ownedreadyJsDocument.gateway equals synthetic forboth signals"
+      },
+      {
+        "expression": "assert.equal(result.stderr, '')",
+        "sha256": "8a936c206e96b27fd67e84c5aba09366b5edbeb7b736f3e9332916f0f059fabd",
+        "expanded": 2,
+        "native_observation": "actualstderr Stringempty plusprocess.stderr_bytes0 forboth signals"
+      }
+    ]
+  },
+  "native": {
+    "snapshot": {
+      "path": "artifacts/rust-rewrite/readiness-and-setup-budget-validation-20261018-1/source-fixed.json",
+      "bytes": 118475,
+      "sha256": "fa9b529c420451e2c178f493b97f92da3b5eec99b2509810dd18927accdced2d"
+    },
+    "implementation": {
+      "path": "rust/xtask/src/tool_process.rs",
+      "bytes": 84983,
+      "sha256": "e8e3b0660deb653e003ee9b38d19466321376e2f928e33beede2ebfe9278ec7c"
+    },
+    "direct_function": "tool_process::capture_lifecycle",
+    "direct_regression": "tool_process::tests::lifecycle_readiness_signals_the_owned_leader_once_and_keeps_the_last_marker",
+    "controls": [
+      "lifecycle_readiness_rescans_split_and_final_segments_without_losing_js_values",
+      "lifecycle_capture_keeps_distinct_utf16_chunk_and_legacy_byte_budgets",
+      "lifecycle_readiness_cannot_bypass_cancellation_deadline_or_output_bounds",
+      "integrated_byte_capture_does_not_append_the_rejected_crossing_chunk"
+    ],
+    "real_consumer": "Existing tool_process::capture used by live tooling now delegates capture_lifecycle with privateBytes100000 mode; no extra owner/reader/reaper, RunOptions/InputAction/rawreport unchanged. SourceLifecycle defaults10s/combined1048576decodedperchunkUTF16. Existingcapture decodeswholebufferonce and rejectsbytecrossingchunk beforecallback.",
+    "literal_markers": [
+      {
+        "requested": "INT",
+        "process": {
+          "exit_code": 23,
+          "exit_signal": null,
+          "timed_out": false,
+          "output_limit_exceeded": false,
+          "cancelled": false,
+          "duration_ms": 10,
+          "stdout_bytes": 190,
+          "stderr_bytes": 0,
+          "response_received": false,
+          "controlled_stop": false,
+          "cleanup_confirmed": false,
+          "supervision": {
+            "observation_error": false,
+            "wait_error": false,
+            "ownership_lost": false,
+            "read_error": false,
+            "signals": [
+              {
+                "target": "group",
+                "signal": "SIGKILL",
+                "outcome": "error",
+                "errno": 1,
+                "kind": null
+              }
+            ]
+          }
+        },
+        "observations": {
+          "ready_signal_attempts": 1,
+          "ready_signal_call_succeeded": true,
+          "streams_eof": true,
+          "utf16_units": 190
+        },
+        "ready": "{\"marker\":\"lifecycle_ready\",\"gateway\":\"synthetic\",\"phase\":2,\"opaque\":\"\\ud800\",\"pid\":\"not-an-owned-pid\"}",
+        "stderr": ""
+      },
+      {
+        "requested": "TERM",
+        "process": {
+          "exit_code": 23,
+          "exit_signal": null,
+          "timed_out": false,
+          "output_limit_exceeded": false,
+          "cancelled": false,
+          "duration_ms": 11,
+          "stdout_bytes": 190,
+          "stderr_bytes": 0,
+          "response_received": false,
+          "controlled_stop": false,
+          "cleanup_confirmed": false,
+          "supervision": {
+            "observation_error": false,
+            "wait_error": false,
+            "ownership_lost": false,
+            "read_error": false,
+            "signals": [
+              {
+                "target": "group",
+                "signal": "SIGKILL",
+                "outcome": "error",
+                "errno": 1,
+                "kind": null
+              }
+            ]
+          }
+        },
+        "observations": {
+          "ready_signal_attempts": 1,
+          "ready_signal_call_succeeded": true,
+          "streams_eof": true,
+          "utf16_units": 190
+        },
+        "ready": "{\"marker\":\"lifecycle_ready\",\"gateway\":\"synthetic\",\"phase\":2,\"opaque\":\"\\ud800\",\"pid\":\"not-an-owned-pid\"}",
+        "stderr": ""
+      }
+    ]
+  },
+  "explicit_api_adoption": {
+    "boundary": "This individually chosen native contributor-tool API returns LifecycleCapture with process.exit_code, ownedJsDocument readiness and stderrString ratherthan JavaScriptresult.code/object. The six baseline scalarobservations are retained. Nativefixture is /bin/sh withinstalledtrap/causalsecondmarker ratherthan Nodeprocess.once; allfrozen Source testbytes remain exact and fresh Sourceoriginal passes.",
+    "success_and_once": "ActualINT/TERM leadertrap writes exactlyone receipt, exits23, makes secondready causallyafter signal, and ownedseamcountsone syscallattempt. KillOk alone isnot receipt proof. TypedSIGINT/TERM comesfrom caller, never parsedreadyPID.",
+    "additional_domain": "RescanssplitandnoLFJSON, lastmatchingmarker changes evenafter one signal; duplicatekeys, deepopaque512, overflowNumber andlonesurrogate stay inownedJsDocument. Native process signatures andfailureValue are not literal Promise/JS Error/prototype identity.",
+    "resource_scope": "Requestedreadinessleader signal is separatefrom cancellation/deadline/groupcleanup. Existing100msowneddeadline control plusprecancel/outputoverflow retained. No universal arbitrarychild/OScleanup orexact Source detachedSIGKILL equivalence.",
+    "cleanup_limit": "BothfocusedINT/TERM reports retain cleanup_confirmedfalse and groupSIGKILLerrorerrno1 afterobservedexit23/pipeEOF. No errno cause, groupcleanupsuccess or broaderresourcegate inferred.",
+    "chunk_and_failure_boundary": "Tokio read boundaries are not asserted identical to Node data events. UTF16 accounting is per observed decoded chunk; native TERM plus1s grace and structured failure values differ from Source immediate KILL/rejected Promise. Only the six original scalar observations and the individually documented owned helper contract are accepted."
+  },
+  "evidence": {
+    "independent_implementation": {
+      "path": "artifacts/rust-rewrite/readiness-helper-native-draft-20261018-1/v2/independent-static-admission-review.json",
+      "bytes": 9587,
+      "sha256": "733de22f22e1fa71329b2e756f3680e0d36bc3a9e5d0b3a6c64ef7ebc61fe261"
+    },
+    "native_focus": [
+      {
+        "path": "artifacts/rust-rewrite/readiness-and-setup-budget-validation-20261018-1/readiness-focus.json",
+        "bytes": 1140,
+        "sha256": "188c506861af60e5f68e7c524634645dbd4a654f1839b4885812b3b48a6c7a23"
+      },
+      {
+        "path": "artifacts/rust-rewrite/readiness-and-setup-budget-validation-20261018-1/readiness-focus.stdout",
+        "bytes": 3146,
+        "sha256": "fdce505dda05099b26fd5016bba838315957d9212ba2e1cfaf8e86a80ad60e2f"
+      },
+      {
+        "path": "artifacts/rust-rewrite/readiness-and-setup-budget-validation-20261018-1/readiness-focus.stderr",
+        "bytes": 6275,
+        "sha256": "a676d3ed506d63482af9631b724fdf2d95bcd2021cdb387f4a993d03db615ba0"
+      }
+    ],
+    "frozen_source_actual": [
+      {
+        "path": "artifacts/rust-rewrite/readiness-and-setup-budget-validation-20261018-1/frozen-lifecycle.json",
+        "bytes": 1382,
+        "sha256": "1a3c3cd4a5108d2602f1134a2933cb5970e41840858c5704e4cf89875eeb4ec2"
+      },
+      {
+        "path": "artifacts/rust-rewrite/readiness-and-setup-budget-validation-20261018-1/frozen-lifecycle.stdout",
+        "bytes": 771,
+        "sha256": "81b85f07a14b1dd7b001b74db646244f3e40fbed2a8bbffc4901f5d66946c7e0"
+      },
+      {
+        "path": "artifacts/rust-rewrite/readiness-and-setup-budget-validation-20261018-1/frozen-lifecycle.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "style_correction": {
+      "path": "artifacts/rust-rewrite/readiness-and-setup-budget-validation-20261018-1/clippy-style-correction.json",
+      "bytes": 838,
+      "sha256": "fcd4327773f558341522d49645327e30d4d64c87aa4bbf2f9ef18da809c91c88"
+    },
+    "strict_clippy": {
+      "path": "artifacts/rust-rewrite/readiness-and-setup-budget-validation-20261018-1/clippy-fixed.json",
+      "bytes": 1225,
+      "sha256": "f91ce9e04df4e31b28e4c63df941acd8b6235cd143ef2c6ea6386de2d8b99601"
+    },
+    "independent_final_actual_and_mapping_review": {
+      "path": "artifacts/rust-rewrite/readiness-and-setup-budget-validation-20261018-1/independent-final-local-validation-and-mapping-review.json",
+      "bytes": 13745,
+      "sha256": "670e6cfae6ba1844e69bbc5333877fd7fd94f0c1e350f88a1938c9f2f67cdfe7"
+    },
+    "final_workspace": {
+      "path": "artifacts/rust-rewrite/readiness-and-setup-budget-validation-20261018-1/workspace.json",
+      "bytes": 1144,
+      "sha256": "68400ee97066be94b861e67efb8d95775d238bd96dd0093f445e2d280cb883c3"
+    },
+    "old_status_preservation": {
+      "path": "artifacts/rust-rewrite/readiness-and-setup-budget-validation-20261018-1/workspace-versus-prior-preservation.json",
+      "bytes": 1375,
+      "sha256": "1bd44c7a53c93c03cd4dbeffbe0ebdd2d5dd527292e4d8aea0b48639b282b578"
+    }
+  },
+  "limits": "Root accepts only original package-lifecycle#1 at current fa9b source:1525pass/1known sourcecap/11ignored, strictClippy/fmt/defaultbuild and Node0/596/58+17. Other original definitions, numeric rows and broader platform/resource/performance/provider/release qualification are not inferred from this mapping. Raw cleanupfalse/errno1 retained."
+}

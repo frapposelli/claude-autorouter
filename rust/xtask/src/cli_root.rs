@@ -1,0 +1,138 @@
+mod audit_support;
+mod benchmark;
+mod benchmark_storage;
+mod bundle;
+mod compare_live;
+mod compare_local_evaluators;
+mod context_probe;
+mod env_file;
+mod evaluation;
+#[cfg(test)]
+mod evaluation_contracts;
+mod live;
+mod live_claude;
+mod observer_fixture;
+mod ollama_evaluation;
+mod ollama_routing;
+mod package;
+mod parity;
+mod process;
+mod production_features;
+mod reference;
+mod release;
+#[cfg(test)]
+mod release_contracts;
+mod release_install;
+mod release_pack;
+mod release_verify;
+mod tool_process;
+#[cfg(test)]
+mod tool_tests;
+mod upgrade_rollback;
+mod vendor_audit;
+
+use std::path::PathBuf;
+
+pub fn run_cli() {
+    // Ready-to-run evaluator artifacts resolve and verify their extracted root
+    // before hidden child commands, env files or compile-time checkout access.
+    if let Some(result) = bundle::executable::run_packaged() {
+        finish(result);
+        return;
+    }
+    if std::env::args_os().nth(1).as_deref() == Some(std::ffi::OsStr::new("__storage-child")) {
+        std::panic::set_hook(Box::new(|_| {}));
+        let args: Result<Vec<_>, _> = std::env::args_os()
+            .skip(2)
+            .map(|s| s.into_string())
+            .collect();
+        let result = args
+            .map_err(|_| "Invalid storage child arguments".to_owned())
+            .and_then(|args| benchmark_storage::child(&args));
+        if result.is_err() {
+            std::process::exit(1);
+        }
+        return;
+    }
+    // The collector must run before any operation capable of creating children.
+    // It owns exactly one measured child; the benchmark driver owns all mocks.
+    if std::env::args_os().nth(1).as_deref()
+        == Some(std::ffi::OsStr::new("__benchmark-resource-child"))
+    {
+        if process::resource::run_helper().is_err() {
+            eprintln!("Benchmark resource collector failed");
+            std::process::exit(1);
+        }
+        return;
+    }
+    let cwd = std::env::current_dir().expect("working directory");
+    let supplied = match std::env::args_os()
+        .skip(1)
+        .map(|value| value.into_string())
+        .collect::<Result<Vec<_>, _>>()
+    {
+        Ok(supplied) => supplied,
+        Err(_) => {
+            eprintln!("Tool arguments must contain valid UTF-8.");
+            std::process::exit(1);
+        }
+    };
+    let args = match env_file::load_args(&supplied, &cwd) {
+        Ok(args) => args,
+        Err(error) => {
+            eprintln!("{error}");
+            std::process::exit(1);
+        }
+    };
+    // A release check must inspect the checkout that invoked the tool, not
+    // whichever checkout originally built the xtask binary. Other source
+    // tools retain their existing build-checkout root until migrated.
+    let root = if args.first().is_some_and(|arg| arg == "release-check") {
+        release::checkout_root(&cwd)
+    } else {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../..")
+            .canonicalize()
+            .expect("repository root must exist")
+    };
+    let result = match args.first().map(String::as_str) {
+        None | Some("--help" | "help") => {
+            println!(
+                "Usage: cargo xtask [--env-file PATH] COMMAND [OPTIONS]\n\nChecks: parity, fixture, freeze-reference, verify-vendor, verify-production-features\nNative artifacts: package, package-inspect, package-verify, package-smoke, upgrade-rollback\nRelease: release-pack, release-check, release-verify\nSynthetic tools: benchmark, benchmark-storage, benchmark-bundle\nExplicit evaluator calls: evaluate, evaluate-ollama, test-ollama-routing, compare-local-evaluators\nExplicit Claude startup/live calls: context-probe, live-validation, compare-live\n\nEach opt-in tool provides --help. Environment files load only when explicitly supplied before COMMAND. Jev/Anthropic calls, model benchmarks and Claude/MCP startup are never ordinary contribution checks."
+            );
+            Ok(true)
+        }
+        Some("release-pack") => release_pack::run(&args[1..], &root),
+        Some("verify-vendor") => vendor_audit::run(&args[1..], &root),
+        Some("verify-production-features") => production_features::run(&args[1..], &root),
+        Some("release-check") => release::run(&args[1..], &root),
+        Some("release-verify") => release_verify::run(&args[1..], &root),
+        Some("upgrade-rollback") => upgrade_rollback::run(&args[1..], &root),
+        Some("benchmark-bundle") => bundle::run(&args[1..], &root),
+        Some("benchmark") => benchmark::run(&args[1..], &root),
+        Some("benchmark-storage") => benchmark_storage::run(&args[1..], &root),
+        Some("context-probe") => context_probe::run(&args[1..], &root),
+        Some("live-validation") => live::run(&args[1..], &root),
+        Some("compare-live") => compare_live::run(&args[1..], &root),
+        Some("evaluate") => evaluation::run(&args[1..], &root),
+        Some("evaluate-ollama") => ollama_evaluation::run(&args[1..], &root),
+        Some("compare-local-evaluators") => compare_local_evaluators::run(&args[1..], &root),
+        Some("test-ollama-routing") => ollama_routing::run(&args[1..], &root),
+        Some("package" | "package-inspect" | "package-verify" | "package-smoke") => {
+            package::run(&args, &root)
+        }
+        _ => parity::run(&args, &root).map(|()| true),
+    };
+    finish(result);
+}
+
+fn finish(result: Result<bool, String>) {
+    match result {
+        Ok(true) => {}
+        Ok(false) => std::process::exit(1),
+        Err(error) => {
+            eprintln!("{error}");
+            std::process::exit(1);
+        }
+    }
+}
