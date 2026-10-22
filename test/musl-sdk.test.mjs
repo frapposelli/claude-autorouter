@@ -214,6 +214,27 @@ for (const [label, response, error] of failedResponses) test(`musl SDK fails clo
   unpublished(f);
 });
 
+test('musl SDK reports only HTTP status on unavailable packages without retry or response-body leaks', async t => {
+  const pending = timers(t);
+  const marker = 'synthetic-private-response-body-never-in-diagnostics';
+  for (const status of [302, 404, 429, 503]) {
+    const f = fixture(t), mock = network('x86_64', index => index === 1
+      ? { status, chunks: [Buffer.from(marker)] } : {});
+    await assert.rejects(fetchLockedApks('x86_64', f.pinsPath, f.directory, f.provenance, mock), error => {
+      assert.equal(error.message, `Locked APK unavailable (HTTP ${status}): ${filenames[1]}`);
+      assert.equal(error.message.includes(marker), false);
+      return true;
+    });
+    assert.equal(mock.calls.length, 2);
+    assert.ok(mock.requests.every(request => request.destroyed));
+    assert.ok(mock.responses.every(response => response.destroyed));
+    assert.equal(pending.size, 0);
+    assert.deepEqual(readdirSync(f.directory), [filenames[0]]);
+    assert.deepEqual(readFileSync(join(f.directory, filenames[0])), body('x86_64', 0));
+    unpublished(f);
+  }
+});
+
 test('musl SDK exclusive creation preserves a later colliding symlink and its target', async t => {
   const f = fixture(t), target = join(f.root, 'sentinel'), sentinel = Buffer.from('preserve target');
   writeFileSync(target, sentinel);

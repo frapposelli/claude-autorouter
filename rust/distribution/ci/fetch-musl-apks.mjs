@@ -76,8 +76,10 @@ export async function fetchLockedApks(arch, pinsPath, directory, provenance, {ge
         try {
           request = get(set.repository + '/' + arch + '/' + encodeURIComponent(name), {agent: false}, res => {
             response = res;
-            if (res.statusCode !== 200) {
-              finish(new Error('Locked APK unavailable: ' + name));
+            const status = res.statusCode;
+            if (status !== 200) {
+              const label = Number.isInteger(status) && status >= 100 && status <= 999 ? status : 'unknown';
+              finish(new Error('Locked APK unavailable (HTTP ' + label + '): ' + name));
               return;
             }
             res.on('data', chunk => {

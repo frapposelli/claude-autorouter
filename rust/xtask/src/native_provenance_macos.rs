@@ -204,6 +204,77 @@ fn validate_env(
     )
 }
 
+// Diagnostics expose only reviewed tool names and fixed metadata arguments.
+// Never include an executable path, environment value or subprocess payload.
+fn metadata_failure(program: &Path, args: &[&str], detail: &str) -> String {
+    const TOOLS: &[&str] = &[
+        "rustup",
+        "rustc",
+        "cargo",
+        "git",
+        "uname",
+        "xcrun",
+        "xcode-select",
+        "xcodebuild",
+        "clang",
+        "clang++",
+        "perl",
+    ];
+    const ARGUMENTS: &[&[&str]] = &[
+        &["-vV"],
+        &["--version"],
+        &["--print", "sysroot"],
+        &["which", "--toolchain", "1.99.0", "rustc"],
+        &["which", "--toolchain", "1.99.0", "cargo"],
+        &["-p"],
+        &["--sdk", "macosx", "--show-sdk-path"],
+        &["--sdk", "macosx", "--show-sdk-version"],
+        &["--sdk", "macosx", "--find", "clang"],
+        &["--sdk", "macosx", "--find", "clang++"],
+        &["--sdk", "macosx", "--find", "ld"],
+        &["--sdk", "macosx", "--find", "ar"],
+        &["-version"],
+        &["-V"],
+        &["-m"],
+        &["-srvm"],
+        &["rev-parse", "--verify", "HEAD"],
+        &["status", "--porcelain", "--untracked-files=normal"],
+        &["show", "-s", "--format=%ct", "HEAD"],
+    ];
+    let basename = program
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or("");
+    let tool = if TOOLS.contains(&basename) {
+        basename
+    } else {
+        "metadata-tool"
+    };
+    let arguments = if ARGUMENTS.contains(&args) {
+        args.join(" ")
+    } else {
+        "<unlisted metadata arguments>".into()
+    };
+    // process::capture returns sanitized status/deadline/IO descriptions, never
+    // its captured stderr/stdout or Command environment/argument Debug output.
+    format!("Mac provenance metadata {tool} {arguments}: {detail}")
+}
+
+fn mac_git(env: &BTreeMap<String, String>, root: &Path, args: &[&str]) -> Result<String, String> {
+    super::git(env, root, args).map_err(|error| metadata_failure(Path::new("git"), args, &error))
+}
+
+fn mac_system_capture(
+    env: &BTreeMap<String, String>,
+    root: &Path,
+    program: &Path,
+    args: &[&str],
+    maximum: usize,
+) -> Result<String, String> {
+    super::capture(env, root, program, args, maximum)
+        .map_err(|error| metadata_failure(program, args, &error))
+}
+
 fn mac_capture(
     env: &BTreeMap<String, String>,
     root: &Path,
@@ -228,13 +299,18 @@ fn mac_capture(
         command.env(name, env_string(env, name)?);
     }
     command.args(args);
-    let bytes = crate::process::capture(&mut command, b"", Duration::from_secs(15))?;
+    let bytes = crate::process::capture(&mut command, b"", Duration::from_secs(15))
+        .map_err(|error| metadata_failure(program, args, &error))?;
     if bytes.len() > maximum {
-        return Err("Mac compiler metadata exceeds bound".into());
+        return Err(metadata_failure(
+            program,
+            args,
+            "Mac compiler metadata exceeds bound",
+        ));
     }
     String::from_utf8(bytes)
         .map(|v| v.trim().to_owned())
-        .map_err(|_| "Invalid Mac compiler metadata UTF-8".into())
+        .map_err(|_| metadata_failure(program, args, "Invalid Mac compiler metadata UTF-8"))
 }
 
 fn identity(metadata: &fs::Metadata) -> [u64; 11] {
@@ -374,9 +450,9 @@ pub(super) fn snapshot(root: &Path, p: MacProfile) -> Result<Value, String> {
         return Err("Invalid Mac checkout metadata".into());
     }
     let ci = validate_env(&env, p, &claimed)?;
-    let commit = git(&env, root, &["rev-parse", "--verify", "HEAD"])?;
+    let commit = mac_git(&env, root, &["rev-parse", "--verify", "HEAD"])?;
     if commit != claimed
-        || !git(
+        || !mac_git(
             &env,
             root,
             &["status", "--porcelain", "--untracked-files=normal"],
@@ -548,7 +624,7 @@ pub(super) fn snapshot(root: &Path, p: MacProfile) -> Result<Value, String> {
             return Err("Mac C/C++ invocation is not the selected SDK compiler".into());
         }
     }
-    let machine = capture(&env, root, &resolve_tool(&env, "uname")?, &["-m"], 4096)?;
+    let machine = mac_system_capture(&env, root, &resolve_tool(&env, "uname")?, &["-m"], 4096)?;
     if machine != p.machine {
         return Err("Mac hosted machine does not match reviewed profile".into());
     }
@@ -562,7 +638,7 @@ pub(super) fn snapshot(root: &Path, p: MacProfile) -> Result<Value, String> {
     ] {
         files.insert(name.into(), descriptor(&root.join(name), INPUT_MAX)?);
     }
-    let epoch = git(&env, root, &["show", "-s", "--format=%ct", "HEAD"])?;
+    let epoch = mac_git(&env, root, &["show", "-s", "--format=%ct", "HEAD"])?;
     if !decimal(&epoch)
         || std::env::var("SOURCE_DATE_EPOCH").ok().as_deref() != Some(epoch.as_str())
     {
@@ -578,7 +654,7 @@ pub(super) fn snapshot(root: &Path, p: MacProfile) -> Result<Value, String> {
             "xcode_text":mac_capture(&env,root,Path::new("/usr/bin/xcodebuild"),&["-version"],16384)?,
             "clang_text":mac_capture(&env,root,Path::new("/usr/bin/clang"),&["--version"],16384)?,
             "perl_text":mac_capture(&env,root,Path::new("/usr/bin/perl"),&["-V"],65536)?,
-            "kernel_text":capture(&env,root,&resolve_tool(&env,"uname")?, &["-srvm"],4096)?},
+            "kernel_text":mac_system_capture(&env,root,&resolve_tool(&env,"uname")?, &["-srvm"],4096)?},
         "command":["cargo","build","--release","--offline","--locked","--package","claude-autorouter","--message-format=json"],
         "working_directory":root.join("rust")}),
     )
@@ -653,6 +729,67 @@ mod tests {
             env.insert(name.into(), path.to_str().unwrap().into());
         }
         (scratch, env)
+    }
+
+    #[test]
+    fn failed_owned_metadata_tools_identify_public_stage_without_private_payloads() {
+        use std::os::unix::fs::PermissionsExt;
+        let p = profile("aarch64-apple-darwin").unwrap();
+        let (scratch, mut env) = fixture(p);
+        let private_home = scratch.0.join("fake-private-environment-sentinel");
+        fs::create_dir(&private_home).unwrap();
+        env.insert("HOME".into(), private_home.to_str().unwrap().into());
+        env.insert(
+            "PATH".into(),
+            format!("{}:/usr/bin:/bin", scratch.0.display()),
+        );
+        let script = b"#!/bin/sh\nprintf 'fake-private-stdout-sentinel\\n'\nprintf 'fake-private-stderr-sentinel\\n' >&2\nprintf '%s\\n' \"$HOME\" >&2\nexit 7\n";
+        for (tool, args) in [
+            ("rustc", &["-vV"][..]),
+            ("git", &["rev-parse", "--verify", "HEAD"][..]),
+        ] {
+            let program = scratch.file(tool, script).unwrap();
+            fs::set_permissions(&program, fs::Permissions::from_mode(0o700)).unwrap();
+            let error = if tool == "git" {
+                mac_git(&env, &scratch.0, args).unwrap_err()
+            } else {
+                mac_capture(&env, &scratch.0, &program, args, 4096).unwrap_err()
+            };
+            assert!(
+                error.contains(&format!("{tool} {}", args.join(" "))),
+                "{error}"
+            );
+            assert!(error.contains("exit status: 7"), "{error}");
+            for private in [
+                "fake-private-stdout-sentinel",
+                "fake-private-stderr-sentinel",
+                "fake-private-environment-sentinel",
+                scratch.0.to_str().unwrap(),
+            ] {
+                assert!(
+                    !error.contains(private),
+                    "Private metadata appeared in error"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn metadata_error_context_redacts_unlisted_names_and_args_but_preserves_timeout_detail() {
+        let error = metadata_failure(
+            Path::new("/fake-private-environment-sentinel/fake-private-tool-name"),
+            &["--private", "fake-private-argument"],
+            "Fixture executable timed out",
+        );
+        assert!(error.contains("metadata-tool <unlisted metadata arguments>"));
+        assert!(error.contains("Fixture executable timed out"));
+        for private in [
+            "fake-private-environment-sentinel",
+            "fake-private-tool-name",
+            "fake-private-argument",
+        ] {
+            assert!(!error.contains(private));
+        }
     }
 
     #[test]
