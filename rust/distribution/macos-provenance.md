@@ -53,10 +53,18 @@ The Mac input witness records:
 - Developer directory, selected SDK/version/settings, system tool entrypoints
   and selected clang/linker/archiver identities. C++ driver invocation names are
   preserved even when `clang++` resolves to the same file as `clang`.
-- An explicit portable Rust CPU profile, macOS deployment target `11.0`, vendored
-  static OpenSSL settings and selected public build variables. Unreviewed
+- An explicit Rust CPU baseline (`apple-m1` for Apple Silicon, `x86-64` for
+  Intel), macOS deployment target `11.0`, vendored static OpenSSL settings and
+  selected public build variables. Unreviewed
   compiler, Cargo, loader, pkg-config and target/profile overrides are rejected.
   Effective Cargo home/ancestor config paths are checked too.
+
+The Apple Silicon profile names the [M1-or-later baseline](https://doc.rust-lang.org/rustc/platform-support/apple-darwin.html)
+explicitly. Generic AArch64
+omits Apple platform CPU features expected by Ring; `native`, newer CPU
+baselines and manual feature overrides remain unreviewed. This names the
+intended build baseline; oldest-OS and CPU execution qualification remain
+separate.
 
 Tools are hashed with a fixed-size read buffer and a separate 512 MiB supplier
 bound because Xcode clang exceeds the GNU tool bound. This does not change any

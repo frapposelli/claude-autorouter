@@ -33,7 +33,7 @@ pub(super) fn profile(target: &str) -> Result<MacProfile, String> {
             machine: "arm64",
             runner: "macos-15",
             runner_arch: "ARM64",
-            rustflags: "-C target-cpu=generic -C linker=/usr/bin/clang",
+            rustflags: "-C target-cpu=apple-m1 -C linker=/usr/bin/clang",
         }),
         "x86_64-apple-darwin" => Ok(MacProfile {
             target: "x86_64-apple-darwin",
@@ -895,6 +895,30 @@ mod tests {
         let (_scratch, mut env) = fixture(p);
         env.insert("PATH".into(), "/usr/bin:/bin:".into());
         assert!(validate_env(&env, p, &"a".repeat(40)).is_err());
+    }
+
+    #[test]
+    fn apple_arm_cpu_admission_requires_the_reviewed_m1_baseline() {
+        let p = profile("aarch64-apple-darwin").unwrap();
+        let (_scratch, mut env) = fixture(p);
+        // This independently declared admitted policy must succeed; deriving the
+        // positive value from p.rustflags would hide an accidental baseline change.
+        env.insert(
+            "RUSTFLAGS".into(),
+            "-C target-cpu=apple-m1 -C linker=/usr/bin/clang".into(),
+        );
+        assert!(validate_env(&env, p, &"a".repeat(40)).is_ok());
+        for flags in [
+            "-C target-cpu=generic -C linker=/usr/bin/clang",
+            "-C target-cpu=native -C linker=/usr/bin/clang",
+            "-C target-cpu=apple-m2 -C linker=/usr/bin/clang",
+            "-C target-cpu=synthetic-unknown-apple-cpu -C linker=/usr/bin/clang",
+            "-C target-cpu=apple-m1 -C target-feature=+aes,+sha2 -C linker=/usr/bin/clang",
+        ] {
+            let mut changed = env.clone();
+            changed.insert("RUSTFLAGS".into(), flags.into());
+            assert!(validate_env(&changed, p, &"a".repeat(40)).is_err());
+        }
     }
 
     #[test]

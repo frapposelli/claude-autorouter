@@ -1,0 +1,276 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-10-22",
+  "status": "mac_arm_cpu_baseline_corrected_local_checks_pass_hosted_build_pending",
+  "source_base_commit": "6d74597f23f6abfdbf98385260687e0c6002a7cb",
+  "scope": "MacARM closed production CPU baseline and workflow flag correction only, one literal policy regression and docs. Intel/GNU/Musl settings, runtime sources, Ring/dependencies, SDK pins, bounds, deadlines, product defaults and shipping version remain unchanged.",
+  "implementation": [
+    {
+      "path": "rust/xtask/src/native_provenance_macos.rs",
+      "bytes": 46391,
+      "sha256": "4c5dc5465b271f15be4dbfcacf5ecb2d0c045d8a0d19122bc7fa4b6fb0122503"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "bytes": 20574,
+      "sha256": "4297a6e46ee048e478e9e4134033904eeb16f7ab7dcfa30f9e46d2a04d7868de"
+    }
+  ],
+  "original_hosted_failure": {
+    "head": "6d74597f23f6abfdbf98385260687e0c6002a7cb",
+    "run": 39756700448,
+    "job": 119750387285,
+    "attempt": 1,
+    "artifact_id": 12416770304,
+    "artifact_zip_bytes": 44720,
+    "artifact_zip_sha256": "f852882b1e744c7088e2fc27616bc94242a1686c45d3e41baf432a2e52734e55",
+    "artifact_review": {
+      "path": "artifacts/rust-rewrite/ci-6d74597-failed-job-logs-20261022-1/artifact-diagnostics-v1.json",
+      "bytes": 4432,
+      "sha256": "d40a3480461b6f95b9f327f50869d6ba35503ac31306654800897e85a6e8a695"
+    },
+    "metadata_owner": {
+      "path": "artifacts/rust-rewrite/ci-6d74597-failed-job-logs-20261022-1/artifact-metadata.json",
+      "bytes": 1110,
+      "sha256": "0cfbab91fc9b3e96565d828ef7db8907d65a2bfe61ae0486bf4bd70031302557"
+    },
+    "download_owner": {
+      "path": "artifacts/rust-rewrite/ci-6d74597-failed-job-logs-20261022-1/artifact-zip.json",
+      "bytes": 1215,
+      "sha256": "b6caec677d43620ea43dbc3ea21ddeacc329b6a8e370f36c9511ba4db76009d3"
+    },
+    "actual_input_source_commit": "fc84a35d28562a22f75792875e73ab472f25d005",
+    "pr_head_source_equivalence_independently_verified": false,
+    "begin_completed": true,
+    "rustup_canonical_basename": "rustup-init",
+    "rustup_invocation_basename": "rustup",
+    "meaning": "Original input record confirms the invocation fix and all begin-time Mac metadata/SDK/clean-source guards completed. No finished ARM product/provenance pair exists in this failed build.",
+    "failure": "Ring0.17.14 failed two E0080 constants in cpu/arm/darwin.rs44/51: generic ARM CPU omitted AES/SHA2 needed by Apple static capability assumptions. Original Cargo diagnostics remain retained."
+  },
+  "last_prior_head_CI_snapshot": {
+    "observed_utc": "2026-10-22T09:57:34+00:00",
+    "success": 9,
+    "failure": 1,
+    "in_progress": 4,
+    "review": {
+      "path": "artifacts/rust-rewrite/ci-6d74597-readonly-audit-20261022-1/final-metadata-review.json",
+      "bytes": 118385,
+      "sha256": "5c0ebe947473d11546ce519697dd2dc44100ccf1f814b6f2e129532900ff95fa"
+    },
+    "intel_release_step": {
+      "job": 119750387516,
+      "completed_successfully_at": "2026-10-22T09:51:45Z",
+      "whole_job_and_upload": "pending at last snapshot; original uploaded Intel pair not inspected"
+    }
+  },
+  "fix": {
+    "arm_flags": "-C target-cpu=apple-m1 -C linker=/usr/bin/clang",
+    "intel_flags_unchanged": "-C target-cpu=x86-64 -C linker=/usr/bin/clang",
+    "background_source": "https://doc.rust-lang.org/rustc/platform-support/apple-darwin.html",
+    "background_review_date": "2026-10-22",
+    "policy": "Explicit earliest supported Apple Silicon baseline, matching pinned compiler target default in this preflight. Native/newer/unknown CPU and manual feature overrides refuse. No Ring assertion, dependency or TLS relaxation."
+  },
+  "actual_pinned_compiler_preflight": {
+    "result": {
+      "path": "artifacts/rust-rewrite/macos-arm-cpu-preflight-20261022-1/result-v1.json",
+      "bytes": 1710,
+      "sha256": "4e27ea059c6bae0fd8d1a19723e0922524105f2359e96f2b8a66d4e8ef8ca06d"
+    },
+    "owners": {
+      "target-cpus": {
+        "path": "artifacts/rust-rewrite/macos-arm-cpu-preflight-20261022-1/target-cpus.json",
+        "bytes": 1186,
+        "sha256": "9233782b6ad1c6bd387de2f12d781b7e1e451e7fced7cc86a976ecb26939dccc"
+      },
+      "default-cfg": {
+        "path": "artifacts/rust-rewrite/macos-arm-cpu-preflight-20261022-1/default-cfg.json",
+        "bytes": 1181,
+        "sha256": "395ebef2ddaa85508f6e7ccef7a70f33ea23316a42beb226946495f770f4c816"
+      },
+      "generic-cfg": {
+        "path": "artifacts/rust-rewrite/macos-arm-cpu-preflight-20261022-1/generic-cfg.json",
+        "bytes": 1217,
+        "sha256": "365473bb8525f74c2f0afd9735e97110d3998bd3f513aed17904afecdd8772d1"
+      },
+      "apple-m1-cfg": {
+        "path": "artifacts/rust-rewrite/macos-arm-cpu-preflight-20261022-1/apple-m1-cfg.json",
+        "bytes": 1219,
+        "sha256": "b033e6e78a0f8b7c8d3b901ed1bb3baec76ce56718774f0c9f3977a26da29cdb"
+      },
+      "object-default": {
+        "path": "artifacts/rust-rewrite/macos-arm-cpu-preflight-20261022-1/object-default.json",
+        "bytes": 1621,
+        "sha256": "31c2a2cd51a348a499d5ffedf90f494ecaad3d919fe95836bd5bd9385ecb23b5"
+      },
+      "object-generic": {
+        "path": "artifacts/rust-rewrite/macos-arm-cpu-preflight-20261022-1/object-generic.json",
+        "bytes": 1660,
+        "sha256": "d39fe846a1b31df6071a3d9c7b6acd2b5a3f7712eb333529557a0a5145949288"
+      },
+      "object-apple-m1": {
+        "path": "artifacts/rust-rewrite/macos-arm-cpu-preflight-20261022-1/object-apple-m1.json",
+        "bytes": 1661,
+        "sha256": "48f4b11bc39a9a83ba3f00f634571f7ff322effaabdbed8077e94f8e0f9fc65d"
+      }
+    },
+    "default_cfg": {
+      "path": "artifacts/rust-rewrite/macos-arm-cpu-preflight-20261022-1/default-cfg.stdout",
+      "bytes": 1208,
+      "sha256": "adcd4b01da46c1516fd65b93201d2784971bbb6e573402098d5a9234b8121cef"
+    },
+    "apple_m1_cfg": {
+      "path": "artifacts/rust-rewrite/macos-arm-cpu-preflight-20261022-1/apple-m1-cfg.stdout",
+      "bytes": 1208,
+      "sha256": "adcd4b01da46c1516fd65b93201d2784971bbb6e573402098d5a9234b8121cef"
+    },
+    "default_object": {
+      "path": "artifacts/rust-rewrite/macos-arm-cpu-preflight-20261022-1/object/object-default.o",
+      "bytes": 536,
+      "sha256": "019189e94f4338feb7c79876cdc0e3b25ec6766d84a0f360d3122aaeb46f5bdc"
+    },
+    "apple_m1_object": {
+      "path": "artifacts/rust-rewrite/macos-arm-cpu-preflight-20261022-1/object/object-apple-m1.o",
+      "bytes": 536,
+      "sha256": "019189e94f4338feb7c79876cdc0e3b25ec6766d84a0f360d3122aaeb46f5bdc"
+    },
+    "expected_generic_failure": {
+      "path": "artifacts/rust-rewrite/macos-arm-cpu-preflight-20261022-1/object-generic.stderr",
+      "bytes": 683,
+      "sha256": "3664c7ab9d5f4f598dfaef901c611e795ee97898bc6bd87c6f03609a7896b4e5"
+    },
+    "outcome": "Default and M1 cfg bytes match; actual tiny no_std LLVM object bytes also match with zero stderr. Generic lacks AES/SHA2 and the synthetic baseline const fails E0080 without producing an object.",
+    "limits": "Synthetic object code generation and metadata, not an actual Ring or product build, execution, oldest-Mac or performance qualification. No duplicate Cargo target/cache was created."
+  },
+  "local_validation": {
+    "source": {
+      "path": "artifacts/rust-rewrite/macos-arm-cpu-validation-20261022-1/source-candidate-v1.json",
+      "bytes": 125453,
+      "sha256": "057b9f06c0721da9730e1f16709fddb488d300bdc632dc5a048d18bd7f3d22a7"
+    },
+    "raw_inputs": 739,
+    "frozen_reference_files": 111,
+    "workspace": {
+      "groups": 66,
+      "passed": 1732,
+      "failed": 0,
+      "ignored": 11
+    },
+    "auditor_tests": 88,
+    "node_tests": 673,
+    "sdk_tests": 50,
+    "syntax_files": 99,
+    "package_files": 58,
+    "package_mock_scenarios": 17,
+    "optimized_same_artifact_bundle_tests": 3,
+    "workflow_synthetic_controls": 27,
+    "workflow_controls_report": {
+      "path": "artifacts/rust-rewrite/macos-arm-cpu-validation-20261022-1/workflow-controls-output/report.json",
+      "bytes": 11574,
+      "sha256": "f0081e98eb69fa15fd70ebca1208552ae770c49f998cae55ab94202c1fcb662c"
+    },
+    "lint_format": "passed",
+    "successful_terminal_owners": {
+      "auditor-tests": {
+        "path": "artifacts/rust-rewrite/macos-arm-cpu-validation-20261022-1/auditor-tests.json",
+        "bytes": 1839,
+        "sha256": "1688950c395accee3e4a45345e0269eac34c3a2edd13b3d51e4386adeab63e22"
+      },
+      "audit-clippy": {
+        "path": "artifacts/rust-rewrite/macos-arm-cpu-validation-20261022-1/audit-clippy.json",
+        "bytes": 1857,
+        "sha256": "876fad28563a1eea2d0fbfa188bdc2e91bfc85adb2e05e5ef408dbd62adfec80"
+      },
+      "fmt": {
+        "path": "artifacts/rust-rewrite/macos-arm-cpu-validation-20261022-1/fmt.json",
+        "bytes": 1711,
+        "sha256": "a657d80d20e0ec1a98106dab226d87e27cb2bc534716d0d8a16e8fdd7c06f759"
+      },
+      "workflow-controls": {
+        "path": "artifacts/rust-rewrite/macos-arm-cpu-validation-20261022-1/workflow-controls.json",
+        "bytes": 2020,
+        "sha256": "dd87e25d51201b8f23537e25f9ab1235a5234fcedfbc32e34aaafe2aeaee9ccb"
+      },
+      "workspace-clippy": {
+        "path": "artifacts/rust-rewrite/macos-arm-cpu-validation-20261022-1/workspace-clippy.json",
+        "bytes": 1821,
+        "sha256": "3d4abcc6d0f349b1768f393ea47b73e9cc03cac4d71186347b778c75052686b9"
+      },
+      "workspace": {
+        "path": "artifacts/rust-rewrite/macos-arm-cpu-validation-20261022-1/workspace.json",
+        "bytes": 1783,
+        "sha256": "76ebe3096e631427717d0bf4ad66f48bb54eff59f5d9a7e4035e1f852c3e5055"
+      },
+      "sdk-tests": {
+        "path": "artifacts/rust-rewrite/macos-arm-cpu-validation-20261022-1/sdk-tests.json",
+        "bytes": 1723,
+        "sha256": "41d3a56215c24ec1dcf88f9ef6d2eccc94df22d5f9d8ccda00879b80062ef137"
+      },
+      "node-check": {
+        "path": "artifacts/rust-rewrite/macos-arm-cpu-validation-20261022-1/node-check.json",
+        "bytes": 1703,
+        "sha256": "d2d5264dfe5e4f1aa044bf4b3f20bc570b948f6475be54819245be68f23b3060"
+      },
+      "node-tests": {
+        "path": "artifacts/rust-rewrite/macos-arm-cpu-validation-20261022-1/node-tests.json",
+        "bytes": 1693,
+        "sha256": "1512a5105b1c6cb155a37d031a1789289d907cb63473408f6cb74f9d2c30f695"
+      },
+      "node-package": {
+        "path": "artifacts/rust-rewrite/macos-arm-cpu-validation-20261022-1/node-package.json",
+        "bytes": 1711,
+        "sha256": "f11bd84af9d06266ea3fb41677a77520ffd22d4092e391b33fcae778813748e4"
+      },
+      "bootstrap-build": {
+        "path": "artifacts/rust-rewrite/macos-arm-cpu-validation-20261022-1/bootstrap-build.json",
+        "bytes": 1872,
+        "sha256": "2a10600775389d09f38514e05eca77ac4d030b941fefa21f9e1d763e038aed28"
+      },
+      "required-bundles": {
+        "path": "artifacts/rust-rewrite/macos-arm-cpu-validation-20261022-1/required-bundles.json",
+        "bytes": 1912,
+        "sha256": "6ef95c780ab7b74c497797320f9a859377b04085c8433ab492917e06387c65ba"
+      },
+      "bootstrap-proof": {
+        "path": "artifacts/rust-rewrite/macos-arm-cpu-validation-20261022-1/bootstrap-proof.json",
+        "bytes": 2010,
+        "sha256": "71c655f188e3a6f2cadf0d1f72ac6ce7bb7c04484f5b4775514c41868f5bfa46"
+      },
+      "vendor": {
+        "path": "artifacts/rust-rewrite/macos-arm-cpu-validation-20261022-1/vendor.json",
+        "bytes": 1850,
+        "sha256": "7b9c2096a7c4eaa9230b0cbdfd166f9bb5839c5f494df159494d709e2bc5cc58"
+      },
+      "help": {
+        "path": "artifacts/rust-rewrite/macos-arm-cpu-validation-20261022-1/help.json",
+        "bytes": 1873,
+        "sha256": "8cba937d0afba7536ae8f26ef3e70224bdb9ca0d966cd3f73b83ee28ea9dcfd4"
+      }
+    },
+    "bootstrap": {
+      "path": "artifacts/rust-rewrite/macos-arm-cpu-validation-20261022-1/bootstrap-proof.stdout",
+      "bytes": 965,
+      "sha256": "1712434b227e516b27b424b37f66b1564cfa331ec0eaef815e01bda8dd210dcb"
+    },
+    "retained_auditor": {
+      "path": "artifacts/rust-rewrite/macos-arm-cpu-validation-20261022-1/retained/identity.json",
+      "bytes": 1661,
+      "sha256": "026259b9404144b7d6e5c8935fa1ac165470599864c3245e6e87d4ab02f37f9c"
+    },
+    "conditions": "PinnedRust1.99.0/Node22.14.0, reused offline Ocache,2jobs/debug0/incremental0,normal-use16GiB Mac. Synthetic fixtures/ownedloopback. No paid providers/models/downloads/user-config changes. Local product flags are not changed and no new ordinary product build is claimed.",
+    "independent_static_review": {
+      "path": "artifacts/rust-rewrite/macos-arm-cpu-validation-20261022-1/independent-M1-static-evidence-review-v1.json",
+      "bytes": 19126,
+      "sha256": "0aaa819d660d7bb6ec714e9e52938a20a044c6a96355a483343ddfd90e9d07be"
+    }
+  },
+  "previous_review_completion": {
+    "path": "artifacts/rust-rewrite/macos-rustup-invocation-validation-20261022-2/independent-all-phase-review-v1.json",
+    "bytes": 25939,
+    "sha256": "47493c2f470492d00b3afc1d9a3c4c8903958c7fcb265a35e550c3b70e296aec"
+  },
+  "remaining": [
+    "Fresh hosted ARM release begin/build/features/finish and original two-Mac uploaded pair verification.",
+    "Other target provenance, complete platform/TLS/performance/task qualification, production release integration, full-matrix archive fit and cutover."
+  ],
+  "release_approved": false
+}
