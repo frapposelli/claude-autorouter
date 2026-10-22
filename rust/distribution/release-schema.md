@@ -101,9 +101,10 @@ adds a two-phase source/compiler witness for the reviewed GNU x86_64 and
 ARM64 jobs. Its input record precedes an ordinary cold release build;
 `finish` recomputes the existing feature audit and retains the exact binary
 beside its provenance JSON. The record also binds the input, Cargo, feature and
-builder report hashes and the original workflow run/attempt. A new actual GNU
-execution remains pending; declared synthetic controls and earlier CI passes
-cannot substitute for it. The producer does not assemble or authorize a release,
+builder report hashes and the original workflow run/attempt. The
+[original two-target GNU uploads](../parity/measurements/native-gnu-original-provenance-artifacts-summary.json)
+now pass cold-build source/report/binary association and ELF inspection. This
+does not extend to other targets or replace separate qualification evidence. The producer does not assemble or authorize a release,
 change any schema-2 qualification requirement, or upgrade local/private schema-1
 artifacts. Its environment fields are not signatures: trusted pinned workflow
 execution, original artifact identity and separate platform evidence remain

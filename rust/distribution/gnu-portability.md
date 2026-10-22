@@ -91,10 +91,12 @@ Each job performs these steps:
 ## GNU binary provenance producer
 
 The `autorouter-audit binary-provenance` producer binds the ordinary
-release executable to observed build inputs in the two reviewed GNU jobs. A new
-GNU run of this producer remains pending. Earlier portability passes and local
-private archives retain their original provenance; they cannot supply the new
-producer's successful execution evidence.
+release executable to observed build inputs in the two reviewed GNU jobs. The
+[original GNU uploads](../parity/measurements/native-gnu-original-provenance-artifacts-summary.json)
+now verify both cold builds at PR head `7d6392f` and merge checkout `1a5f229`.
+This is build provenance, not full platform or release qualification. Earlier
+portability passes and local private archives retain their original provenance;
+they cannot supply the new producer's successful execution evidence.
 
 The workflow uses the retained, separately built `autorouter-audit-bootstrap`
 with `runtime-tools` disabled. From `rust/`, after the existing pinned toolchain,
