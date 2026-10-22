@@ -1,4 +1,4 @@
-//! Reviewed GNU/Mac CI build provenance collector. Never builds or runs the product.
+//! Reviewed GNU/Mac/Musl CI build provenance collector. Never builds or runs the product.
 //! A reviewed workflow and original GitHub artifact identity remain the trust boundary.
 use crate::audit_support::{digest, regular};
 use serde_json::{Value, json};
@@ -65,16 +65,22 @@ fn profile(target: &str) -> Result<Profile, String> {
 #[path = "native_provenance_macos.rs"]
 mod macos;
 
+#[path = "native_provenance_musl.rs"]
+mod musl;
+
 #[derive(Clone, Copy)]
 enum BuildProfile {
     Gnu(Profile),
     Mac(macos::MacProfile),
+    Musl(musl::MuslProfile),
 }
 
 impl BuildProfile {
     fn reviewed(target: &str) -> Result<Self, String> {
         if target.ends_with("apple-darwin") {
             macos::profile(target).map(Self::Mac)
+        } else if target.ends_with("-linux-musl") {
+            musl::profile(target).map(Self::Musl)
         } else {
             profile(target).map(Self::Gnu)
         }
@@ -85,6 +91,7 @@ impl BuildProfile {
         let expected = match p {
             Self::Gnu(_) => "gnu-glibc228-v1",
             Self::Mac(_) => "macos-hosted-v1",
+            Self::Musl(_) => "musl-alpine321-v1",
         };
         if before["profile"] != expected {
             return Err("Unrecognized native build-input target/profile pair".into());
@@ -99,13 +106,29 @@ impl BuildProfile {
         match self {
             Self::Gnu(p) => p.target,
             Self::Mac(p) => p.target,
+            Self::Musl(p) => p.target,
         }
     }
 
-    fn rustflags(self) -> &'static str {
+    fn rustflags(self, root: &Path) -> Result<String, String> {
         match self {
-            Self::Gnu(p) => p.rustflags,
-            Self::Mac(p) => p.rustflags,
+            Self::Gnu(p) => Ok(p.rustflags.to_owned()),
+            Self::Mac(p) => Ok(p.rustflags.to_owned()),
+            Self::Musl(p) => musl::rustflags(p, root),
+        }
+    }
+
+    fn require_cold_release(self, root: &Path, state: &Value) -> Result<(), String> {
+        match self {
+            Self::Musl(p) => musl::fresh_release_tree(root, state, p),
+            _ => fresh_release_tree(root, state),
+        }
+    }
+
+    fn executable(self, root: &Path, state: &Value, inspected: &Value) -> Result<PathBuf, String> {
+        match self {
+            Self::Musl(p) => musl::admitted_executable(root, state, inspected, p),
+            _ => admitted_executable(root, state, inspected),
         }
     }
 
@@ -117,6 +140,7 @@ impl BuildProfile {
         match self {
             Self::Gnu(p) => snapshot(root, p, Path::new(&options["--builder-report"])),
             Self::Mac(p) => macos::snapshot(root, p),
+            Self::Musl(p) => musl::snapshot(root, p, Path::new(&options["--builder-report"])),
         }
     }
 
@@ -124,6 +148,7 @@ impl BuildProfile {
         match self {
             Self::Gnu(p) => snapshot(root, p, Path::new(text(&before["builder"], "path")?)),
             Self::Mac(p) => macos::snapshot(root, p),
+            Self::Musl(p) => musl::snapshot(root, p, Path::new(text(&before["builder"], "path")?)),
         }
     }
 
@@ -131,6 +156,7 @@ impl BuildProfile {
         match self {
             Self::Gnu(p) => inspected_gnu_binary(p, binary),
             Self::Mac(p) => macos::inspect(p, binary),
+            Self::Musl(p) => musl::inspect(p, binary),
         }
     }
 }
@@ -149,8 +175,9 @@ fn begin_options(args: &[String]) -> Result<(BuildProfile, BTreeMap<String, Stri
     };
     let options = options(args, names)?;
     let p = BuildProfile::reviewed(&options["--target"])?;
-    if matches!(p, BuildProfile::Gnu(_)) != options.contains_key("--builder-report") {
-        return Err("GNU begin requires a builder report; Mac begin must omit it".into());
+    let needs_builder = matches!(p, BuildProfile::Gnu(_) | BuildProfile::Musl(_));
+    if needs_builder != options.contains_key("--builder-report") {
+        return Err("GNU/Musl begin requires a builder report; Mac begin must omit it".into());
     }
     Ok((p, options))
 }
@@ -1017,17 +1044,18 @@ fn finish(root: &Path, args: &[String]) -> Result<bool, String> {
     let feature_path = canonical(Path::new(&options["--feature-report"]))?;
     let feature_bytes = single_report(&feature_path, INPUT_MAX)?;
     matching_feature_report(&feature_bytes, &exact_feature_report)?;
-    let executable = admitted_executable(root, &before, &inspected)?;
+    let executable = p.executable(root, &before, &inspected)?;
     let binary = stable(&executable, BINARY_MAX)?;
     if digest(&binary) != text(&exact_feature_report, "binary_sha256")? {
         return Err("Production executable changed after feature audit".into());
     }
     let inspection = p.inspect(&binary)?;
+    let rustflags = p.rustflags(root)?;
     let provenance = json!({"schema_version":1,"kind":"native_binary_provenance","provenance":"ci-source-build",
         "source_commit":before["source_commit"],"cargo_lock_sha256":before["cargo_lock_sha256"],"target":p.target(),
         "binary_sha256":digest(&binary),"repository":REPOSITORY,"profile":"release","portable_cpu":true,
         "rustc":before["compiler"]["rustc_text"],"workflow_run":before["ci"]["workflow_run"],
-        "rustflags":p.rustflags().split_ascii_whitespace().collect::<Vec<_>>(),"workflow":before["ci"],
+        "rustflags":rustflags.split_ascii_whitespace().collect::<Vec<_>>(),"workflow":before["ci"],
         "inputs_sha256":digest(&input_bytes),"cargo_report_sha256":digest(&build_bytes),"feature_report_sha256":digest(&feature_bytes),
         "builder_report_sha256":before["builder"]["sha256"],"inspection":inspection,
         "qualification":"Build provenance only. No platform/TLS/performance/lifecycle/release approval or private-artifact promotion."});
@@ -1142,7 +1170,7 @@ pub(crate) fn run(args: &[String], root: &Path) -> Result<bool, String> {
                     _ => return Err("Declared provenance report/output already exists".into()),
                 }
             }
-            fresh_release_tree(root, &state)?;
+            p.require_cold_release(root, &state)?;
             state["outputs"] = json!({"build_report":options["--build-report"],"feature_report":options["--feature-report"]});
             let mut owned = fresh_file(Path::new(&options["--out"]), &json_bytes(&state)?, 0o600)?;
             owned.keep();
@@ -1151,7 +1179,7 @@ pub(crate) fn run(args: &[String], root: &Path) -> Result<bool, String> {
         Some("finish") => finish(root, &args[1..]),
         Some("--help") => {
             println!(
-                "Reviewed GNU/Mac CI only: binary-provenance begin --target TARGET [--builder-report ABSOLUTE_PATH (GNU only)] --build-report NEW_ABSOLUTE_PATH --feature-report NEW_ABSOLUTE_PATH --out NEW_ABSOLUTE_FILE\n              binary-provenance finish --inputs ABSOLUTE_PATH --build-report ABSOLUTE_PATH --feature-report ABSOLUTE_PATH --out NEW_ABSOLUTE_DIRECTORY\nNo builds, product execution, downloads, provider calls, qualification or release approval. Local/unreviewed profiles fail closed."
+                "Reviewed GNU/Mac/Musl CI only: binary-provenance begin --target TARGET [--builder-report ABSOLUTE_PATH (GNU/Musl only)] --build-report NEW_ABSOLUTE_PATH --feature-report NEW_ABSOLUTE_PATH --out NEW_ABSOLUTE_FILE\n              binary-provenance finish --inputs ABSOLUTE_PATH --build-report ABSOLUTE_PATH --feature-report ABSOLUTE_PATH --out NEW_ABSOLUTE_DIRECTORY\nNo builds, product execution, downloads, provider calls, qualification or release approval. Local/unreviewed profiles fail closed."
             );
             Ok(true)
         }

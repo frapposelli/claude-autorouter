@@ -79,9 +79,27 @@ autorouter_musl_phase() {
 cargo test --workspace --offline --locked --no-fail-fast
       ;;
     production)
+# First ordinary release only: refuse existing inputs, outputs and either
+# compiler release tree. Never erase a cache to manufacture cold provenance.
+for path in "$out/production-inputs.json" "$out/production-build.jsonl" \
+  "$out/production-features.json" "$out/production-begin.json" \
+  "$out/production-provenance-written.json" "$out/production-native" \
+  "$out/claude-autorouter-musl" "$out/production-binary.sha256" \
+  "$CARGO_TARGET_DIR/release" "$CARGO_TARGET_DIR/$CARGO_BUILD_TARGET/release"; do
+  if [[ "$path" != /* || -e "$path" || -L "$path" ]]; then
+    return 1
+  fi
+done
+"$out/autorouter-audit-bootstrap" binary-provenance begin --target "$AUTOROUTER_BUILD_TARGET" \
+  --builder-report "$out/builder.json" --build-report "$out/production-build.jsonl" \
+  --feature-report "$out/production-features.json" --out "$out/production-inputs.json" > "$out/production-begin.json"
 cargo build --release --offline --locked --package claude-autorouter --message-format=json > "$out/production-build.jsonl"
 "$out/autorouter-audit-bootstrap" production-features --build-report "$out/production-build.jsonl" > "$out/production-features.json"
+"$out/autorouter-audit-bootstrap" binary-provenance finish --inputs "$out/production-inputs.json" \
+  --build-report "$out/production-build.jsonl" --feature-report "$out/production-features.json" \
+  --out "$out/production-native" > "$out/production-provenance-written.json"
 cp "$CARGO_TARGET_DIR/$CARGO_BUILD_TARGET/release/claude-autorouter" "$out/claude-autorouter-musl"
+cmp "$out/production-native/claude-autorouter" "$out/claude-autorouter-musl"
 sha256sum "$out/claude-autorouter-musl" > "$out/production-binary.sha256"
       ;;
     helper)

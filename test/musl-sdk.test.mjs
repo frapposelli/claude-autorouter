@@ -84,14 +84,20 @@ function timers(t) {
   return pending;
 }
 
-test('musl SDK pins preserve all61 filenames and all122 full old package hashes', () => {
+test('musl SDK pins bind the reviewed curl family and all59 unchanged filename/hash pairs per architecture', () => {
   const pins = JSON.parse(readFileSync(new URL('../rust/distribution/musl-builder-pins.json', import.meta.url)));
   const set = pins.apk_package_set;
   assert.equal(set.filenames.length, 61);
   assert.deepEqual(set.filenames, [...new Set(set.filenames)].sort());
-  assert.equal(sha256(set.filenames.join('\n') + '\n'), '2ca4d10b93025f75d2a5cde10ec137e86d538d8ea64bccfb4b49ef86e4a66dd4');
-  const inventories = { aarch64: '7d562ea24f8a9dca71ad5e1c7bd49e2ee4a32ecd08cfcb2173b998778f76130f',
-    x86_64: 'dec3d06575dc3f0e5e9c2f77c76761fa461419cb22e4b24d8b4e5ec7d2f3ffe4' };
+  assert.equal(sha256(set.filenames.join('\n') + '\n'), 'ebccc750d6b866f9245e9007d7842ea6d86e234646c10cca39099c2c1ed88a82');
+  const inventories = { aarch64: '36d5cc2928bce251943c915838098b3babe14c815065421a85915c1d726537ed',
+    x86_64: '716e5c6a2e10ce651c73c7ba25e1ee4ac5b85a60bf0da57d869ce220a49d6237' };
+  // Derived from the previous reviewed61 set after excluding exactly its two
+  // r2 curl family entries; these independent pins retain every other tuple.
+  const retainedInventories = { aarch64: '226633bf1b7377e387041feed8b36c8b44dff3eba1cb7e2d1e5be5303b66bf86',
+    x86_64: '0185e2c01cd7aaa58188243cc7c1afc95147e328a8a05e0b1479e60ef888a7a2' };
+  const replacements = new Set(['curl-8.14.1-r3.apk', 'libcurl-8.14.1-r3.apk']);
+  assert.deepEqual(set.filenames.filter(filename => replacements.has(filename)), [...replacements]);
   assert.deepEqual(Object.keys(set.sha256_base64).sort(), arches);
   for (const arch of arches) {
     assert.equal(set.sha256_base64[arch].length, 61);
@@ -102,6 +108,10 @@ test('musl SDK pins preserve all61 filenames and all122 full old package hashes'
       return bytes.toString('hex');
     });
     assert.equal(sha256(hashes.join('\n') + '\n'), inventories[arch]);
+    const retained = set.filenames.flatMap((filename, index) =>
+      replacements.has(filename) ? [] : [`${filename}  ${hashes[index]}\n`]);
+    assert.equal(retained.length, 59);
+    assert.equal(sha256(retained.join('')), retainedInventories[arch]);
   }
 });
 

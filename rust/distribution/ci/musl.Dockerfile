@@ -16,7 +16,7 @@ RUN set -eux; \
     apk --no-network --repositories-file /dev/null add /tmp/ci-packages/*.apk; \
     apk info -v | sort > /opt/autorouter-build-inputs/installed-packages.txt; \
     for package in \
-      bash-5.2.37-r0 build-base-0.5-r3 ca-certificates-20260909-r0 curl-8.14.1-r2 git-2.47.3-r0 \
+      bash-5.2.37-r0 build-base-0.5-r3 ca-certificates-20260909-r0 curl-8.14.1-r3 git-2.47.3-r0 \
       openssl-3.3.7-r2 perl-5.40.4-r0 perl-dev-5.40.4-r0 perl-utils-5.40.4-r0 procps-ng-4.0.4-r2 tar-1.35-r2 xz-5.8.4-r0; do \
       grep -Fxq "$package" /opt/autorouter-build-inputs/installed-packages.txt; \
     done; \

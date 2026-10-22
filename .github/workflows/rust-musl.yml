@@ -89,6 +89,8 @@ jobs:
             --env CARGO_TARGET_DIR="$GITHUB_WORKSPACE/artifacts/rust-rewrite/musl-portability/target-main" \
             --env CARGO_INCREMENTAL=0 --env CARGO_PROFILE_DEV_DEBUG=0 --env CARGO_PROFILE_TEST_DEBUG=0 \
             --env AUTOROUTER_BUILD_TARGET --env AUTOROUTER_BUILD_MACHINE --env AUTOROUTER_SOURCE_COMMIT --env AUTOROUTER_SOURCE_ROOT --env AUTOROUTER_NODE_IMAGE --env AUTOROUTER_WORKFLOW_RUN --env SOURCE_DATE_EPOCH \
+            --env GITHUB_ACTIONS --env GITHUB_REPOSITORY --env GITHUB_SERVER_URL --env GITHUB_SHA --env GITHUB_JOB \
+            --env GITHUB_WORKFLOW_REF --env GITHUB_WORKFLOW_SHA --env GITHUB_RUN_ID --env GITHUB_RUN_ATTEMPT \
             autorouter-musl-ci:local /bin/bash distribution/ci/check-musl.sh check
       - name: Verify settled musl phase prerequisites
         id: musl_phase_gate
@@ -100,7 +102,7 @@ jobs:
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
           import {createHash} from 'node:crypto';
-          import {appendFileSync,closeSync,constants,fstatSync,lstatSync,openSync,readSync} from 'node:fs';
+          import {appendFileSync,closeSync,constants,fstatSync,lstatSync,openSync,readdirSync,readSync} from 'node:fs';
           const out=process.env.AUTOROUTER_SOURCE_ROOT+'/artifacts/rust-rewrite/musl-portability';
           const read=(path,max)=>{
             const before=lstatSync(path,{bigint:true});assert.ok(before.isFile()&&!before.isSymbolicLink()&&before.nlink===1n&&before.size<=BigInt(max));
@@ -118,6 +120,17 @@ jobs:
           for(const[name,index]of names.map((name,index)=>[name,index])){const required=dependency(name),row=rows[index];if(required!==null&&!passed(required))assert.equal(row.skipped_for,required);else assert.equal(Object.hasOwn(row,'skipped_for'),false);}
           const binaryReady=['production','helper','inspection'].every(passed);
           if(binaryReady)for(const[file,sidecar]of[['autorouter-audit-bootstrap','bootstrap-binary.sha256'],['claude-autorouter-musl','production-binary.sha256'],['xtask-musl','helper-binary.sha256']]){const path=out+'/'+file,bytes=read(path,33554432);assert.equal(read(out+'/'+sidecar,4096).toString('utf8'),createHash('sha256').update(bytes).digest('hex')+'  '+path+'\n');}
+          if(binaryReady){
+            const pair=out+'/production-native',info=lstatSync(pair);assert.ok(info.isDirectory()&&!info.isSymbolicLink());assert.deepEqual(readdirSync(pair).sort(),['claude-autorouter','native-binary-provenance.json']);
+            const sha=bytes=>createHash('sha256').update(bytes).digest('hex');
+            const binary=read(pair+'/claude-autorouter',33554432),provenance=JSON.parse(read(pair+'/native-binary-provenance.json',2097152));
+            assert.equal(provenance.schema_version,1);assert.equal(provenance.kind,'native_binary_provenance');assert.equal(provenance.provenance,'ci-source-build');assert.equal(provenance.repository,'frapposelli/claude-autorouter');assert.equal(provenance.profile,'release');assert.equal(provenance.portable_cpu,true);
+            assert.equal(provenance.target,process.env.AUTOROUTER_BUILD_TARGET);assert.equal(provenance.source_commit,process.env.AUTOROUTER_SOURCE_COMMIT);assert.equal(provenance.source_commit,process.env.GITHUB_SHA);assert.equal(provenance.cargo_lock_sha256,sha(read(process.env.AUTOROUTER_SOURCE_ROOT+'/rust/Cargo.lock',2097152)));
+            assert.equal(provenance.binary_sha256,sha(binary));assert.equal(provenance.binary_sha256,sha(read(out+'/claude-autorouter-musl',33554432)));
+            for(const[field,file,max]of[['inputs_sha256','production-inputs.json',2097152],['cargo_report_sha256','production-build.jsonl',67108864],['feature_report_sha256','production-features.json',2097152],['builder_report_sha256','builder.json',2097152]])assert.equal(provenance[field],sha(read(out+'/'+file,max)));
+            assert.equal(provenance.workflow_run,process.env.AUTOROUTER_WORKFLOW_RUN+'/attempts/'+process.env.GITHUB_RUN_ATTEMPT);
+            assert.equal(provenance.workflow.repository,process.env.GITHUB_REPOSITORY);assert.equal(provenance.workflow.checkout_commit,process.env.GITHUB_SHA);assert.equal(provenance.workflow.workflow_ref,process.env.GITHUB_WORKFLOW_REF);assert.equal(provenance.workflow.workflow_sha,process.env.GITHUB_WORKFLOW_SHA);assert.equal(provenance.workflow.run_id,process.env.GITHUB_RUN_ID);assert.equal(provenance.workflow.run_attempt,process.env.GITHUB_RUN_ATTEMPT);assert.equal(provenance.workflow.job,'musl');
+          }
           const archivesReady=binaryReady&&['npm','direct'].every(passed);
           const referenceReady=binaryReady&&passed('freeze-reference');
           appendFileSync(process.env.GITHUB_OUTPUT,'binary_ready='+binaryReady+'\narchives_ready='+archivesReady+'\nreference_ready='+referenceReady+'\n');
@@ -168,6 +181,20 @@ jobs:
           for report in parity-upstream-transport.json parity-upstream-security.json parity-tls-options.json tls-policy-characterization.json parity-localhost-transport.json; do
             cp "../artifacts/rust-rewrite/$report" "$out/gnu-reports/"
           done
+      - name: Retain verified native musl provenance pair
+        id: musl_native_upload
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() && !cancelled() && steps.musl_phase_gate.outcome == 'success' && steps.musl_phase_gate.outputs.binary_ready == 'true' }}
+        with:
+          name: rust-musl-native-${{ matrix.target }}
+          path: |
+            artifacts/rust-rewrite/musl-portability/production-native/claude-autorouter
+            artifacts/rust-rewrite/musl-portability/production-native/native-binary-provenance.json
+            artifacts/rust-rewrite/musl-portability/production-inputs.json
+            artifacts/rust-rewrite/musl-portability/production-build.jsonl
+            artifacts/rust-rewrite/musl-portability/production-features.json
+            artifacts/rust-rewrite/musl-portability/builder.json
+          if-no-files-found: error
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
