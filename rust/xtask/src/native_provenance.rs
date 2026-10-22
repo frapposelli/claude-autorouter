@@ -1,4 +1,4 @@
-//! GNU-only CI build provenance collector. Never builds or runs the product.
+//! Reviewed GNU/Mac CI build provenance collector. Never builds or runs the product.
 //! A reviewed workflow and original GitHub artifact identity remain the trust boundary.
 use crate::audit_support::{digest, regular};
 use serde_json::{Value, json};
@@ -60,6 +60,99 @@ fn profile(target: &str) -> Result<Profile, String> {
         }),
         _ => Err("Native provenance target has no reviewed GNU build profile".into()),
     }
+}
+
+#[path = "native_provenance_macos.rs"]
+mod macos;
+
+#[derive(Clone, Copy)]
+enum BuildProfile {
+    Gnu(Profile),
+    Mac(macos::MacProfile),
+}
+
+impl BuildProfile {
+    fn reviewed(target: &str) -> Result<Self, String> {
+        if target.ends_with("apple-darwin") {
+            macos::profile(target).map(Self::Mac)
+        } else {
+            profile(target).map(Self::Gnu)
+        }
+    }
+
+    fn from_inputs(before: &Value) -> Result<Self, String> {
+        let p = Self::reviewed(text(before, "target")?)?;
+        let expected = match p {
+            Self::Gnu(_) => "gnu-glibc228-v1",
+            Self::Mac(_) => "macos-hosted-v1",
+        };
+        if before["profile"] != expected {
+            return Err("Unrecognized native build-input target/profile pair".into());
+        }
+        if matches!(p, Self::Mac(_)) && before["builder"] != Value::Null {
+            return Err("Mac input record must not claim a GNU builder report".into());
+        }
+        Ok(p)
+    }
+
+    fn target(self) -> &'static str {
+        match self {
+            Self::Gnu(p) => p.target,
+            Self::Mac(p) => p.target,
+        }
+    }
+
+    fn rustflags(self) -> &'static str {
+        match self {
+            Self::Gnu(p) => p.rustflags,
+            Self::Mac(p) => p.rustflags,
+        }
+    }
+
+    fn begin_snapshot(
+        self,
+        root: &Path,
+        options: &BTreeMap<String, String>,
+    ) -> Result<Value, String> {
+        match self {
+            Self::Gnu(p) => snapshot(root, p, Path::new(&options["--builder-report"])),
+            Self::Mac(p) => macos::snapshot(root, p),
+        }
+    }
+
+    fn observed_again(self, root: &Path, before: &Value) -> Result<Value, String> {
+        match self {
+            Self::Gnu(p) => snapshot(root, p, Path::new(text(&before["builder"], "path")?)),
+            Self::Mac(p) => macos::snapshot(root, p),
+        }
+    }
+
+    fn inspect(self, binary: &[u8]) -> Result<Value, String> {
+        match self {
+            Self::Gnu(p) => inspected_gnu_binary(p, binary),
+            Self::Mac(p) => macos::inspect(p, binary),
+        }
+    }
+}
+
+fn begin_options(args: &[String]) -> Result<(BuildProfile, BTreeMap<String, String>), String> {
+    let names: &[&str] = match args.len() {
+        8 => &["--target", "--build-report", "--feature-report", "--out"],
+        10 => &[
+            "--target",
+            "--builder-report",
+            "--build-report",
+            "--feature-report",
+            "--out",
+        ],
+        _ => return Err("Invalid native provenance options".into()),
+    };
+    let options = options(args, names)?;
+    let p = BuildProfile::reviewed(&options["--target"])?;
+    if matches!(p, BuildProfile::Gnu(_)) != options.contains_key("--builder-report") {
+        return Err("GNU begin requires a builder report; Mac begin must omit it".into());
+    }
+    Ok((p, options))
 }
 
 fn text<'a>(value: &'a Value, key: &str) -> Result<&'a str, String> {
@@ -800,13 +893,10 @@ fn read_build_inputs(path: &Path) -> Result<(Vec<u8>, Value), String> {
     if json_bytes(&before)? != bytes {
         return Err("Build inputs are not canonical producer output".into());
     }
-    if before["schema_version"] != 1
-        || before["kind"] != "native_binary_build_inputs"
-        || before["profile"] != "gnu-glibc228-v1"
-    {
+    if before["schema_version"] != 1 || before["kind"] != "native_binary_build_inputs" {
         return Err("Unrecognized native build-input schema/profile".into());
     }
-    profile(text(&before, "target")?)?;
+    BuildProfile::from_inputs(&before)?;
     Ok((bytes, before))
 }
 
@@ -901,7 +991,7 @@ fn fresh_release_tree(root: &Path, state: &Value) -> Result<(), String> {
         .join("release");
     match fs::symlink_metadata(&directory) {
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
-        _ => Err("GNU provenance requires a prospective fresh release output tree".into()),
+        _ => Err("Native provenance requires a prospective fresh release output tree".into()),
     }
 }
 
@@ -912,14 +1002,13 @@ fn finish(root: &Path, args: &[String]) -> Result<bool, String> {
     )?;
     let input_path = canonical(Path::new(&options["--inputs"]))?;
     let (input_bytes, before) = read_build_inputs(&input_path)?;
-    let p = profile(text(&before, "target")?)?;
-    let builder_path = Path::new(text(&before["builder"], "path")?);
+    let p = BuildProfile::from_inputs(&before)?;
     let expected_outputs = declared_outputs(
         &before,
         &options["--build-report"],
         &options["--feature-report"],
     )?;
-    bound_state(&before, snapshot(root, p, builder_path)?, &expected_outputs)?;
+    bound_state(&before, p.observed_again(root, &before)?, &expected_outputs)?;
     let build_path = canonical(Path::new(&options["--build-report"]))?;
     let build_bytes = single_report(&build_path, BUILD_MAX)?;
     let inspected = crate::production_features::inspect(&build_bytes, root)?;
@@ -933,12 +1022,12 @@ fn finish(root: &Path, args: &[String]) -> Result<bool, String> {
     if digest(&binary) != text(&exact_feature_report, "binary_sha256")? {
         return Err("Production executable changed after feature audit".into());
     }
-    let inspection = inspected_gnu_binary(p, &binary)?;
+    let inspection = p.inspect(&binary)?;
     let provenance = json!({"schema_version":1,"kind":"native_binary_provenance","provenance":"ci-source-build",
-        "source_commit":before["source_commit"],"cargo_lock_sha256":before["cargo_lock_sha256"],"target":p.target,
+        "source_commit":before["source_commit"],"cargo_lock_sha256":before["cargo_lock_sha256"],"target":p.target(),
         "binary_sha256":digest(&binary),"repository":REPOSITORY,"profile":"release","portable_cpu":true,
         "rustc":before["compiler"]["rustc_text"],"workflow_run":before["ci"]["workflow_run"],
-        "rustflags":p.rustflags.split_ascii_whitespace().collect::<Vec<_>>(),"workflow":before["ci"],
+        "rustflags":p.rustflags().split_ascii_whitespace().collect::<Vec<_>>(),"workflow":before["ci"],
         "inputs_sha256":digest(&input_bytes),"cargo_report_sha256":digest(&build_bytes),"feature_report_sha256":digest(&feature_bytes),
         "builder_report_sha256":before["builder"]["sha256"],"inspection":inspection,
         "qualification":"Build provenance only. No platform/TLS/performance/lifecycle/release approval or private-artifact promotion."});
@@ -946,7 +1035,7 @@ fn finish(root: &Path, args: &[String]) -> Result<bool, String> {
     // Verify every observed file again before committing output. This closes
     // ordinary concurrent mutation windows; the reviewed job is still trusted
     // to execute the recorded command without a transient hidden mutation.
-    let mut final_state = snapshot(root, p, builder_path)?;
+    let mut final_state = p.observed_again(root, &before)?;
     final_state["outputs"] = expected_outputs;
     if before != final_state
         || single_report(&input_path, INPUT_MAX)? != input_bytes
@@ -1021,7 +1110,7 @@ fn finish(root: &Path, args: &[String]) -> Result<bool, String> {
         file.keep();
     }
     println!("{}",serde_json::to_string_pretty(&json!({"kind":"native_binary_provenance_written","passed":true,
-        "target":p.target,"binary_sha256":digest(&binary),"provenance_sha256":digest(&provenance_bytes),
+        "target":p.target(),"binary_sha256":digest(&binary),"provenance_sha256":digest(&provenance_bytes),
         "release_approved":false,"output":out})).map_err(|_|"Cannot encode provenance result")?);
     Ok(true)
 }
@@ -1029,18 +1118,8 @@ fn finish(root: &Path, args: &[String]) -> Result<bool, String> {
 pub(crate) fn run(args: &[String], root: &Path) -> Result<bool, String> {
     match args.first().map(String::as_str) {
         Some("begin") => {
-            let options = options(
-                &args[1..],
-                &[
-                    "--target",
-                    "--builder-report",
-                    "--build-report",
-                    "--feature-report",
-                    "--out",
-                ],
-            )?;
-            let p = profile(&options["--target"])?;
-            let mut state = snapshot(root, p, Path::new(&options["--builder-report"]))?;
+            let (p, options) = begin_options(&args[1..])?;
+            let mut state = p.begin_snapshot(root, &options)?;
             let output_paths = [
                 &options["--build-report"],
                 &options["--feature-report"],
@@ -1072,7 +1151,7 @@ pub(crate) fn run(args: &[String], root: &Path) -> Result<bool, String> {
         Some("finish") => finish(root, &args[1..]),
         Some("--help") => {
             println!(
-                "GNU CI only: binary-provenance begin --target TARGET --builder-report ABSOLUTE_PATH --build-report NEW_ABSOLUTE_PATH --feature-report NEW_ABSOLUTE_PATH --out NEW_ABSOLUTE_FILE\n              binary-provenance finish --inputs ABSOLUTE_PATH --build-report ABSOLUTE_PATH --feature-report ABSOLUTE_PATH --out NEW_ABSOLUTE_DIRECTORY\nNo builds, product execution, downloads, provider calls, qualification or release approval. Local/unreviewed profiles fail closed."
+                "Reviewed GNU/Mac CI only: binary-provenance begin --target TARGET [--builder-report ABSOLUTE_PATH (GNU only)] --build-report NEW_ABSOLUTE_PATH --feature-report NEW_ABSOLUTE_PATH --out NEW_ABSOLUTE_FILE\n              binary-provenance finish --inputs ABSOLUTE_PATH --build-report ABSOLUTE_PATH --feature-report ABSOLUTE_PATH --out NEW_ABSOLUTE_DIRECTORY\nNo builds, product execution, downloads, provider calls, qualification or release approval. Local/unreviewed profiles fail closed."
             );
             Ok(true)
         }

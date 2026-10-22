@@ -24,34 +24,78 @@ pub fn inspect(target: &str, bytes: &[u8]) -> Result<Value, String> {
         if bytes.get(..4) != Some(&[0xcf, 0xfa, 0xed, 0xfe]) {
             return Err("Expected a little-endian 64-bit Mach-O executable".into());
         }
-        let cpu = read(bytes, 4, 4, true)?;
+        let header = bytes.get(..32).ok_or("Truncated executable header")?;
+        let cpu = read(header, 4, 4, true)?;
         let expected = match target {
             "aarch64-apple-darwin" => 0x100000c,
             "x86_64-apple-darwin" => 0x1000007,
             _ => return Err("Unsupported native target".into()),
         };
-        if cpu != expected || read(bytes, 12, 4, true)? != 2 {
+        if cpu != expected || read(header, 12, 4, true)? != 2 {
             return Err("Mach-O architecture or executable type does not match target".into());
         }
-        let commands = read(bytes, 16, 4, true)? as usize;
-        if commands > 4096 {
+        let commands = read(header, 16, 4, true)? as usize;
+        let command_bytes = read(header, 20, 4, true)? as usize;
+        if commands > 4096 || commands > command_bytes / 8 {
             return Err("Invalid Mach-O load command count".into());
         }
-        let mut offset = 32;
+        // mach_header_64.sizeofcmds bounds the entire region. Each command's
+        // own slice bounds every interpreted field, including strings/tools.
+        let command_end = 32usize
+            .checked_add(command_bytes)
+            .ok_or("Invalid Mach-O load command region")?;
+        let load_commands = bytes
+            .get(32..command_end)
+            .ok_or("Invalid Mach-O load command region")?;
+        let mut offset = 0usize;
         let mut minimum = None;
         let mut libraries = Vec::new();
         for _ in 0..commands {
-            let command = read(bytes, offset, 4, true)?;
-            let size = read(bytes, offset + 4, 4, true)? as usize;
-            if size < 8 || offset.checked_add(size).is_none_or(|n| n > bytes.len()) {
+            let remaining = load_commands
+                .get(offset..)
+                .ok_or("Invalid Mach-O load command")?;
+            let command = read(remaining, 0, 4, true)?;
+            let size = read(remaining, 4, 4, true)? as usize;
+            if size < 8 || !size.is_multiple_of(8) {
                 return Err("Invalid Mach-O load command".into());
             }
+            let raw = remaining.get(..size).ok_or("Invalid Mach-O load command")?;
             let version = match command {
-                0x32 => Some(read(bytes, offset + 12, 4, true)?),
-                0x24 => Some(read(bytes, offset + 8, 4, true)?),
+                0x32 => {
+                    // build_version_command is 24 bytes, followed by exactly
+                    // ntools build_tool_version records of eight bytes each.
+                    if raw.len() < 24 {
+                        return Err("Invalid Mach-O build version command".into());
+                    }
+                    if read(raw, 8, 4, true)? != 1 {
+                        return Err("Mach-O artifact does not declare the macOS platform".into());
+                    }
+                    let tools = read(raw, 20, 4, true)? as usize;
+                    let expected_size = tools
+                        .checked_mul(8)
+                        .and_then(|bytes| bytes.checked_add(24))
+                        .ok_or("Invalid Mach-O build version tools")?;
+                    if raw.len() != expected_size {
+                        return Err("Invalid Mach-O build version tools".into());
+                    }
+                    Some(read(raw, 12, 4, true)?)
+                }
+                0x24 => {
+                    if raw.len() != 16 {
+                        return Err("Invalid Mach-O minimum version command".into());
+                    }
+                    Some(read(raw, 8, 4, true)?)
+                }
+                0x25 | 0x2f | 0x30 => {
+                    return Err("Mach-O artifact declares a non-macOS minimum platform".into());
+                }
+                0x8000001c => return Err("Mach-O artifact declares a library search path".into()),
                 _ => None,
             };
             if let Some(version) = version {
+                if minimum.is_some() {
+                    return Err("Duplicate Mach-O minimum platform command".into());
+                }
                 minimum = Some(format!(
                     "{}.{}.{}",
                     version >> 16,
@@ -60,20 +104,41 @@ pub fn inspect(target: &str, bytes: &[u8]) -> Result<Value, String> {
                 ));
             }
             if matches!(command, 0xc | 0x80000018 | 0x8000001f | 0x20 | 0x80000023) {
-                let name = read(bytes, offset + 8, 4, true)? as usize;
-                if name >= size {
+                // dylib_command includes the full 24-byte dylib structure;
+                // lc_str offsets are relative to this command, never the file.
+                if raw.len() < 24 {
+                    return Err("Invalid Mach-O library command".into());
+                }
+                let name = read(raw, 8, 4, true)? as usize;
+                if name < 24 || name >= raw.len() {
                     return Err("Invalid Mach-O library name".into());
                 }
-                let raw = &bytes[offset + name..offset + size];
-                let end = raw.iter().position(|b| *b == 0).unwrap_or(raw.len());
-                let library =
-                    std::str::from_utf8(&raw[..end]).map_err(|_| "Invalid Mach-O library name")?;
-                if !library.starts_with("/usr/lib/") && !library.starts_with("/System/Library/") {
+                let name_bytes = &raw[name..];
+                let end = name_bytes
+                    .iter()
+                    .position(|byte| *byte == 0)
+                    .ok_or("Unterminated Mach-O library name")?;
+                let library = std::str::from_utf8(&name_bytes[..end])
+                    .map_err(|_| "Invalid Mach-O library name")?;
+                // A trusted textual prefix must not hide parent traversal or
+                // non-canonical components into an external dependency.
+                if (!library.starts_with("/usr/lib/") && !library.starts_with("/System/Library/"))
+                    || library
+                        .split('/')
+                        .skip(1)
+                        .any(|part| matches!(part, "" | "." | ".."))
+                    || library.chars().any(char::is_control)
+                {
                     return Err("Mach-O artifact depends on a non-system library".into());
                 }
                 libraries.push(library.to_owned());
             }
-            offset += size;
+            offset = offset
+                .checked_add(size)
+                .ok_or("Invalid Mach-O load command")?;
+        }
+        if offset != load_commands.len() {
+            return Err("Mach-O load command count does not cover sizeofcmds".into());
         }
         return Ok(
             json!({"format":"Mach-O","target":target,"minimum_macos":minimum,"dynamic_libraries":libraries,"execution_qualification":"pending"}),
@@ -453,6 +518,353 @@ mod tests {
         for index in 0..width {
             let shift = if little { index } else { width - index - 1 };
             bytes[offset + index] = (value >> (shift * 8)) as u8;
+        }
+    }
+    fn macho_targets() -> [(&'static str, u64); 2] {
+        [
+            ("aarch64-apple-darwin", 0x100000c),
+            ("x86_64-apple-darwin", 0x1000007),
+        ]
+    }
+    fn macho_command(kind: u64, size: usize) -> Vec<u8> {
+        let mut command = vec![0; size];
+        put(&mut command, 0, 4, kind, true);
+        put(&mut command, 4, 4, size as u64, true);
+        command
+    }
+    fn macho_fixture(cpu: u64, commands: &[Vec<u8>]) -> Vec<u8> {
+        let mut bytes = vec![0; 32];
+        bytes[..4].copy_from_slice(&[0xcf, 0xfa, 0xed, 0xfe]);
+        put(&mut bytes, 4, 4, cpu, true);
+        put(&mut bytes, 12, 4, 2, true);
+        put(&mut bytes, 16, 4, commands.len() as u64, true);
+        put(
+            &mut bytes,
+            20,
+            4,
+            commands.iter().map(Vec::len).sum::<usize>() as u64,
+            true,
+        );
+        for command in commands {
+            bytes.extend_from_slice(command);
+        }
+        bytes
+    }
+    fn macho_minimum(version: u64) -> Vec<u8> {
+        let mut command = macho_command(0x24, 16);
+        put(&mut command, 8, 4, version, true);
+        put(&mut command, 12, 4, 0x0f0203, true);
+        command
+    }
+    fn macho_build(platform: u64, version: u64, tools: &[(u64, u64)]) -> Vec<u8> {
+        let mut command = macho_command(0x32, 24 + tools.len() * 8);
+        put(&mut command, 8, 4, platform, true);
+        put(&mut command, 12, 4, version, true);
+        put(&mut command, 16, 4, 0x0f0203, true);
+        put(&mut command, 20, 4, tools.len() as u64, true);
+        for (index, (tool, version)) in tools.iter().enumerate() {
+            put(&mut command, 24 + index * 8, 4, *tool, true);
+            put(&mut command, 28 + index * 8, 4, *version, true);
+        }
+        command
+    }
+    fn macho_library(kind: u64, name: &[u8], name_offset: usize) -> Vec<u8> {
+        let size = (name_offset + name.len() + 1).div_ceil(8) * 8;
+        let mut command = macho_command(kind, size);
+        put(&mut command, 8, 4, name_offset as u64, true);
+        command[name_offset..name_offset + name.len()].copy_from_slice(name);
+        command
+    }
+    #[test]
+    fn macho_header_only_fixtures_keep_the_existing_report_schema_for_both_cpus() {
+        for (target, cpu) in macho_targets() {
+            let mut bytes = macho_fixture(cpu, &[]);
+            let expected = json!({"format":"Mach-O","target":target,"minimum_macos":null,"dynamic_libraries":[],"execution_qualification":"pending"});
+            assert_eq!(inspect(target, &bytes).unwrap(), expected);
+            // File payload outside a declared empty load-command region is not
+            // interpreted as commands or invented minimum-OS evidence.
+            bytes.extend_from_slice(&[0xff; 24]);
+            assert_eq!(inspect(target, &bytes).unwrap(), expected);
+            for length in 0..32 {
+                assert!(
+                    inspect(target, &bytes[..length]).is_err(),
+                    "{target} {length}"
+                );
+            }
+            for (offset, value) in [(4, cpu ^ 1), (12, 6), (16, 1), (20, 8)] {
+                let mut wrong = bytes.clone();
+                put(&mut wrong, offset, 4, value, true);
+                assert!(inspect(target, &wrong).is_err(), "{target} {offset}");
+            }
+        }
+    }
+    #[test]
+    fn macho_macos_versions_and_all_dependency_kinds_preserve_report_values() {
+        let kinds = [0xc, 0x80000018, 0x8000001f, 0x20, 0x80000023];
+        let names = [
+            "/usr/lib/libSystem.B.dylib",
+            "/System/Library/Frameworks/Security.framework/Versions/A/Security",
+            "/usr/lib/libiconv.2.dylib",
+            "/usr/lib/libobjc.A.dylib",
+            "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation",
+        ];
+        for (target, cpu) in macho_targets() {
+            for (version, text) in [
+                (0x0a0f07, "10.15.7"),
+                (0x0b0000, "11.0.0"),
+                (0x0f0203, "15.2.3"),
+            ] {
+                for modern in [false, true] {
+                    let mut commands = vec![if modern {
+                        macho_build(1, version, &[(3, 0x040000)])
+                    } else {
+                        macho_minimum(version)
+                    }];
+                    for (index, (kind, name)) in kinds.iter().zip(names).enumerate() {
+                        commands.push(macho_library(
+                            *kind,
+                            name.as_bytes(),
+                            if index % 2 == 0 { 24 } else { 32 },
+                        ));
+                    }
+                    let result = inspect(target, &macho_fixture(cpu, &commands)).unwrap();
+                    assert_eq!(
+                        result,
+                        json!({"format":"Mach-O","target":target,"minimum_macos":text,"dynamic_libraries":names,"execution_qualification":"pending"})
+                    );
+                }
+            }
+        }
+    }
+    #[test]
+    fn macho_command_region_and_alignment_do_not_borrow_following_file_bytes() {
+        for (target, cpu) in macho_targets() {
+            let mut good = macho_fixture(cpu, &[macho_minimum(0x0b0000), macho_command(0x7777, 8)]);
+            good.extend_from_slice(&macho_command(0x7777, 8));
+            assert_eq!(inspect(target, &good).unwrap()["minimum_macos"], "11.0.0");
+            for (offset, value) in [
+                (16, 0),
+                (16, 1),
+                (16, 3),
+                (16, 4097),
+                (20, 0),
+                (20, 8),
+                (20, 16),
+                (20, 23),
+                (20, 32),
+                (20, u32::MAX as u64),
+                (36, 0),
+                (36, 4),
+                (36, 7),
+                (36, 8),
+                (36, 12),
+                (36, 15),
+                (36, 24),
+                (36, 0xfffffff8),
+            ] {
+                let mut bytes = good.clone();
+                put(&mut bytes, offset, 4, value, true);
+                assert!(
+                    inspect(target, &bytes).is_err(),
+                    "{target} {offset} {value}"
+                );
+            }
+            let no_tail = macho_fixture(cpu, &[macho_minimum(0x0b0000)]);
+            for length in 32..no_tail.len() {
+                assert!(inspect(target, &no_tail[..length]).is_err());
+            }
+        }
+    }
+    #[test]
+    fn macho_known_command_fields_cannot_overlap_a_following_command() {
+        for (target, cpu) in macho_targets() {
+            for (kind, sizes) in [
+                (0x24, &[8, 24][..]),
+                (0x32, &[8, 16][..]),
+                (0xc, &[8, 16][..]),
+                (0x80000018, &[8, 16][..]),
+                (0x8000001f, &[8, 16][..]),
+                (0x20, &[8, 16][..]),
+                (0x80000023, &[8, 16][..]),
+            ] {
+                for &size in sizes {
+                    let mut short = macho_command(kind, size);
+                    if kind == 0x32 && size >= 16 {
+                        put(&mut short, 8, 4, 1, true);
+                        put(&mut short, 12, 4, 0x0b0000, true);
+                    }
+                    let bytes = macho_fixture(cpu, &[short, macho_command(0x7777, 32)]);
+                    assert!(inspect(target, &bytes).is_err(), "{target} {kind:x} {size}");
+                }
+            }
+        }
+    }
+    #[test]
+    fn macho_build_version_tools_exactly_fit_the_current_command() {
+        for (target, cpu) in macho_targets() {
+            for tools in [
+                &[][..],
+                &[(1, 0x010203)][..],
+                &[(1, 0x010203), (3, 0x040506)][..],
+            ] {
+                let command = macho_build(1, 0x0b0000, tools);
+                assert_eq!(
+                    inspect(target, &macho_fixture(cpu, std::slice::from_ref(&command))).unwrap()["minimum_macos"],
+                    "11.0.0"
+                );
+                for count in [tools.len() as u64 + 1, u32::MAX as u64] {
+                    let mut invalid = command.clone();
+                    put(&mut invalid, 20, 4, count, true);
+                    // The trailing bytes are a separate valid command. They
+                    // cannot complete an under-sized build-tool table.
+                    assert!(
+                        inspect(
+                            target,
+                            &macho_fixture(cpu, &[invalid, macho_command(0x7777, 8)])
+                        )
+                        .is_err()
+                    );
+                }
+                if !tools.is_empty() {
+                    let mut extra = command;
+                    put(&mut extra, 20, 4, 0, true);
+                    assert!(inspect(target, &macho_fixture(cpu, &[extra])).is_err());
+                }
+            }
+        }
+    }
+    #[test]
+    fn macho_rejects_duplicate_or_conflicting_minimum_platform_commands() {
+        for (target, cpu) in macho_targets() {
+            let legacy = macho_minimum(0x0b0000);
+            let modern = macho_build(1, 0x0b0000, &[]);
+            for commands in [
+                vec![legacy.clone(), legacy.clone()],
+                vec![modern.clone(), modern.clone()],
+                vec![legacy.clone(), modern.clone()],
+                vec![modern.clone(), legacy.clone()],
+                vec![legacy, macho_minimum(0x0c0000)],
+                vec![modern, macho_build(1, 0x0c0000, &[])],
+            ] {
+                assert_eq!(
+                    inspect(target, &macho_fixture(cpu, &commands)).unwrap_err(),
+                    "Duplicate Mach-O minimum platform command"
+                );
+            }
+        }
+    }
+    #[test]
+    fn macho_rejects_other_build_platforms_and_legacy_minimum_platforms() {
+        for (target, cpu) in macho_targets() {
+            for platform in [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, u32::MAX as u64] {
+                let command = macho_build(platform, 0x0b0000, &[]);
+                assert!(
+                    inspect(target, &macho_fixture(cpu, std::slice::from_ref(&command))).is_err()
+                );
+                assert!(
+                    inspect(
+                        target,
+                        &macho_fixture(cpu, &[macho_minimum(0x0b0000), command])
+                    )
+                    .is_err()
+                );
+            }
+            for kind in [0x25, 0x2f, 0x30] {
+                let mut command = macho_minimum(0x0b0000);
+                put(&mut command, 0, 4, kind, true);
+                assert!(inspect(target, &macho_fixture(cpu, &[command])).is_err());
+            }
+        }
+    }
+    #[test]
+    fn macho_rejects_rpaths_even_when_the_path_and_dependencies_are_system_paths() {
+        for (target, cpu) in macho_targets() {
+            let mut rpath = macho_command(0x8000001c, 24);
+            put(&mut rpath, 8, 4, 12, true);
+            rpath[12..21].copy_from_slice(b"/usr/lib/");
+            let bytes = macho_fixture(
+                cpu,
+                &[
+                    macho_minimum(0x0b0000),
+                    macho_library(0xc, b"/usr/lib/libSystem.B.dylib", 24),
+                    rpath,
+                ],
+            );
+            assert_eq!(
+                inspect(target, &bytes).unwrap_err(),
+                "Mach-O artifact declares a library search path"
+            );
+        }
+    }
+    #[test]
+    fn macho_library_names_stay_inside_their_complete_command() {
+        for (target, cpu) in macho_targets() {
+            let good = macho_library(0xc, b"/usr/lib/libSystem.B.dylib", 24);
+            for offset in [
+                0,
+                8,
+                12,
+                16,
+                23,
+                good.len(),
+                good.len() + 8,
+                u32::MAX as usize,
+            ] {
+                let mut command = good.clone();
+                put(&mut command, 8, 4, offset as u64, true);
+                assert!(
+                    inspect(target, &macho_fixture(cpu, &[command])).is_err(),
+                    "{target} {offset}"
+                );
+            }
+            // A path embedded inside timestamp/current/compatibility fields is
+            // a valid-looking prefix but not a legal lc_str name offset.
+            let mut fields = macho_command(0xc, 24);
+            put(&mut fields, 8, 4, 12, true);
+            fields[12..23].copy_from_slice(b"/usr/lib/x\0");
+            assert!(inspect(target, &macho_fixture(cpu, &[fields])).is_err());
+            let mut no_nul = good;
+            no_nul[24..].fill(b'x');
+            no_nul[24..33].copy_from_slice(b"/usr/lib/");
+            let mut bytes = macho_fixture(cpu, &[no_nul]);
+            bytes.push(0); // A terminator outside cmdsize must not be borrowed.
+            assert_eq!(
+                inspect(target, &bytes).unwrap_err(),
+                "Unterminated Mach-O library name"
+            );
+            for name in [&b""[..], &b"/usr/lib/\xff"[..]] {
+                assert!(
+                    inspect(target, &macho_fixture(cpu, &[macho_library(0xc, name, 24)])).is_err()
+                );
+            }
+        }
+    }
+    #[test]
+    fn macho_dependencies_must_be_lexically_absolute_system_paths() {
+        for (target, cpu) in macho_targets() {
+            for name in [
+                "libSystem.B.dylib",
+                "@rpath/libSystem.B.dylib",
+                "@loader_path/libSystem.B.dylib",
+                "/opt/homebrew/lib/libssl.dylib",
+                "/usr/library/libSystem.B.dylib",
+                "/usr/lib/../../tmp/libexternal.dylib",
+                "/System/Library/../../../tmp/libexternal.dylib",
+                "/usr/lib/./libSystem.B.dylib",
+                "/usr/lib//libSystem.B.dylib",
+                "/usr/lib/",
+                "/usr/lib/lib\nSystem.B.dylib",
+            ] {
+                assert_eq!(
+                    inspect(
+                        target,
+                        &macho_fixture(cpu, &[macho_library(0xc, name.as_bytes(), 24)])
+                    )
+                    .unwrap_err(),
+                    "Mach-O artifact depends on a non-system library",
+                    "{target} {name:?}"
+                );
+            }
         }
     }
     #[test]

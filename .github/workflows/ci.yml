@@ -97,6 +97,62 @@ jobs:
         id: audit_clippy
       - run: cargo test --package xtask --no-default-features --bin autorouter-audit --offline --locked
         id: audit_tests
+      # Before workspace tests/bundle consumers can populate target/release.
+      # The Mac collector requires a cold tree; it never removes cached outputs.
+      - name: Build release and verify experimental features are absent
+        id: native_release
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' }}
+        env:
+          AUTOROUTER_BUILD_RUNNER: ${{ matrix.os }}
+        run: |
+          set -euo pipefail
+          set -o noclobber
+          autorouter_evidence_dir="$GITHUB_WORKSPACE/artifacts/rust-rewrite"
+          mkdir -p "$autorouter_evidence_dir"
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            export CARGO_INCREMENTAL=0 RUSTUP_TOOLCHAIN=1.99.0
+            export OPENSSL_STATIC=1 OPENSSL_SRC_PERL=/usr/bin/perl
+            export CFLAGS=-O2 CXXFLAGS=-O2
+            SOURCE_DATE_EPOCH="$(git show -s --format=%ct HEAD)"
+            CARGO_HOME="$(python3 -c 'import os; print(os.path.realpath(os.environ.get("CARGO_HOME", os.path.expanduser("~/.cargo"))))')"
+            RUSTUP_HOME="$(python3 -c 'import os; print(os.path.realpath(os.environ.get("RUSTUP_HOME", os.path.expanduser("~/.rustup"))))')"
+            DEVELOPER_DIR="$(python3 -c 'import os,subprocess; print(os.path.realpath(subprocess.check_output(["/usr/bin/xcode-select", "-p"], text=True).strip()))')"
+            export DEVELOPER_DIR
+            SDKROOT="$(python3 -c 'import os,subprocess; print(os.path.realpath(subprocess.check_output(["/usr/bin/xcrun", "--sdk", "macosx", "--show-sdk-path"], text=True).strip()))')"
+            export SDKROOT
+            # Keep driver names: clang++ may resolve to clang but its argv[0]
+            # still selects C++ mode. The collector witnesses both paths.
+            CC="$(/usr/bin/xcrun --sdk macosx --find clang)"
+            CXX="$(/usr/bin/xcrun --sdk macosx --find clang++)"
+            export SOURCE_DATE_EPOCH CARGO_HOME RUSTUP_HOME CC CXX
+            case "$AUTOROUTER_BUILD_RUNNER" in
+              macos-15)
+                export AUTOROUTER_BUILD_TARGET=aarch64-apple-darwin AUTOROUTER_BUILD_MACHINE=arm64
+                export RUSTFLAGS='-C target-cpu=generic -C linker=/usr/bin/clang'
+                ;;
+              macos-15-intel)
+                export AUTOROUTER_BUILD_TARGET=x86_64-apple-darwin AUTOROUTER_BUILD_MACHINE=x86_64
+                export RUSTFLAGS='-C target-cpu=x86-64 -C linker=/usr/bin/clang'
+                ;;
+              *) exit 2 ;;
+            esac
+            "$autorouter_evidence_dir/autorouter-audit-bootstrap" binary-provenance begin \
+              --target "$AUTOROUTER_BUILD_TARGET" \
+              --build-report "$autorouter_evidence_dir/production-build.jsonl" \
+              --feature-report "$autorouter_evidence_dir/production-features.json" \
+              --out "$autorouter_evidence_dir/production-inputs.json"
+            cargo build --release --offline --locked --package claude-autorouter --message-format=json > "$autorouter_evidence_dir/production-build.jsonl"
+          else
+            cargo build --release --locked --package claude-autorouter --message-format=json > "$autorouter_evidence_dir/production-build.jsonl"
+          fi
+          "$autorouter_evidence_dir/autorouter-audit-bootstrap" production-features --build-report "$autorouter_evidence_dir/production-build.jsonl" > "$autorouter_evidence_dir/production-features.json"
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            "$autorouter_evidence_dir/autorouter-audit-bootstrap" binary-provenance finish \
+              --inputs "$autorouter_evidence_dir/production-inputs.json" \
+              --build-report "$autorouter_evidence_dir/production-build.jsonl" \
+              --feature-report "$autorouter_evidence_dir/production-features.json" \
+              --out "$autorouter_evidence_dir/production-native"
+          fi
       - run: cargo fmt --check
       - run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - name: Test Rust workspace
@@ -129,13 +185,6 @@ jobs:
             return "$autorouter_metadata_status"
           }
           autorouter_record_workspace tests cargo test --workspace --locked --no-fail-fast
-      - name: Build release and verify experimental features are absent
-        id: native_release
-        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' }}
-        run: |
-          mkdir -p ../artifacts/rust-rewrite
-          cargo build --release --locked --package claude-autorouter --message-format=json > ../artifacts/rust-rewrite/production-build.jsonl
-          ../artifacts/rust-rewrite/autorouter-audit-bootstrap production-features --build-report ../artifacts/rust-rewrite/production-build.jsonl > ../artifacts/rust-rewrite/production-features.json
       - name: Freeze and verify the complete immutable reference
         id: freeze_reference
         if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' }}
@@ -224,6 +273,8 @@ jobs:
             artifacts/rust-rewrite/upgrade-rollback-ci/baseline/*.sha256
             artifacts/rust-rewrite/production-build.jsonl
             artifacts/rust-rewrite/production-features.json
+            artifacts/rust-rewrite/production-inputs.json
+            artifacts/rust-rewrite/production-native/*
             artifacts/rust-rewrite/auditor-bootstrap-build.jsonl
             artifacts/rust-rewrite/auditor-bootstrap-proof.json
             artifacts/rust-rewrite/vendor-audit.json
