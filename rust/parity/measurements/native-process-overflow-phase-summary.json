@@ -1,0 +1,185 @@
+{
+  "schema_version": 1,
+  "kind": "test_only_subprocess_overflow_producer_phase_checkpoint",
+  "date": "2026-10-22",
+  "status": "LOCAL14_AND_INDEPENDENT_REVIEW_PASSED_FRESH_HOSTED_REPAIR_CONFIRMATION_REQUIRED",
+  "source": {
+    "raw_inputs": 741,
+    "snapshot": {
+      "path": "artifacts/rust-rewrite/process-overflow-phase-full-validation-20261022-1/source-candidate-v1.json",
+      "bytes": 126042,
+      "sha256": "ff5d7ca22369ba249bb19662f220ac60aae792b2c303e499b929d3096d8aa1cb"
+    },
+    "only_changed_implementation": {
+      "path": "rust/xtask/src/process.rs",
+      "bytes": 34665,
+      "sha256": "f4169b65f003585b902c6e412800e7419a1068c149d74cd50251fe34ad6da502"
+    },
+    "production_prefix_byte_identical_to_426c113": true,
+    "static_review": {
+      "path": "artifacts/rust-rewrite/ci-426c113-process-fixture-repair-review-20261022-1/independent-static-review-v1.json",
+      "bytes": 4638,
+      "sha256": "e55eca507848cc8ae6eb9e41d7db1f704cf85b161228a85f10c11bf325037774"
+    }
+  },
+  "original_CI_failure": {
+    "head": "426c113d2d3ac7aac4344304fb224b7ce09d21e2",
+    "run": 39791920811,
+    "job": 119869896499,
+    "test": "process::tests::output_overflow_stops_spawned_descendants_before_returning",
+    "passed": 135,
+    "failed": 1,
+    "actual": "Fixture executable timed out",
+    "expected": "Fixture executable exceeded output limit",
+    "diagnostic": {
+      "path": "artifacts/rust-rewrite/ci-426c113-linux-auditor-failure-log-20261022-1/independent-diagnostic-review-v1.json",
+      "bytes": 4982,
+      "sha256": "0c41a7f763bbed2303a69e18ed6369d66dd8f126bb21d50eda6cb25826f89d19"
+    },
+    "scope": "Original log contains no writer-phase/byte witness. Exact original writer scheduling or external dd failure cause is unproven; no production regression is established by this fixture failure."
+  },
+  "phase_repair": {
+    "scope": "Only cfg(test) helper and three new controls; production capture, process group cleanup, file caps, timeout semantics and shipping runtime/default remain byte-identical.",
+    "producer": "A fixed Rust-constant-derived builtin printf format emits MAX_STDERR+1(65537) bytes; at-limit control emits65536. Output-ready marker is atomically renamed only after successful output. External dd removed from fixture.",
+    "ordering": "Real captured file sizes are checked before deadline callback. Overflow remains authoritative without any ack. First observed ack returns false once so a fresh size poll precedes zero completion expiry; a marker never fabricates an overflow verdict.",
+    "deadlines": "Existing10s cooperative startup/producer watchdog measured since capture start remains active while acknowledgment is absent. Once ack is observed, existing2s completion clock uses producer_at. Ack-present wins on that poll even at the watchdog threshold; this is not strict late-ack rejection or a hard12s wall guarantee. Existing timeout/success/failure/admission modes retain their behavior.",
+    "cleanup": "Owned child/group cleanup, release marker and escaped-descendant oracle retained on refusal and completion. No retries, ignored groups, production timer widening or output cap change."
+  },
+  "three_new_controls": [
+    {
+      "name": "overflow_fixture_waits_for_production_before_zero_completion_deadline",
+      "expected": "Real overflow refusal with completionZERO; old arm-started timer deterministically fails."
+    },
+    {
+      "name": "overflow_fixture_marker_at_the_byte_limit_does_not_fabricate_overflow",
+      "expected": "Exact64KiB plus marker and completionZERO yields timeout, proving strict >cap and effective timer."
+    },
+    {
+      "name": "overflow_fixture_producer_watchdog_remains_active_after_admission",
+      "expected": "Armed stalled writer, producerZERO yields timeout with no marker; postarm watchdog remains active."
+    }
+  ],
+  "actual_local_controls": {
+    "pre_repair": {
+      "snapshot": {
+        "path": "artifacts/rust-rewrite/process-overflow-phase-repair-20261022-1/source-pre-repair-control-v1.json",
+        "bytes": 125868,
+        "sha256": "272765511ab65e4e97804d89b4e85a538afbbdbd981724b7518230b7fdff4428"
+      },
+      "owner": {
+        "path": "artifacts/rust-rewrite/process-overflow-phase-repair-20261022-1/pre-repair-control.json",
+        "bytes": 1817,
+        "sha256": "376f5c5bb56b3667028864ce950a6060769eaed62c4311f2f61c42dfd5bbf716"
+      },
+      "passed": 0,
+      "failed": 1,
+      "exit_code": 101,
+      "owner_failure": null,
+      "post_mismatches": [],
+      "meaning": "Frozen old dd/arm-started logic plus zero-completion regression; required overflow instead returns timeout. Failure preserved."
+    },
+    "post_repair": {
+      "snapshot": {
+        "path": "artifacts/rust-rewrite/process-overflow-phase-repair-20261022-1/source-post-repair-focused-v1.json",
+        "bytes": 126042,
+        "sha256": "ff5d7ca22369ba249bb19662f220ac60aae792b2c303e499b929d3096d8aa1cb"
+      },
+      "owner": {
+        "path": "artifacts/rust-rewrite/process-overflow-phase-repair-20261022-1/process-tests.json",
+        "bytes": 1905,
+        "sha256": "591de9cc0850994aa20a374d0cbcd7dc2371c5c7befb5e46e58de4a4ae5802e9"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/process-overflow-phase-repair-20261022-1/process-tests.stdout",
+        "bytes": 1664,
+        "sha256": "8ae8ac9ffdfb7f08af9066b9486a2fce0ad958eea2c0b369f2506b2e95c241bd"
+      },
+      "passed": 18,
+      "failed": 0,
+      "exit_code": 0,
+      "owner_failure": null,
+      "post_mismatches": [],
+      "scope": "Bounded local synthetic subprocess/Scratch tests, not hosted success or provider/runtime evidence."
+    }
+  },
+  "full14": {
+    "status": "ALL14_PASSED_INDEPENDENT_NAMED_OUTCOME_REVIEW_PASSED",
+    "cohort": "artifacts/rust-rewrite/process-overflow-phase-full-validation-20261022-1",
+    "declaration": {
+      "path": "artifacts/rust-rewrite/process-overflow-phase-full-validation-20261022-1/declaration-v1.json",
+      "bytes": 4697,
+      "sha256": "9f84194e86107cf0b36235c4412d59e59a703b5a2835ba2481dd962b11f7cd43"
+    },
+    "actual_result": {
+      "path": "artifacts/rust-rewrite/process-overflow-phase-full-validation-20261022-1/root-all14-result-v1.json",
+      "bytes": 13934,
+      "sha256": "0d771ae61f79153691cfcd2c94d2865449eeb98813f3febd5f887ea8248a6141"
+    },
+    "independent_review": {
+      "path": "artifacts/rust-rewrite/process-overflow-phase-full-validation-20261022-1/independent-full14-outcome-review-v1.json",
+      "bytes": 12265,
+      "sha256": "972c26d635220d72188042bf71d6e4e6ac230777147959c5975e45fbf630ccde"
+    },
+    "conditions": "One reused partially-cleaned O target cache; pinned Rust1.99/Node22.14/Python3.14; normal-use16GiB; jobs2/debug0/incremental0/offline; source741/frozen111/AUX752 then756. No cold-build claim.",
+    "counting_rule": "Three unique process controls execute under both auditor and xtask: six added workspace occurrences produce1787; auditor adds three to139. Preserve mistaken prepared1784 prediction in its original declaration; it is not an actual count.",
+    "observed_from_Root": {
+      "workspace_passed": 1787,
+      "workspace_failed": 0,
+      "workspace_ignored": 11,
+      "workspace_groups": 66,
+      "auditor_passed": 139,
+      "Node_passed": 684,
+      "SDK_passed": 51,
+      "bundles": 3,
+      "archive_files": 58,
+      "package_lifecycle_scenarios": 17,
+      "bootstrap_total": 65,
+      "bootstrap_registry": 64,
+      "bootstrap_local_xtask": 1,
+      "vendor_components": 5
+    },
+    "review_scope": "Reviewer proposed fixture phase semantics and authored bounded invocation/preparation data; Root authored/adopted the final test-only repair and executed every owner. This is independent outcome/orchestration and byte-binding review, not independent authorship review.",
+    "bootstrap_package_scope": "65 total Cargo package identities:64 registry packages plus local xtask; prepared registry_units65 label was imprecise."
+  },
+  "CI426_window": {
+    "status": "CLOSED_WITH_PENDING_OR_INCOMPLETE_METADATA",
+    "head": "426c113d2d3ac7aac4344304fb224b7ce09d21e2",
+    "last_observed_UTC": "2026-10-22T14:23:10.722640+00:00",
+    "sealed_metadata_receipt": {
+      "path": "artifacts/rust-rewrite/ci-2987-corrections-next-window-20261022-1/final-metadata-review.json",
+      "bytes": 119972,
+      "sha256": "a700158423deb2cea76ffa615e713f225b73f60d49067a31bf969d108e3756d7"
+    },
+    "samples": 3,
+    "GETs": 19,
+    "transport_failures": 0,
+    "fresh_check_contexts": {
+      "success": 7,
+      "failure": 1,
+      "running": 6
+    },
+    "latest_retained_job_payload_records": {
+      "success": 6,
+      "failure": 1,
+      "running": 7
+    },
+    "identities_correlated_independent_of_freshness": true,
+    "current_check_status_and_job_payload_status_fully_correlated": false,
+    "skipped_pending_run_payload_refresh": {
+      "run": 39791920848,
+      "job": 119869895356,
+      "name": "runtime and installed CLI / i686-unknown-linux-gnu",
+      "latest_job_metadata_sample": 2,
+      "latest_job_payload_status": "in_progress",
+      "current_check_context_conclusion": "success"
+    },
+    "scope": "Three samples/19GET closed with no errors and no further requests. All14 exact run/job/head/attempt1 identities correlate, but one i686 job payload was not refreshed within allocation: its older running record is not a newly observed current state. Fresh check counts and retained payload counts are separate; no all-green or workflow overall conclusion. This source repair is not part of426c113 and inherits no hosted outcome."
+  },
+  "fresh_repair_CI": {
+    "status": "PENDING_NEW_PUSH_AND_EXACT_HEAD_MEASUREMENT",
+    "head": null
+  },
+  "qualification": "No ARM proposal/target adopted. No shipping-runtime/default, production deadline/cap/permission change. Broader protocol, CPU/minOS/TLS/WSL, performance, reproducibility, release and complete rewrite/default gates remain open.",
+  "release_approved": false,
+  "default_cutover_approved": false
+}

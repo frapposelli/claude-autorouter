@@ -563,6 +563,8 @@ mod tests {
     fn run_descendant_fixture(
         mode: &str,
         startup: Duration,
+        producer: Duration,
+        completion: Duration,
     ) -> (Scratch, Result<CapturedProcess, String>, Option<bool>) {
         let scratch = Scratch::new().unwrap();
         if mode == "arm-failed" {
@@ -585,7 +587,11 @@ mod tests {
             wait_for "$1/armed"
             case "$2" in
                 timeout) wait ;;
-                overflow) dd if=/dev/zero bs=65536 count=2 1>&2 2>/dev/null; wait ;;
+                overflow|overflow-at-limit)
+                    printf "$3" x >&2 &&
+                    printf ready > "$1/output-starting" && mv "$1/output-starting" "$1/output-ready"
+                    wait ;;
+                overflow-stalled) wait ;;
                 success) printf synthetic-completion ;;
                 failure) printf synthetic-failure >&2; exit 17 ;;
             esac
@@ -594,8 +600,13 @@ mod tests {
         command
             .args(["-c", script, "owned-descendant-fixture"])
             .arg(&scratch.0)
-            .arg(mode);
+            .arg(mode)
+            .arg(format!(
+                "%{}s",
+                MAX_STDERR + u64::from(mode != "overflow-at-limit")
+            ));
         let mut ready_at = None;
+        let mut producer_at = None;
         let mut armed = None;
         let result = capture_with_deadline(&mut command, b"", |started| {
             if ready_at.is_none() && started.elapsed() >= startup {
@@ -612,8 +623,26 @@ mod tests {
                 }
                 ready_at = Some(Instant::now());
             }
+            if ready_at.is_some()
+                && matches!(mode, "overflow" | "overflow-at-limit" | "overflow-stalled")
+            {
+                if producer_at.is_none() {
+                    if fs::read(scratch.0.join("output-ready")).ok().as_deref()
+                        == Some(b"ready".as_slice())
+                    {
+                        producer_at = Some(Instant::now());
+                        // The size check preceded this callback. Give it a fresh
+                        // poll even when the test completion budget is zero.
+                        return false;
+                    }
+                    // Admission is not evidence that the writer has run.
+                    // Keep the finite producer watchdog until its own phase.
+                    return started.elapsed() >= producer;
+                }
+                return producer_at.unwrap().elapsed() >= completion;
+            }
             match ready_at {
-                Some(ready) => mode == "timeout" || ready.elapsed() >= Duration::from_secs(2),
+                Some(ready) => mode == "timeout" || ready.elapsed() >= completion,
                 None => false,
             }
         });
@@ -630,7 +659,12 @@ mod tests {
 
     #[cfg(unix)]
     fn descendant_fixture(mode: &str) -> (Scratch, Result<CapturedProcess, String>) {
-        let (scratch, result, armed) = run_descendant_fixture(mode, Duration::from_secs(10));
+        let (scratch, result, armed) = run_descendant_fixture(
+            mode,
+            Duration::from_secs(10),
+            Duration::from_secs(10),
+            Duration::from_secs(2),
+        );
         assert_eq!(
             armed,
             Some(true),
@@ -653,7 +687,12 @@ mod tests {
             ("no-ready", Duration::from_millis(30), None),
             ("arm-failed", Duration::from_secs(10), Some(false)),
         ] {
-            let (scratch, result, observed) = run_descendant_fixture(mode, startup);
+            let (scratch, result, observed) = run_descendant_fixture(
+                mode,
+                startup,
+                Duration::from_secs(10),
+                Duration::from_secs(2),
+            );
             assert_eq!(observed, armed);
             assert_eq!(
                 result.err().as_deref(),
@@ -684,6 +723,50 @@ mod tests {
             result.err().unwrap(),
             "Fixture executable exceeded output limit"
         );
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn overflow_fixture_waits_for_production_before_zero_completion_deadline() {
+        let (_scratch, result, armed) = run_descendant_fixture(
+            "overflow",
+            Duration::from_secs(10),
+            Duration::from_secs(10),
+            Duration::ZERO,
+        );
+        assert_eq!(armed, Some(true));
+        assert_eq!(
+            result.err().unwrap(),
+            "Fixture executable exceeded output limit"
+        );
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn overflow_fixture_marker_at_the_byte_limit_does_not_fabricate_overflow() {
+        let (scratch, result, armed) = run_descendant_fixture(
+            "overflow-at-limit",
+            Duration::from_secs(10),
+            Duration::from_secs(10),
+            Duration::ZERO,
+        );
+        assert_eq!(armed, Some(true));
+        assert_eq!(result.err().unwrap(), "Fixture executable timed out");
+        assert_eq!(fs::read(scratch.0.join("output-ready")).unwrap(), b"ready");
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn overflow_fixture_producer_watchdog_remains_active_after_admission() {
+        let (scratch, result, armed) = run_descendant_fixture(
+            "overflow-stalled",
+            Duration::from_secs(10),
+            Duration::ZERO,
+            Duration::from_secs(2),
+        );
+        assert_eq!(armed, Some(true));
+        assert_eq!(result.err().unwrap(), "Fixture executable timed out");
+        assert!(!scratch.0.join("output-ready").exists());
     }
 
     #[test]
